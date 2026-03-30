@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Créer facture proforma</title>
+</head>
+<body>
+    <h1>Créer facture proforma</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Enregistrer</button>
+    </form>
+    <a href="/invoices/choose/">Retour</a>
+</body>
+</html>
