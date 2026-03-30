@@ -1,0 +1,22 @@
+{% extends "admin/change_list.html" %}
+
+{% block search %}
+{{ block.super }}
+<div class="page-size-toolbar" style="margin: 12px 0 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+    <form method="get" style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+        {% for key, value in page_size_preserved_filters %}
+        <input type="hidden" name="{{ key }}" value="{{ value }}">
+        {% endfor %}
+        <input
+            id="page-size-input"
+            type="number"
+            name="per_page"
+            min="1"
+            max="500"
+            value="{{ current_per_page }}"
+            style="width: 88px;"
+        >
+        <button type="submit" id="page-size-apply">Apply</button>
+    </form>
+</div>
+{% endblock %}

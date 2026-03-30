@@ -1,0 +1,285 @@
+{% extends "admin/change_form.html" %}
+
+{% block extrahead %}
+{{ block.super }}
+<style>
+    :root {
+        --po-form-bg: #f7f5ef;
+        --po-form-panel: #fffdf9;
+        --po-form-border: #ddd8cb;
+        --po-form-text: #243746;
+        --po-form-muted: #6d7d88;
+        --po-form-accent: #356f77;
+        --po-form-shadow: 0 14px 36px rgba(46, 61, 72, 0.08);
+        --po-form-radius: 18px;
+    }
+
+    #content {
+        background:
+            radial-gradient(circle at top left, rgba(83, 134, 143, 0.12), transparent 28%),
+            radial-gradient(circle at top right, rgba(220, 184, 122, 0.1), transparent 24%),
+            linear-gradient(180deg, #fbfcf8 0%, var(--po-form-bg) 100%);
+    }
+
+    #nav-sidebar {
+        background: linear-gradient(180deg, #fbfbf7 0%, #f1efe8 100%);
+        border-right: 1px solid var(--po-form-border);
+    }
+
+    #nav-sidebar .module {
+        background: #ffffff;
+        border: 1px solid var(--po-form-border);
+        border-radius: 18px;
+        box-shadow: 0 8px 22px rgba(31, 51, 73, 0.05);
+        overflow: hidden;
+    }
+
+    #nav-sidebar .module th,
+    #nav-sidebar .module caption,
+    #nav-sidebar .module h2 {
+        background: linear-gradient(180deg, #f4f3ee 0%, #ebe8df 100%);
+        color: #395864 !important;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+    }
+
+    #nav-sidebar .module td,
+    #nav-sidebar .module th {
+        border-color: #e9e4d8;
+    }
+
+    #nav-sidebar a {
+        color: #315f68;
+        font-weight: 600;
+    }
+
+    #nav-sidebar .current-app .section:link,
+    #nav-sidebar .current-app .section:visited,
+    #nav-sidebar .current-model {
+        background: linear-gradient(180deg, #f6ecd2 0%, #efe1bc 100%);
+        color: #6f5730 !important;
+        font-weight: 800;
+    }
+
+    #nav-sidebar input[type="search"],
+    #nav-sidebar input[type="text"] {
+        border-radius: 999px;
+        border: 1px solid var(--po-form-border);
+        background: #fffefb;
+        color: #28414f;
+    }
+
+    .change-form #content-main {
+        max-width: 1380px;
+        margin: 0 auto;
+    }
+
+    .change-form .submit-row {
+        background: var(--po-form-panel);
+        border: 1px solid var(--po-form-border);
+        border-radius: 14px;
+        box-shadow: var(--po-form-shadow);
+    }
+
+    .change-form .module,
+    .change-form .inline-group {
+        background: var(--po-form-panel);
+        border: 1px solid var(--po-form-border);
+        border-radius: var(--po-form-radius);
+        box-shadow: var(--po-form-shadow);
+        overflow: hidden;
+        margin-bottom: 18px;
+    }
+
+    .change-form .module h2,
+    .change-form .module caption,
+    .change-form .inline-group h2 {
+        background: linear-gradient(180deg, #faf9f4 0%, #f0ede4 100%);
+        color: #315767;
+        padding: 16px 20px;
+        font-size: 15px;
+        letter-spacing: 0.03em;
+    }
+
+    .change-form .form-row {
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+
+    .change-form .aligned label {
+        color: var(--po-form-muted);
+        font-weight: 700;
+    }
+
+    .change-form input:not([type="checkbox"]):not([type="radio"]),
+    .change-form textarea,
+    .change-form select {
+        border-radius: 12px;
+        border: 1px solid var(--po-form-border);
+        padding: 10px 12px;
+    }
+
+    .change-form .related-widget-wrapper {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: nowrap;
+        max-width: 100%;
+    }
+
+    .change-form .related-widget-wrapper select,
+    .change-form .related-widget-wrapper .select2-container {
+        min-width: 320px;
+        width: min(100%, 520px) !important;
+    }
+
+    .change-form .related-widget-wrapper .select2-selection,
+    .change-form .related-widget-wrapper select {
+        min-height: 46px;
+    }
+
+    .change-form .related-widget-wrapper .select2-selection__rendered {
+        line-height: 44px !important;
+        padding-left: 14px !important;
+        padding-right: 34px !important;
+    }
+
+    .change-form .related-widget-wrapper .select2-selection__arrow {
+        height: 44px !important;
+    }
+
+    .change-form .related-widget-wrapper a.related-widget-wrapper-link {
+        margin: 0 !important;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 34px;
+        height: 34px;
+        border-radius: 999px;
+        background: #fffefb;
+        border: 1px solid var(--po-form-border);
+        box-shadow: 0 4px 12px rgba(46, 61, 72, 0.06);
+    }
+
+    .change-form .related-widget-wrapper a.related-widget-wrapper-link:hover {
+        background: #eef4f2;
+    }
+
+    .change-form .field-seller .related-widget-wrapper,
+    .change-form .field-requester .related-widget-wrapper,
+    .inline-group .field-product .related-widget-wrapper {
+        width: 100%;
+    }
+
+    .inline-group .field-product .related-widget-wrapper select,
+    .inline-group .field-product .related-widget-wrapper .select2-container {
+        min-width: 260px;
+        width: min(100%, 420px) !important;
+    }
+
+    .change-form .readonly {
+        color: var(--po-form-text);
+        font-weight: 700;
+    }
+
+    .change-form .field-gross_value_display .readonly,
+    .change-form .field-vat_amount_display .readonly,
+    .change-form .field-total_amount_display .readonly,
+    .change-form .field-purchase_number .readonly {
+        display: inline-block;
+        min-width: 140px;
+        background: linear-gradient(180deg, #fffefb 0%, #f7f4ed 100%);
+        border: 1px solid var(--po-form-border);
+        border-radius: 12px;
+        padding: 10px 14px;
+    }
+
+    .inline-group .tabular th {
+        background: #edf3f1;
+        color: #315767;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        font-size: 11px;
+    }
+
+    .inline-group .tabular td,
+    .inline-group .tabular th {
+        padding-top: 12px;
+        padding-bottom: 12px;
+    }
+
+    .inline-group .tabular tr:nth-child(even) td {
+        background: #fffefb;
+    }
+
+    .inline-group .tabular tr:hover td {
+        background: #f6f4ed;
+    }
+
+    .purchase-order-hero {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 18px;
+        margin-bottom: 16px;
+    }
+
+    .purchase-order-hero h1 {
+        margin: 0;
+        font-size: 32px;
+        line-height: 1.1;
+        letter-spacing: -0.03em;
+        color: #315767;
+    }
+
+    .purchase-order-hero p {
+        margin: 10px 0 0;
+        color: var(--po-form-muted);
+        font-size: 14px;
+        max-width: 760px;
+    }
+
+    .purchase-order-badge {
+        background: #fff;
+        border: 1px solid var(--po-form-border);
+        border-radius: 999px;
+        padding: 10px 14px;
+        color: #315767;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    @media (max-width: 900px) {
+        .purchase-order-hero {
+            flex-direction: column;
+        }
+
+        .change-form .related-widget-wrapper {
+            flex-wrap: wrap;
+        }
+
+        .change-form .related-widget-wrapper select,
+        .change-form .related-widget-wrapper .select2-container {
+            width: 100% !important;
+            min-width: 0;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content_title %}
+<div class="purchase-order-hero">
+    <div>
+        <h1>{% if add %}Add Purchase Order{% else %}Edit Purchase Order{% endif %}</h1>
+        <p>Capture supplier details, commercial terms, and line items in a cleaner layout designed for faster order entry.</p>
+    </div>
+    <div class="purchase-order-badge">
+        {% if original and original.purchase_number %}
+            {{ original.purchase_number }}
+        {% else %}
+            New order
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

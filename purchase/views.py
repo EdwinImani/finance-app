@@ -1,0 +1,22 @@
+from django.http import JsonResponse
+from products.models import Product
+
+
+def product_info(request, product_id):
+
+    try:
+        product = Product.objects.get(id=product_id)
+
+        data = {
+            "description": product.description,
+            "part_number": product.part_number,
+            "note": product.note,
+            "unit_qty": str(product.unit_qty),
+            "unit_price": str(product.purchase_price),
+            "sale_price": str(product.sale_price),
+        }
+
+        return JsonResponse(data)
+
+    except Product.DoesNotExist:
+        return JsonResponse({})

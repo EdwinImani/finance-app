@@ -1,0 +1,341 @@
+{% extends "admin/change_form.html" %}
+
+{% block extrahead %}
+{{ block.super }}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const fileInput = document.getElementById("id_company_logo");
+    const clearCheckbox = document.getElementById("company_logo-clear_id");
+    const form = document.getElementById("companysetting_form");
+
+    if (!fileInput) {
+        return;
+    }
+
+    function ensureFileNameBox() {
+        let fileNameBox = document.getElementById("company-logo-file-name");
+
+        if (fileNameBox) {
+            return fileNameBox;
+        }
+
+        fileNameBox = document.createElement("div");
+        fileNameBox.id = "company-logo-file-name";
+        fileNameBox.className = "company-logo-file-name";
+        fileNameBox.textContent = "No file selected";
+        fileInput.insertAdjacentElement("afterend", fileNameBox);
+        return fileNameBox;
+    }
+
+    function addSaveLogoButton() {
+        if (!form || document.getElementById("save-logo-button")) {
+            return;
+        }
+
+        const button = document.createElement("button");
+        button.type = "button";
+        button.id = "save-logo-button";
+        button.className = "company-logo-save-button";
+        button.textContent = "Save logo";
+        button.addEventListener("click", function () {
+            form.submit();
+        });
+
+        fileInput.insertAdjacentElement("afterend", button);
+    }
+
+    function addRemoveLogoButton() {
+        if (!form || !clearCheckbox || document.getElementById("remove-logo-button")) {
+            return;
+        }
+
+        const button = document.createElement("button");
+        button.type = "button";
+        button.id = "remove-logo-button";
+        button.className = "company-logo-remove-button";
+        button.textContent = "Remove logo";
+        button.addEventListener("click", function () {
+            clearCheckbox.checked = true;
+            fileInput.value = "";
+            ensureFileNameBox().textContent = "No file selected";
+
+            const previewWrap = document.querySelector(".company-logo-preview-wrap");
+            const previewField = document.querySelector(".form-row.field-logo_preview .readonly");
+
+            if (previewWrap) {
+                previewWrap.innerHTML = '<div class="company-logo-empty">No logo uploaded yet.</div>';
+            } else if (previewField) {
+                previewField.innerHTML = '<div class="company-logo-empty">No logo uploaded yet.</div>';
+            }
+        });
+
+        const saveButton = document.getElementById("save-logo-button");
+
+        if (saveButton) {
+            saveButton.insertAdjacentElement("afterend", button);
+        } else {
+            fileInput.insertAdjacentElement("afterend", button);
+        }
+    }
+
+    function ensurePreviewImage() {
+        let previewImage = document.querySelector(".company-logo-preview");
+
+        if (previewImage) {
+            return previewImage;
+        }
+
+        let previewWrap = document.querySelector(".company-logo-preview-wrap");
+
+        if (!previewWrap) {
+            const previewField = document.querySelector(".form-row.field-logo_preview .readonly");
+
+            if (!previewField) {
+                return null;
+            }
+
+            previewField.innerHTML = '<div class="company-logo-preview-wrap"></div>';
+            previewWrap = previewField.querySelector(".company-logo-preview-wrap");
+        }
+
+        previewImage = document.createElement("img");
+        previewImage.alt = "Company logo";
+        previewImage.className = "company-logo-preview";
+        previewWrap.innerHTML = "";
+        previewWrap.appendChild(previewImage);
+
+        return previewImage;
+    }
+
+    fileInput.addEventListener("change", function () {
+        const file = fileInput.files && fileInput.files[0];
+        const fileNameBox = ensureFileNameBox();
+
+        if (!file) {
+            fileNameBox.textContent = "No file selected";
+            return;
+        }
+
+        if (clearCheckbox) {
+            clearCheckbox.checked = false;
+        }
+
+        fileNameBox.textContent = file.name;
+
+        if (!file.type.startsWith("image/")) {
+            return;
+        }
+
+        const previewImage = ensurePreviewImage();
+
+        if (!previewImage) {
+            return;
+        }
+
+        const objectUrl = URL.createObjectURL(file);
+        previewImage.src = objectUrl;
+    });
+
+    addSaveLogoButton();
+    addRemoveLogoButton();
+    ensureFileNameBox();
+});
+</script>
+<style>
+    :root {
+        --company-bg: #f7f5ef;
+        --company-panel: #fffdf9;
+        --company-border: #ddd8cb;
+        --company-text: #243746;
+        --company-muted: #6d7d88;
+        --company-accent: #356f77;
+        --company-shadow: 0 14px 36px rgba(46, 61, 72, 0.08);
+        --company-radius: 18px;
+    }
+
+    #content {
+        background:
+            radial-gradient(circle at top left, rgba(83, 134, 143, 0.12), transparent 28%),
+            radial-gradient(circle at top right, rgba(220, 184, 122, 0.1), transparent 24%),
+            linear-gradient(180deg, #fbfcf8 0%, var(--company-bg) 100%);
+    }
+
+    .change-form #content-main {
+        max-width: 1280px;
+        margin: 0 auto;
+    }
+
+    .change-form .submit-row {
+        background: var(--company-panel);
+        border: 1px solid var(--company-border);
+        border-radius: 14px;
+        box-shadow: var(--company-shadow);
+    }
+
+    .change-form .module {
+        background: var(--company-panel);
+        border: 1px solid var(--company-border);
+        border-radius: var(--company-radius);
+        box-shadow: var(--company-shadow);
+        overflow: hidden;
+        margin-bottom: 18px;
+    }
+
+    .change-form .module h2,
+    .change-form .module caption,
+    .inline-group h2 {
+        background: linear-gradient(180deg, #faf9f4 0%, #f0ede4 100%);
+        color: #315767;
+        padding: 16px 20px;
+        font-size: 15px;
+        letter-spacing: 0.03em;
+    }
+
+    .change-form .form-row {
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+
+    .change-form .aligned label {
+        color: var(--company-muted);
+        font-weight: 700;
+    }
+
+    .change-form input:not([type="file"]):not([type="checkbox"]):not([type="radio"]),
+    .change-form textarea,
+    .change-form select {
+        border-radius: 12px;
+        border: 1px solid var(--company-border);
+        padding: 10px 12px;
+    }
+
+    .change-form input[type="file"] {
+        border: 0;
+        padding: 0;
+        background: transparent;
+        box-shadow: none;
+    }
+
+    .company-logo-save-button {
+        margin-left: 12px;
+        border: 1px solid var(--company-accent);
+        background: var(--company-accent);
+        color: #fff;
+        border-radius: 999px;
+        padding: 9px 14px;
+        font-weight: 700;
+        cursor: pointer;
+        box-shadow: 0 8px 18px rgba(53, 111, 119, 0.2);
+    }
+
+    .company-logo-save-button:hover {
+        background: #2b5c63;
+        border-color: #2b5c63;
+    }
+
+    .company-logo-remove-button {
+        margin-left: 10px;
+        border: 1px solid #d48a8f;
+        background: #fff5f6;
+        color: #8a2f39;
+        border-radius: 999px;
+        padding: 9px 14px;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    .company-logo-remove-button:hover {
+        background: #ffe8ea;
+    }
+
+    .change-form .form-row.field-company_logo a {
+        color: var(--company-accent);
+        font-weight: 700;
+    }
+
+    .change-form .form-row.field-company_logo .current-file,
+    .change-form .form-row.field-company_logo .clearable-file-input,
+    .change-form .form-row.field-company_logo .clearable-file-input > a:first-of-type,
+    .change-form .form-row.field-company_logo .clearable-file-input br:first-of-type {
+        display: none;
+    }
+
+    .change-form .form-row.field-company_logo .readonly {
+        display: block;
+        margin-top: 8px;
+    }
+
+    .company-logo-file-name {
+        display: inline-block;
+        margin-left: 12px;
+        color: var(--company-muted);
+        font-weight: 600;
+    }
+
+    .change-form .form-row.field-company_address input {
+        width: min(100%, 920px);
+        max-width: 100%;
+    }
+
+    .company-settings-summary {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 14px;
+        padding: 6px 0;
+    }
+
+    .company-summary-card {
+        background: linear-gradient(180deg, #ffffff 0%, #f8fbfe 100%);
+        border: 1px solid var(--company-border);
+        border-radius: 16px;
+        padding: 16px;
+    }
+
+    .company-summary-card strong {
+        display: block;
+        margin-bottom: 8px;
+        color: var(--company-muted);
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .company-summary-card span {
+        color: #183247;
+        font-size: 18px;
+        font-weight: 700;
+    }
+
+    .company-logo-preview-wrap,
+    .company-logo-empty {
+        padding: 8px 0 4px;
+    }
+
+    .company-logo-preview {
+        max-width: 240px;
+        max-height: 120px;
+        border-radius: 16px;
+        border: 1px solid var(--company-border);
+        background: #fff;
+        padding: 14px;
+        box-shadow: 0 8px 22px rgba(31, 51, 73, 0.08);
+    }
+
+    .company-logo-empty {
+        color: var(--company-muted);
+        font-weight: 600;
+    }
+
+    @media (max-width: 980px) {
+        .company-settings-summary {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @media (max-width: 640px) {
+        .company-settings-summary {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}

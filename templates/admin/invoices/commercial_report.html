@@ -1,0 +1,952 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<style>
+    :root {
+        --report-bg: #f4f7fb;
+        --report-panel: #ffffff;
+        --report-border: #d8e0ea;
+        --report-text: #213547;
+        --report-muted: #607387;
+        --report-accent: #2e6f9e;
+        --report-accent-soft: #e9f3fb;
+        --report-rose: rgba(237, 151, 160, 0.88);
+        --report-shadow: 0 12px 32px rgba(31, 51, 73, 0.08);
+        --report-radius: 18px;
+    }
+
+    #content {
+        background:
+            radial-gradient(circle at top left, rgba(46, 111, 158, 0.12), transparent 28%),
+            linear-gradient(180deg, #f8fbfe 0%, var(--report-bg) 100%);
+    }
+
+    .commercial-report-shell {
+        max-width: 1480px;
+        margin: 24px auto;
+        padding: 0 12px 20px;
+        color: var(--report-text);
+    }
+
+    .commercial-hero,
+    .commercial-panel-header,
+    .commercial-summary-line,
+    .commercial-table-head,
+    .commercial-table-controls,
+    .commercial-pagination,
+    .commercial-action-row,
+    .commercial-page-size {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+
+    .commercial-hero {
+        margin-bottom: 18px;
+    }
+
+    .commercial-hero h1 {
+        margin: 0;
+        font-size: 32px;
+        line-height: 1.1;
+        letter-spacing: -0.03em;
+        color: #183247;
+    }
+
+    .commercial-hero p,
+    .commercial-panel-subtitle,
+    .commercial-summary-line,
+    .commercial-table-head p,
+    .commercial-table-info,
+    .commercial-empty,
+    .commercial-metric-row {
+        color: var(--report-muted);
+    }
+
+    .commercial-hero p {
+        margin: 10px 0 0;
+        max-width: 760px;
+        font-size: 14px;
+    }
+
+    .commercial-btn {
+        appearance: none;
+        border: 1px solid transparent;
+        border-radius: 999px;
+        padding: 10px 16px;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+    }
+
+    .commercial-btn-primary {
+        background: var(--report-accent);
+        color: #fff;
+        box-shadow: 0 10px 20px rgba(46, 111, 158, 0.2);
+    }
+
+    .commercial-btn-secondary {
+        background: #fff;
+        color: var(--report-text);
+        border-color: var(--report-border);
+    }
+
+    .commercial-panel,
+    .commercial-table-card,
+    .commercial-side-card,
+    .commercial-kpi {
+        background: var(--report-panel);
+        border: 1px solid var(--report-border);
+        border-radius: var(--report-radius);
+        box-shadow: var(--report-shadow);
+    }
+
+    .commercial-panel {
+        padding: 22px;
+        margin-bottom: 20px;
+    }
+
+    .commercial-panel-title,
+    .commercial-table-head h3,
+    .commercial-side-card h3 {
+        margin: 0;
+        color: #183247;
+    }
+
+    .commercial-panel-title {
+        font-size: 21px;
+    }
+
+    .commercial-panel-subtitle {
+        margin: 6px 0 0;
+        font-size: 13px;
+    }
+
+    .commercial-filter-grid,
+    .commercial-selection-grid,
+    .commercial-kpis,
+    .commercial-results-grid,
+    .commercial-metric-list {
+        display: grid;
+        gap: 18px;
+    }
+
+    .commercial-filter-grid {
+        grid-template-columns: repeat(2, minmax(280px, 1fr));
+        gap: 18px 22px;
+    }
+
+    .commercial-field label,
+    .commercial-kpi-label {
+        display: block;
+        margin-bottom: 7px;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--report-muted);
+    }
+
+    .commercial-field input,
+    .commercial-field select,
+    .commercial-page-size input {
+        width: 100%;
+        max-width: 320px;
+        padding: 11px 13px;
+        font-size: 18px;
+        font-weight: 600;
+        color: #183247;
+        border-radius: 12px;
+        border: 1px solid var(--report-border);
+        background: #fbfdff;
+        box-sizing: border-box;
+    }
+
+    .commercial-inline-action,
+    .commercial-current-choice {
+        margin-top: 8px;
+    }
+
+    .commercial-current-choice {
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .commercial-current-choice span {
+        color: #183247;
+    }
+
+    .commercial-selection-grid {
+        grid-template-columns: 1fr 1fr;
+        margin-top: 22px;
+    }
+
+    .commercial-selection-card {
+        background: #f8fbfe;
+        border: 1px solid var(--report-border);
+        border-radius: 14px;
+        padding: 14px 16px;
+        min-height: 112px;
+    }
+
+    .commercial-selection-card strong {
+        display: block;
+        margin-bottom: 10px;
+        color: #183247;
+        font-size: 14px;
+    }
+
+    .commercial-selection-card ul {
+        margin: 0;
+        padding-left: 18px;
+        color: #183247;
+        font-size: 17px;
+        font-weight: 600;
+        line-height: 1.6;
+    }
+
+    .commercial-selection-card button,
+    .commercial-page-size button,
+    .commercial-pagination button {
+        border: 1px solid var(--report-border);
+        background: #fff;
+        border-radius: 999px;
+        padding: 8px 12px;
+        cursor: pointer;
+        font-weight: 600;
+        color: #183247;
+    }
+
+    .commercial-kpis {
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        margin-bottom: 18px;
+    }
+
+    .commercial-kpi {
+        padding: 16px;
+        background: linear-gradient(180deg, #ffffff 0%, #f7fbff 100%);
+    }
+
+    .commercial-kpi-value {
+        font-size: 24px;
+        font-weight: 700;
+        color: #183247;
+        word-break: break-word;
+    }
+
+    .commercial-chart-card {
+        background: linear-gradient(180deg, #fafdff 0%, var(--report-accent-soft) 100%);
+        border: 1px solid #cfe0f0;
+        border-radius: 18px;
+        padding: 18px;
+    }
+
+    .commercial-chart-wrap {
+        position: relative;
+        height: 380px;
+        width: 100%;
+    }
+
+    .commercial-results-grid {
+        grid-template-columns: minmax(0, 1fr) 300px;
+        align-items: start;
+        margin-top: 18px;
+    }
+
+    .commercial-table-card {
+        overflow: hidden;
+    }
+
+    .commercial-table-head,
+    .commercial-table-controls {
+        padding: 16px 18px;
+    }
+
+    .commercial-table-head {
+        border-bottom: 1px solid var(--report-border);
+        background: #fbfdff;
+    }
+
+    .commercial-table-head p {
+        margin: 4px 0 0;
+        font-size: 12px;
+    }
+
+    .commercial-table-controls {
+        padding-top: 14px;
+        font-size: 14px;
+    }
+
+    .commercial-table-scroll {
+        max-height: 500px;
+        overflow: auto;
+    }
+
+    .commercial-table-scroll table {
+        width: 100%;
+        min-width: 1080px;
+        border-collapse: collapse;
+    }
+
+    .commercial-table-scroll thead th {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        background: #eef5fb;
+        color: #294358;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        font-size: 11px;
+        padding: 12px 14px;
+        text-align: left;
+    }
+
+    .commercial-table-scroll tbody tr:nth-child(even) {
+        background: #fbfdff;
+    }
+
+    .commercial-table-scroll tbody tr:hover {
+        background: #f1f7fc;
+    }
+
+    .commercial-table-scroll tbody td {
+        padding: 12px 14px;
+        border-bottom: 1px solid #edf2f7;
+    }
+
+    .commercial-table-scroll tbody td.is-right {
+        text-align: right;
+    }
+
+    .commercial-table-scroll tbody td.is-strong {
+        font-weight: 700;
+        color: #183247;
+    }
+
+    .commercial-empty {
+        padding: 24px 18px;
+    }
+
+    .commercial-pagination {
+        justify-content: flex-end;
+        padding: 14px 18px 18px;
+        border-top: 1px solid var(--report-border);
+        background: #fbfdff;
+    }
+
+    .commercial-pagination button.is-active {
+        background: var(--report-accent);
+        border-color: var(--report-accent);
+        color: #fff;
+    }
+
+    .commercial-side-card {
+        padding: 18px;
+        background: linear-gradient(180deg, #ffffff 0%, #f9fbfd 100%);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    }
+
+    .commercial-metric-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 10px 0;
+        border-bottom: 1px solid #edf2f7;
+    }
+
+    .commercial-metric-row:last-child {
+        border-bottom: 0;
+    }
+
+    .commercial-metric-row strong {
+        color: #183247;
+    }
+
+    @media (max-width: 1100px) {
+        .commercial-kpis {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .commercial-results-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 760px) {
+        .commercial-hero,
+        .commercial-panel-header,
+        .commercial-filter-grid,
+        .commercial-selection-grid,
+        .commercial-kpis {
+            grid-template-columns: 1fr;
+            flex-direction: column;
+        }
+
+        .commercial-field input,
+        .commercial-field select {
+            max-width: none;
+        }
+    }
+
+    @media print {
+        .no-print {
+            display: none !important;
+        }
+
+        body,
+        #content {
+            background: #fff !important;
+        }
+
+        .commercial-report-shell {
+            max-width: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .commercial-panel,
+        .commercial-chart-card,
+        .commercial-table-card,
+        .commercial-side-card,
+        .commercial-kpi {
+            border: 0;
+            box-shadow: none;
+            background: #fff;
+        }
+
+        .commercial-table-scroll {
+            max-height: none;
+            overflow: visible;
+        }
+    }
+</style>
+
+<div class="commercial-report-shell">
+    <div class="commercial-hero">
+        <div>
+            <h1>Commercial Invoices Report</h1>
+            <p>Track monthly billing, review filtered invoices quickly, and export a clean PDF summary when needed.</p>
+        </div>
+        <div class="commercial-action-row no-print">
+            <button type="button" class="commercial-btn commercial-btn-secondary" onclick="window.print()">Export PDF</button>
+        </div>
+    </div>
+
+    <div class="commercial-panel no-print">
+        <div class="commercial-panel-header">
+            <div>
+                <h2 class="commercial-panel-title">Filters</h2>
+                <p class="commercial-panel-subtitle">Refine the report by date range, importer, and product.</p>
+            </div>
+            <button type="submit" form="commercial-report-form" class="commercial-btn commercial-btn-primary">Generate Report</button>
+        </div>
+
+        <form method="get" id="commercial-report-form">
+            <div class="commercial-filter-grid">
+                <div class="commercial-field">
+                    <label for="year">Year</label>
+                    <input type="number" name="year" id="year" value="{{ year|default:'' }}">
+                </div>
+
+                <div class="commercial-field">
+                    <label for="importer_select">Importer</label>
+                    <select id="importer_select">
+                        <option value="">Choose an importer</option>
+                        {% for importer in importers %}
+                            <option value="{{ importer.id }}">{{ importer.description }}</option>
+                        {% endfor %}
+                    </select>
+                    <div class="commercial-current-choice">Current selection: <span id="importer_current_choice">None</span></div>
+                    <div class="commercial-inline-action">
+                        <button type="button" class="commercial-btn commercial-btn-secondary" onclick="addImporter()">Add importer</button>
+                    </div>
+                </div>
+
+                <div class="commercial-field">
+                    <label for="date_from">From</label>
+                    <input type="date" name="date_from" id="date_from" value="{{ date_from|default:'' }}">
+                </div>
+
+                <div class="commercial-field">
+                    <label for="product_select">Product</label>
+                    <select id="product_select">
+                        <option value="">Choose a product</option>
+                        {% for product in products %}
+                            <option value="{{ product.id }}">{{ product.description }}</option>
+                        {% endfor %}
+                    </select>
+                    <div class="commercial-current-choice">Current selection: <span id="product_current_choice">None</span></div>
+                    <div class="commercial-inline-action">
+                        <button type="button" class="commercial-btn commercial-btn-secondary" onclick="addProduct()">Add product</button>
+                    </div>
+                </div>
+
+                <div class="commercial-field">
+                    <label for="date_to">To</label>
+                    <input type="date" name="date_to" id="date_to" value="{{ date_to|default:'' }}">
+                </div>
+            </div>
+
+            <div class="commercial-selection-grid">
+                <div class="commercial-selection-card">
+                    <strong>Selected importers</strong>
+                    <ul id="selected_importers_list"></ul>
+                </div>
+
+                <div class="commercial-selection-card">
+                    <strong>Selected products</strong>
+                    <ul id="selected_products_list"></ul>
+                </div>
+            </div>
+
+            <div id="hidden_importers_container">
+                {% for importer_id in selected_importers %}
+                    <input type="hidden" name="importers" value="{{ importer_id }}">
+                {% endfor %}
+            </div>
+
+            <div id="hidden_products_container">
+                {% for product_id in selected_products %}
+                    <input type="hidden" name="products" value="{{ product_id }}">
+                {% endfor %}
+            </div>
+        </form>
+    </div>
+
+    <div class="commercial-kpis">
+        <div class="commercial-kpi">
+            <span class="commercial-kpi-label">Total Quantity</span>
+            <div class="commercial-kpi-value">{{ total_qty }}</div>
+        </div>
+        <div class="commercial-kpi">
+            <span class="commercial-kpi-label">Subtotal</span>
+            <div class="commercial-kpi-value">{{ total_subtotal }}</div>
+        </div>
+        <div class="commercial-kpi">
+            <span class="commercial-kpi-label">VAT</span>
+            <div class="commercial-kpi-value">{{ total_vat }}</div>
+        </div>
+        <div class="commercial-kpi">
+            <span class="commercial-kpi-label">Freight</span>
+            <div class="commercial-kpi-value">{{ total_freight }}</div>
+        </div>
+        <div class="commercial-kpi">
+            <span class="commercial-kpi-label">Discount</span>
+            <div class="commercial-kpi-value">{{ total_discount }}</div>
+        </div>
+        <div class="commercial-kpi">
+            <span class="commercial-kpi-label">Total Amount</span>
+            <div class="commercial-kpi-value">{{ total_amount }}</div>
+        </div>
+    </div>
+
+    <div class="commercial-panel">
+        <div class="commercial-summary-line">
+            <div><strong>From Date:</strong> {{ from_date|default:"-" }}</div>
+            <div><strong>To Date:</strong> {{ to_date|default:"-" }}</div>
+            <div><strong>Invoices:</strong> {{ invoices|length }}</div>
+        </div>
+
+        <div class="commercial-chart-card">
+            <div class="commercial-panel-header" style="margin-bottom: 14px;">
+                <div>
+                    <h2 class="commercial-panel-title">Monthly Commercial Chart</h2>
+                    <p class="commercial-panel-subtitle">A clear month-by-month view of total commercial invoice amount.</p>
+                </div>
+            </div>
+            <div class="commercial-chart-wrap">
+                <canvas id="chart"></canvas>
+            </div>
+        </div>
+
+        <div class="commercial-results-grid">
+            <div class="commercial-table-card">
+                <div class="commercial-table-head">
+                    <div>
+                        <h3>Commercial Invoices</h3>
+                        <p>Scroll vertically for long lists and horizontally if all columns do not fit.</p>
+                    </div>
+                </div>
+
+                {% if invoices %}
+                    <div class="commercial-table-controls no-print">
+                        <div class="commercial-page-size">
+                            <input id="commercial-page-size-input" type="number" min="1" value="10">
+                            <button type="button" id="commercial-page-size-apply">Apply</button>
+                        </div>
+                        <div class="commercial-table-info" id="commercial-table-info"></div>
+                    </div>
+                    <div class="commercial-table-scroll">
+                        <table id="commercial-invoices-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Number</th>
+                                    <th>Importer</th>
+                                    <th>End User</th>
+                                    <th class="is-right">Qty</th>
+                                    <th class="is-right">Subtotal</th>
+                                    <th class="is-right">VAT</th>
+                                    <th class="is-right">Freight</th>
+                                    <th class="is-right">Discount</th>
+                                    <th class="is-right">Total Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody id="commercial-invoices-tbody">
+                                {% for invoice in invoices %}
+                                    <tr>
+                                        <td>{{ invoice.invoice_date|date:"Y-m-d" }}</td>
+                                        <td style="font-weight: 600; color: #224460;">{{ invoice.invoice_number }}</td>
+                                        <td>{{ invoice.importer|default:"-" }}</td>
+                                        <td>{{ invoice.end_user|default:"-" }}</td>
+                                        <td class="is-right">{{ invoice.qty_total }}</td>
+                                        <td class="is-right">{{ invoice.subtotal_db }}</td>
+                                        <td class="is-right">{{ invoice.vat_amount }}</td>
+                                        <td class="is-right">{{ invoice.freight }}</td>
+                                        <td class="is-right">{{ invoice.discount }}</td>
+                                        <td class="is-right is-strong">{{ invoice.total_amount }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="commercial-pagination no-print" id="commercial-pagination"></div>
+                {% else %}
+                    <div class="commercial-empty">No commercial invoices found for the selected filters.</div>
+                {% endif %}
+            </div>
+
+            <div class="commercial-side-card">
+                <h3>Summary</h3>
+                <div class="commercial-metric-list">
+                    <div class="commercial-metric-row">
+                        <span>Total Quantity</span>
+                        <strong>{{ total_qty }}</strong>
+                    </div>
+                    <div class="commercial-metric-row">
+                        <span>Subtotal</span>
+                        <strong>{{ total_subtotal }}</strong>
+                    </div>
+                    <div class="commercial-metric-row">
+                        <span>VAT</span>
+                        <strong>{{ total_vat }}</strong>
+                    </div>
+                    <div class="commercial-metric-row">
+                        <span>Freight</span>
+                        <strong>{{ total_freight }}</strong>
+                    </div>
+                    <div class="commercial-metric-row">
+                        <span>Discount</span>
+                        <strong>{{ total_discount }}</strong>
+                    </div>
+                    <div class="commercial-metric-row">
+                        <span>Total Amount</span>
+                        <strong>{{ total_amount }}</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const chartLabels = {{ chart_labels|safe }};
+    const chartTotals = {{ chart_totals|safe }};
+    const chartPalette = [
+        { fill: "rgba(64, 145, 108, 0.82)", stroke: "#2f6f58" },
+        { fill: "rgba(69, 123, 157, 0.82)", stroke: "#355f7a" },
+        { fill: "rgba(233, 196, 106, 0.86)", stroke: "#b28c2e" },
+        { fill: "rgba(231, 111, 81, 0.82)", stroke: "#b6543b" },
+        { fill: "rgba(168, 120, 217, 0.82)", stroke: "#7b56a3" },
+        { fill: "rgba(42, 157, 143, 0.82)", stroke: "#247d72" },
+        { fill: "rgba(244, 162, 97, 0.84)", stroke: "#bb7440" },
+        { fill: "rgba(87, 117, 144, 0.84)", stroke: "#455d72" },
+        { fill: "rgba(181, 131, 141, 0.84)", stroke: "#8a616a" },
+        { fill: "rgba(141, 153, 174, 0.84)", stroke: "#657085" }
+    ];
+
+    const chartBackgroundColors = chartLabels.map((_, index) => chartPalette[index % chartPalette.length].fill);
+    const chartBorderColors = chartLabels.map((_, index) => chartPalette[index % chartPalette.length].stroke);
+
+    new Chart(document.getElementById("chart"), {
+        type: "bar",
+        data: {
+            labels: chartLabels,
+            datasets: [{
+                label: "Total Amount",
+                data: chartTotals,
+                backgroundColor: chartBackgroundColors,
+                borderColor: chartBorderColors,
+                borderWidth: 1.2,
+                borderRadius: 0,
+                barPercentage: 1.0,
+                categoryPercentage: 1.0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true
+                }
+            },
+            scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: "Month"
+                    },
+                    grid: {
+                        display: false
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: "Total Amount"
+                    },
+                    ticks: {
+                        callback: function(value) {
+                            return Number(value).toLocaleString();
+                        }
+                    }
+                }
+            }
+        }
+    });
+</script>
+
+<script>
+    const importersMap = {
+        {% for importer in importers %}
+            "{{ importer.id }}": "{{ importer.description|escapejs }}",
+        {% endfor %}
+    };
+
+    const productsMap = {
+        {% for product in products %}
+            "{{ product.id }}": "{{ product.description|escapejs }}",
+        {% endfor %}
+    };
+
+    function renderList(containerSelector, inputName, targetId, labelsMap, removeHandlerName) {
+        const list = document.getElementById(targetId);
+        const inputs = document.querySelectorAll(containerSelector + ' input[name="' + inputName + '"]');
+        list.innerHTML = "";
+
+        inputs.forEach(input => {
+            const value = input.value;
+            const text = labelsMap[value] || value;
+            const li = document.createElement("li");
+            li.style.marginBottom = "8px";
+            li.appendChild(document.createTextNode(text + " "));
+
+            const button = document.createElement("button");
+            button.type = "button";
+            button.textContent = "Remove";
+            button.addEventListener("click", function () {
+                window[removeHandlerName](value);
+            });
+            li.appendChild(button);
+
+            list.appendChild(li);
+        });
+    }
+
+    function addHiddenSelection(selectId, containerId, inputName, currentChoiceId, emptyLabel, renderCallback) {
+        const select = document.getElementById(selectId);
+        const value = select.value;
+        if (!value) return;
+
+        const hiddenContainer = document.getElementById(containerId);
+        const existingInputs = hiddenContainer.querySelectorAll('input[name="' + inputName + '"]');
+
+        for (let input of existingInputs) {
+            if (input.value === value) return;
+        }
+
+        const hiddenInput = document.createElement("input");
+        hiddenInput.type = "hidden";
+        hiddenInput.name = inputName;
+        hiddenInput.value = value;
+        hiddenContainer.appendChild(hiddenInput);
+
+        select.value = "";
+        updateCurrentChoice(selectId, currentChoiceId, emptyLabel);
+        renderCallback();
+    }
+
+    function removeHiddenSelection(containerId, inputName, value, renderCallback) {
+        const hiddenContainer = document.getElementById(containerId);
+        const inputs = hiddenContainer.querySelectorAll('input[name="' + inputName + '"]');
+
+        for (let input of inputs) {
+            if (input.value === value) {
+                input.remove();
+            }
+        }
+
+        renderCallback();
+    }
+
+    function addImporter() {
+        addHiddenSelection("importer_select", "hidden_importers_container", "importers", "importer_current_choice", "None", renderImporters);
+    }
+
+    function removeImporter(importerId) {
+        removeHiddenSelection("hidden_importers_container", "importers", importerId, renderImporters);
+    }
+
+    function addProduct() {
+        addHiddenSelection("product_select", "hidden_products_container", "products", "product_current_choice", "None", renderProducts);
+    }
+
+    function removeProduct(productId) {
+        removeHiddenSelection("hidden_products_container", "products", productId, renderProducts);
+    }
+
+    function renderImporters() {
+        renderList("#hidden_importers_container", "importers", "selected_importers_list", importersMap, "removeImporter");
+    }
+
+    function renderProducts() {
+        renderList("#hidden_products_container", "products", "selected_products_list", productsMap, "removeProduct");
+    }
+
+    function updateCurrentChoice(selectId, outputId, emptyLabel) {
+        const select = document.getElementById(selectId);
+        const output = document.getElementById(outputId);
+        const selectedText = select.options[select.selectedIndex] ? select.options[select.selectedIndex].text : "";
+        output.textContent = select.value ? selectedText : emptyLabel;
+    }
+
+    document.getElementById("importer_select").addEventListener("change", function() {
+        updateCurrentChoice("importer_select", "importer_current_choice", "None");
+    });
+
+    document.getElementById("product_select").addEventListener("change", function() {
+        updateCurrentChoice("product_select", "product_current_choice", "None");
+    });
+
+    updateCurrentChoice("importer_select", "importer_current_choice", "None");
+    updateCurrentChoice("product_select", "product_current_choice", "None");
+    renderImporters();
+    renderProducts();
+
+    (function setupCommercialTablePagination() {
+        const tbody = document.getElementById("commercial-invoices-tbody");
+        const pageSizeInput = document.getElementById("commercial-page-size-input");
+        const applyButton = document.getElementById("commercial-page-size-apply");
+        const info = document.getElementById("commercial-table-info");
+        const pagination = document.getElementById("commercial-pagination");
+        const url = new URL(window.location.href);
+        const storedPageSize = window.localStorage.getItem("commercial-report-page-size");
+
+        if (!tbody || !pageSizeInput || !applyButton || !info || !pagination) {
+            return;
+        }
+
+        const rows = Array.from(tbody.querySelectorAll("tr"));
+        let currentPage = 1;
+        let pageSize = parseInt(url.searchParams.get("page_size") || storedPageSize || pageSizeInput.value || "10", 10);
+
+        if (!pageSize || pageSize < 1) {
+            pageSize = 10;
+        }
+
+        pageSizeInput.value = pageSize;
+
+        function render() {
+            const totalItems = rows.length;
+            const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+
+            if (currentPage > totalPages) {
+                currentPage = totalPages;
+            }
+
+            const startIndex = (currentPage - 1) * pageSize;
+            const endIndex = Math.min(startIndex + pageSize, totalItems);
+
+            rows.forEach(function (row, index) {
+                row.style.display = index >= startIndex && index < endIndex ? "" : "none";
+            });
+
+            info.textContent = "Showing " + (totalItems ? startIndex + 1 : 0) + " to " + endIndex + " of " + totalItems + " entries";
+            pagination.innerHTML = "";
+
+            const prevButton = document.createElement("button");
+            prevButton.type = "button";
+            prevButton.textContent = "Previous";
+            prevButton.disabled = currentPage === 1;
+            prevButton.addEventListener("click", function () {
+                if (currentPage > 1) {
+                    currentPage -= 1;
+                    render();
+                }
+            });
+            pagination.appendChild(prevButton);
+
+            for (let page = 1; page <= totalPages; page += 1) {
+                const pageButton = document.createElement("button");
+                pageButton.type = "button";
+                pageButton.textContent = page;
+
+                if (page === currentPage) {
+                    pageButton.classList.add("is-active");
+                }
+
+                pageButton.addEventListener("click", function () {
+                    currentPage = page;
+                    render();
+                });
+
+                pagination.appendChild(pageButton);
+            }
+
+            const nextButton = document.createElement("button");
+            nextButton.type = "button";
+            nextButton.textContent = "Next";
+            nextButton.disabled = currentPage === totalPages;
+            nextButton.addEventListener("click", function () {
+                if (currentPage < totalPages) {
+                    currentPage += 1;
+                    render();
+                }
+            });
+            pagination.appendChild(nextButton);
+        }
+
+        function applyPageSize() {
+            const value = parseInt(pageSizeInput.value, 10);
+
+            if (!value || value < 1) {
+                pageSizeInput.value = pageSize;
+                return;
+            }
+
+            window.localStorage.setItem("commercial-report-page-size", value);
+            url.searchParams.set("page_size", value);
+            window.history.replaceState({}, "", url.toString());
+
+            pageSize = value;
+            currentPage = 1;
+            render();
+        }
+
+        applyButton.addEventListener("click", applyPageSize);
+        pageSizeInput.addEventListener("keydown", function (event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                applyPageSize();
+            }
+        });
+
+        render();
+    })();
+</script>
+{% endblock %}

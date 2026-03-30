@@ -1,0 +1,151 @@
+from django.contrib import admin
+from django.shortcuts import redirect
+from django.utils.html import format_html
+from .models import CompanySetting
+
+
+@admin.register(CompanySetting)
+class CompanySettingAdmin(admin.ModelAdmin):
+    change_form_template = "admin/company/companysetting/change_form.html"
+
+    list_display = (
+        "company_name",
+        "year",
+        "currency",
+        "vat_amount",
+        "company_phone",
+        "company_email",
+    )
+
+    search_fields = (
+        "company_name",
+        "company_email",
+    )
+
+    readonly_fields = (
+        "logo_preview",
+        "settings_summary",
+    )
+
+    # ----------------------
+    # REDIRECT DIRECTLY TO SETTINGS PAGE
+    # ----------------------
+
+    def changelist_view(self, request, extra_context=None):
+
+        obj = CompanySetting.objects.first()
+
+        if obj:
+            return redirect(f"/admin/company/companysetting/{obj.id}/change/")
+
+        return redirect("/admin/company/companysetting/add/")
+
+    # ----------------------
+    # ALLOW ONLY ONE OBJECT
+    # ----------------------
+
+    def has_add_permission(self, request):
+
+        if CompanySetting.objects.exists():
+            return False
+
+        return True
+
+    fieldsets = (
+
+        ("Overview", {
+            "fields": (
+                "settings_summary",
+            )
+        }),
+
+        ("Company Information", {
+            "fields": (
+                "company_logo",
+                "logo_preview",
+                "year",
+                "company_name",
+                "company_email",
+                ("company_phone", "company_fax"),
+            )
+        }),
+
+        ("Address", {
+            "fields": (
+                "company_address",
+                "address",
+            )
+        }),
+
+        ("Legal Information", {
+            "fields": (
+                ("siren", "vat_number"),
+            )
+        }),
+
+        ("Bank Information", {
+            "fields": (
+                "bank",
+                ("iban", "bic"),
+            )
+        }),
+
+        ("Documents Settings", {
+            "fields": (
+                ("currency", "vat_amount"),
+                "delivery_time",
+                "terms_conditions",
+                "proforma_validity",
+            )
+        }),
+
+        ("Notes / Footer", {
+            "fields": (
+                "note",
+                "footer_order",
+                "footer_invoice",
+                "invoice_note",
+            )
+        }),
+    )
+
+    def logo_preview(self, obj):
+        if not obj or not obj.company_logo:
+            return format_html(
+                '<div class="company-logo-empty">No logo uploaded yet.</div>'
+            )
+
+        return format_html(
+            '<div class="company-logo-preview-wrap">'
+            '<img src="{}" alt="Company logo" class="company-logo-preview" />'
+            '</div>',
+            obj.company_logo.url,
+        )
+
+    logo_preview.short_description = "Logo Preview"
+
+    def settings_summary(self, obj):
+        if not obj:
+            return format_html(
+                '<div class="company-settings-summary">'
+                '<div class="company-summary-card"><strong>Company</strong><span>Not set yet</span></div>'
+                '<div class="company-summary-card"><strong>Currency</strong><span>-</span></div>'
+                '<div class="company-summary-card"><strong>VAT</strong><span>-</span></div>'
+                '<div class="company-summary-card"><strong>Proforma Validity</strong><span>-</span></div>'
+                "</div>"
+            )
+
+        return format_html(
+            '<div class="company-settings-summary">'
+            '<div class="company-summary-card"><strong>Company</strong><span>{}</span></div>'
+            '<div class="company-summary-card"><strong>Currency</strong><span>{}</span></div>'
+            '<div class="company-summary-card"><strong>VAT</strong><span>{}%</span></div>'
+            '<div class="company-summary-card"><strong>Proforma Validity</strong><span>{} days</span></div>'
+            "</div>",
+            obj.company_name or "-",
+            obj.currency or "-",
+            obj.vat_amount if obj.vat_amount is not None else "-",
+            obj.proforma_validity if obj.proforma_validity is not None else "-",
+        )
+
+    settings_summary.short_description = "Summary"

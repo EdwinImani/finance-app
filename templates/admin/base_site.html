@@ -1,0 +1,202 @@
+{% extends "admin/base.html" %}
+{% load i18n %}
+
+{% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    :root {
+        --global-admin-bg: #f7f6f2;
+        --global-admin-panel: #fffdf9;
+        --global-admin-border: #ddd8cb;
+        --global-admin-text: #243746;
+        --global-admin-muted: #6d7d88;
+        --global-admin-accent: #2f6f78;
+        --global-admin-shadow: 0 12px 30px rgba(46, 61, 72, 0.08);
+        --global-admin-radius: 18px;
+    }
+
+    body {
+        background:
+            radial-gradient(circle at top left, rgba(83, 134, 143, 0.1), transparent 28%),
+            radial-gradient(circle at top right, rgba(220, 184, 122, 0.09), transparent 24%),
+            linear-gradient(180deg, #fbfcf8 0%, var(--global-admin-bg) 100%);
+        color: var(--global-admin-text);
+    }
+
+    #header {
+        background: linear-gradient(90deg, #356f77 0%, #294f64 100%);
+        color: #fff;
+        box-shadow: 0 8px 24px rgba(41, 65, 83, 0.16);
+    }
+
+    #branding a,
+    #user-tools,
+    #user-tools a,
+    #header a:link,
+    #header a:visited {
+        color: #fff;
+    }
+
+    .breadcrumbs {
+        background: rgba(255, 252, 245, 0.9);
+        border-bottom: 1px solid var(--global-admin-border);
+        color: var(--global-admin-muted);
+    }
+
+    .breadcrumbs a {
+        color: #315f68;
+    }
+
+    #nav-sidebar {
+        background: linear-gradient(180deg, #fbfbf7 0%, #f1efe8 100%);
+        border-right: 1px solid var(--global-admin-border);
+    }
+
+    #nav-sidebar .module {
+        background: #ffffff;
+        border: 1px solid var(--global-admin-border);
+        border-radius: 18px;
+        box-shadow: 0 8px 22px rgba(31, 51, 73, 0.05);
+        overflow: hidden;
+    }
+
+    #nav-sidebar .module caption,
+    #nav-sidebar .module h2,
+    #nav-sidebar .module th {
+        background: linear-gradient(180deg, #f4f3ee 0%, #ebe8df 100%);
+        color: #395864 !important;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+    }
+
+    #nav-sidebar td,
+    #nav-sidebar th {
+        border-color: #e9e4d8;
+    }
+
+    #nav-sidebar a {
+        color: #315f68;
+        font-weight: 600;
+    }
+
+    #nav-sidebar td a.addlink,
+    #nav-sidebar td a[href$="/add/"] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        min-height: 30px;
+        padding: 0 12px;
+        border-radius: 999px;
+        background: linear-gradient(180deg, #fffefb 0%, #eef5f3 100%);
+        border: 1px solid #ccd9d6;
+        color: #326973 !important;
+        font-weight: 800;
+        font-size: 12px;
+        letter-spacing: 0.01em;
+        text-decoration: none;
+        box-shadow: 0 6px 14px rgba(58, 88, 96, 0.08);
+        transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    #nav-sidebar td a.addlink:hover,
+    #nav-sidebar td a[href$="/add/"]:hover {
+        background: linear-gradient(180deg, #fffefb 0%, #e7f0ee 100%);
+        box-shadow: 0 10px 18px rgba(58, 88, 96, 0.12);
+        transform: translateY(-1px);
+    }
+
+    #nav-sidebar td a.addlink::before,
+    #nav-sidebar td a[href$="/add/"]::before {
+        content: "+";
+        display: inline-block;
+        font-size: 16px;
+        line-height: 1;
+        font-weight: 900;
+        color: #5da53b;
+    }
+
+    #nav-sidebar .current-app .section:link,
+    #nav-sidebar .current-app .section:visited,
+    #nav-sidebar .current-model {
+        background: linear-gradient(180deg, #f6ecd2 0%, #efe1bc 100%);
+        color: #6f5730 !important;
+        font-weight: 800;
+    }
+
+    #nav-sidebar input[type="search"],
+    #nav-sidebar input[type="text"] {
+        border-radius: 999px;
+        border: 1px solid var(--global-admin-border);
+        background: #fffefb;
+        color: #28414f;
+    }
+
+    .module,
+    .inline-group {
+        border-radius: var(--global-admin-radius);
+        border-color: var(--global-admin-border);
+        box-shadow: var(--global-admin-shadow);
+        overflow: hidden;
+        background: var(--global-admin-panel);
+    }
+
+    .module caption,
+    .module h2,
+    .inline-group h2 {
+        background: linear-gradient(180deg, #faf9f4 0%, #f0ede4 100%);
+        color: #305160;
+    }
+
+    .object-tools a,
+    input[type="submit"],
+    button,
+    .button,
+    a.button {
+        border-radius: 999px !important;
+    }
+
+    .submit-row,
+    .paginator,
+    #toolbar,
+    .actions {
+        border-radius: 14px;
+        border-color: var(--global-admin-border);
+        background: #faf8f2;
+    }
+
+    #result_list {
+        border-radius: 16px;
+        overflow: hidden;
+    }
+
+    #result_list thead th {
+        background: #edf3f1;
+        color: #315767;
+    }
+
+    #result_list tbody tr:nth-child(even) {
+        background: #fffefb;
+    }
+
+    #result_list tbody tr:hover {
+        background: #f6f4ed;
+    }
+
+    .messagelist li {
+        border-radius: 14px;
+    }
+</style>
+{% endblock %}
+
+{% block branding %}
+<div id="site-name"><a href="{% url 'admin:index' %}">{{ site_header|default:_('Django administration') }}</a></div>
+{% if user.is_anonymous %}
+  {% include "admin/color_theme_toggle.html" %}
+{% endif %}
+{% endblock %}
+
+{% block nav-global %}{% endblock %}

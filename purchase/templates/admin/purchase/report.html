@@ -1,0 +1,1139 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<style>
+    :root {
+        --report-bg: #f4f7fb;
+        --report-panel: #ffffff;
+        --report-border: #d8e0ea;
+        --report-text: #213547;
+        --report-muted: #607387;
+        --report-accent: #2e6f9e;
+        --report-accent-soft: #e9f3fb;
+        --report-rose: rgba(237, 151, 160, 0.88);
+        --report-shadow: 0 12px 32px rgba(31, 51, 73, 0.08);
+        --report-radius: 18px;
+    }
+
+    #content {
+        background:
+            radial-gradient(circle at top left, rgba(46, 111, 158, 0.12), transparent 28%),
+            linear-gradient(180deg, #f8fbfe 0%, var(--report-bg) 100%);
+    }
+
+    .purchase-report-shell {
+        max-width: 1480px;
+        margin: 24px auto;
+        padding: 0 12px 20px;
+        color: var(--report-text);
+    }
+
+    .purchase-hero {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 18px;
+        margin-bottom: 18px;
+    }
+
+    .purchase-hero h1 {
+        margin: 0;
+        font-size: 32px;
+        line-height: 1.1;
+        letter-spacing: -0.03em;
+        color: #183247;
+    }
+
+    .purchase-hero p {
+        margin: 10px 0 0;
+        max-width: 760px;
+        color: var(--report-muted);
+        font-size: 14px;
+    }
+
+    .purchase-action-row {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .purchase-btn {
+        appearance: none;
+        border: 1px solid transparent;
+        border-radius: 999px;
+        padding: 10px 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.2s ease;
+        text-decoration: none;
+    }
+
+    .purchase-btn-primary {
+        background: linear-gradient(135deg, #1f5f89 0%, #2f7bb0 100%);
+        color: #ffffff !important;
+        border-color: #1f5f89;
+        box-shadow: 0 12px 24px rgba(31, 95, 137, 0.28);
+    }
+
+    .purchase-btn-primary:hover {
+        background: linear-gradient(135deg, #174e71 0%, #276c99 100%);
+        color: #ffffff !important;
+        box-shadow: 0 14px 28px rgba(23, 78, 113, 0.34);
+        transform: translateY(-1px);
+    }
+
+    .purchase-btn-primary:visited,
+    .purchase-btn-primary:focus,
+    .purchase-btn-primary:active {
+        color: #ffffff !important;
+    }
+
+    .purchase-action-row .purchase-btn-primary {
+        min-width: 132px;
+        text-align: center;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+    }
+
+    .purchase-btn-secondary {
+        background: #fff;
+        color: var(--report-text);
+        border-color: var(--report-border);
+    }
+
+    .purchase-btn-secondary:hover {
+        background: #f7fafc;
+    }
+
+    .purchase-panel {
+        background: var(--report-panel);
+        border: 1px solid var(--report-border);
+        border-radius: var(--report-radius);
+        box-shadow: var(--report-shadow);
+        padding: 22px;
+        margin-bottom: 20px;
+    }
+
+    .purchase-panel-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 16px;
+        margin-bottom: 18px;
+    }
+
+    .purchase-panel-title {
+        margin: 0;
+        font-size: 21px;
+        color: #183247;
+    }
+
+    .purchase-panel-subtitle {
+        margin: 6px 0 0;
+        color: var(--report-muted);
+        font-size: 13px;
+    }
+
+    .purchase-filter-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(280px, 1fr));
+        gap: 18px 22px;
+    }
+
+    .purchase-field label {
+        display: block;
+        margin-bottom: 7px;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--report-muted);
+    }
+
+    .purchase-field input,
+    .purchase-field select {
+        width: 100%;
+        max-width: 320px;
+        padding: 11px 13px;
+        font-size: 18px;
+        font-weight: 600;
+        color: #183247;
+        border-radius: 12px;
+        border: 1px solid var(--report-border);
+        background: #fbfdff;
+        box-sizing: border-box;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    }
+
+    .purchase-field select {
+        appearance: none;
+        background-image:
+            linear-gradient(45deg, transparent 50%, #587086 50%),
+            linear-gradient(135deg, #587086 50%, transparent 50%),
+            linear-gradient(180deg, #fbfdff 0%, #f3f8fd 100%);
+        background-position:
+            calc(100% - 18px) calc(50% - 3px),
+            calc(100% - 12px) calc(50% - 3px),
+            0 0;
+        background-size: 6px 6px, 6px 6px, 100% 100%;
+        background-repeat: no-repeat;
+        padding-right: 40px;
+    }
+
+    .purchase-field input:focus,
+    .purchase-field select:focus {
+        outline: none;
+        border-color: #7aa9ca;
+        box-shadow: 0 0 0 4px rgba(46, 111, 158, 0.12);
+        background-color: #fff;
+    }
+
+    .purchase-field input::placeholder {
+        color: #7c8fa3;
+        font-size: 15px;
+        font-weight: 500;
+    }
+
+    .purchase-field input[type="date"] {
+        min-height: 54px;
+        font-size: 17px;
+        font-weight: 700;
+        color: #183247;
+    }
+
+    .purchase-field input[type="date"]::-webkit-datetime-edit {
+        color: #183247;
+        font-size: 17px;
+        font-weight: 700;
+    }
+
+    .purchase-field input[type="date"]::-webkit-datetime-edit-text,
+    .purchase-field input[type="date"]::-webkit-datetime-edit-month-field,
+    .purchase-field input[type="date"]::-webkit-datetime-edit-day-field,
+    .purchase-field input[type="date"]::-webkit-datetime-edit-year-field {
+        color: #183247;
+    }
+
+    .purchase-field input[type="date"]::-webkit-calendar-picker-indicator {
+        opacity: 1;
+        cursor: pointer;
+    }
+
+    .purchase-inline-action {
+        margin-top: 10px;
+    }
+
+    .purchase-current-choice {
+        margin-top: 10px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--report-muted);
+        font-size: 13px;
+        font-weight: 700;
+        background: #f8fbfe;
+        border: 1px solid var(--report-border);
+        border-radius: 999px;
+        padding: 7px 12px;
+    }
+
+    .purchase-current-choice span {
+        color: #183247;
+        font-weight: 700;
+    }
+
+    .purchase-inline-action .purchase-btn {
+        padding: 8px 14px;
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+    .purchase-selection-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-top: 22px;
+    }
+
+    .purchase-selection-card {
+        background: #f8fbfe;
+        border: 1px solid var(--report-border);
+        border-radius: 14px;
+        padding: 14px 16px;
+        min-height: 112px;
+    }
+
+    .purchase-selection-card strong {
+        display: block;
+        margin-bottom: 10px;
+        color: #183247;
+        font-size: 14px;
+        font-weight: 700;
+    }
+
+    .purchase-selection-card ul {
+        margin: 0;
+        padding-left: 18px;
+        color: #183247;
+        font-size: 17px;
+        font-weight: 600;
+        line-height: 1.6;
+    }
+
+    .purchase-selection-card li {
+        margin-bottom: 6px;
+    }
+
+    .purchase-selection-card button {
+        border: 1px solid var(--report-border);
+        background: #fff;
+        border-radius: 999px;
+        padding: 4px 10px;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--report-text);
+        cursor: pointer;
+    }
+
+    .purchase-kpis {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 14px;
+        margin-bottom: 18px;
+    }
+
+    .purchase-kpi {
+        background: linear-gradient(180deg, #ffffff 0%, #f7fbff 100%);
+        border: 1px solid var(--report-border);
+        border-radius: 16px;
+        padding: 16px;
+    }
+
+    .purchase-kpi-label {
+        display: block;
+        margin-bottom: 8px;
+        color: var(--report-muted);
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .purchase-kpi-value {
+        font-size: 24px;
+        font-weight: 700;
+        color: #183247;
+        word-break: break-word;
+    }
+
+    .purchase-summary-line {
+        display: flex;
+        justify-content: space-between;
+        gap: 18px;
+        flex-wrap: wrap;
+        color: var(--report-muted);
+        font-size: 13px;
+        margin-bottom: 12px;
+    }
+
+    .purchase-chart-card {
+        background: linear-gradient(180deg, #fafdff 0%, var(--report-accent-soft) 100%);
+        border: 1px solid #cfe0f0;
+        border-radius: 18px;
+        padding: 18px;
+    }
+
+    .purchase-chart-wrap {
+        position: relative;
+        height: 380px;
+        width: 100%;
+    }
+
+    .purchase-results-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 300px;
+        gap: 22px;
+        align-items: start;
+        margin-top: 18px;
+    }
+
+    .purchase-table-card {
+        background: #fff;
+        border: 1px solid var(--report-border);
+        border-radius: 18px;
+        overflow: hidden;
+    }
+
+    .purchase-table-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        padding: 16px 18px;
+        border-bottom: 1px solid var(--report-border);
+        background: #fbfdff;
+    }
+
+    .purchase-table-head h3 {
+        margin: 0;
+        font-size: 18px;
+        color: #183247;
+    }
+
+    .purchase-table-head p {
+        margin: 4px 0 0;
+        font-size: 12px;
+        color: var(--report-muted);
+    }
+
+    .purchase-table-controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 14px;
+        flex-wrap: wrap;
+        padding: 14px 18px 0;
+        color: var(--report-muted);
+        font-size: 14px;
+    }
+
+    .purchase-page-size {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .purchase-page-size input {
+        width: 90px;
+        padding: 8px 10px;
+        border: 1px solid var(--report-border);
+        border-radius: 10px;
+        background: #fff;
+        color: #183247;
+        font-weight: 600;
+    }
+
+    .purchase-page-size button {
+        border: 1px solid var(--report-border);
+        background: #fff;
+        border-radius: 999px;
+        padding: 8px 12px;
+        cursor: pointer;
+        font-weight: 600;
+        color: #183247;
+    }
+
+    .purchase-table-info {
+        font-weight: 600;
+    }
+
+    .purchase-table-scroll {
+        max-height: 500px;
+        overflow: auto;
+    }
+
+    .purchase-table-scroll table {
+        width: 100%;
+        min-width: 980px;
+        border-collapse: collapse;
+    }
+
+    .purchase-table-scroll thead th {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        background: #eef5fb;
+        color: #294358;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        font-size: 11px;
+    }
+
+    .purchase-table-scroll tbody tr:nth-child(even) {
+        background: #fbfdff;
+    }
+
+    .purchase-table-scroll tbody tr:hover {
+        background: #f1f7fc;
+    }
+
+    .purchase-empty {
+        padding: 24px 18px;
+        color: var(--report-muted);
+    }
+
+    .purchase-pagination {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        padding: 14px 18px 18px;
+        border-top: 1px solid var(--report-border);
+        background: #fbfdff;
+    }
+
+    .purchase-pagination button {
+        border: 1px solid var(--report-border);
+        background: #fff;
+        border-radius: 10px;
+        padding: 8px 12px;
+        min-width: 40px;
+        cursor: pointer;
+        font-weight: 600;
+        color: #183247;
+    }
+
+    .purchase-pagination button.is-active {
+        background: var(--report-accent);
+        border-color: var(--report-accent);
+        color: #fff;
+    }
+
+    .purchase-pagination button:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+    }
+
+    .purchase-side-card {
+        background: linear-gradient(180deg, #ffffff 0%, #f9fbfd 100%);
+        border: 1px solid var(--report-border);
+        border-radius: 18px;
+        padding: 18px;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    }
+
+    .purchase-side-card h3 {
+        margin: 0 0 14px;
+        color: #183247;
+        font-size: 18px;
+    }
+
+    .purchase-metric-list {
+        display: grid;
+        gap: 10px;
+    }
+
+    .purchase-metric-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 10px 0;
+        border-bottom: 1px solid #edf2f7;
+        color: var(--report-muted);
+    }
+
+    .purchase-metric-row:last-child {
+        border-bottom: 0;
+    }
+
+    .purchase-metric-row strong {
+        color: #183247;
+    }
+
+    @media (max-width: 1100px) {
+        .purchase-kpis {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .purchase-results-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 760px) {
+        .purchase-hero,
+        .purchase-panel-header {
+            flex-direction: column;
+        }
+
+        .purchase-filter-grid,
+        .purchase-selection-grid,
+        .purchase-kpis {
+            grid-template-columns: 1fr;
+        }
+
+        .purchase-field input,
+        .purchase-field select {
+            max-width: none;
+        }
+    }
+
+    @media print {
+        .no-print {
+            display: none !important;
+        }
+
+        body,
+        #content {
+            background: #fff !important;
+        }
+
+        .purchase-report-shell {
+            max-width: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .purchase-panel,
+        .purchase-chart-card,
+        .purchase-table-card,
+        .purchase-side-card,
+        .purchase-kpi {
+            border: 0;
+            box-shadow: none;
+            background: #fff;
+        }
+
+        .purchase-table-scroll {
+            max-height: none;
+            overflow: visible;
+        }
+
+        .purchase-table-scroll thead th {
+            position: static;
+        }
+    }
+</style>
+
+<div class="purchase-report-shell">
+    <div class="purchase-hero">
+        <div>
+            <h1>Purchase Orders Report</h1>
+            <p>Track monthly spend, review filtered orders quickly, and export a clean PDF summary when needed.</p>
+        </div>
+        <div class="purchase-action-row no-print">
+            <a href="{{ purchase_report_pdf_url }}" target="_blank" class="purchase-btn purchase-btn-primary">Create PDF</a>
+            <button type="button" class="purchase-btn purchase-btn-secondary" onclick="window.print()">Print View</button>
+        </div>
+    </div>
+
+    <div class="purchase-panel no-print">
+        <div class="purchase-panel-header">
+            <div>
+                <h2 class="purchase-panel-title">Filters</h2>
+                <p class="purchase-panel-subtitle">Refine the report by date range, seller, and product.</p>
+            </div>
+            <button type="submit" form="purchase-report-form" class="purchase-btn purchase-btn-primary">Generate Report</button>
+        </div>
+
+        <form method="get" id="purchase-report-form">
+            <div class="purchase-filter-grid">
+                <div class="purchase-field">
+                    <label for="year">Year</label>
+                    <input type="number" name="year" id="year" value="{{ year|default:'' }}">
+                </div>
+
+                <div class="purchase-field">
+                    <label for="seller_select">Seller</label>
+                    <select id="seller_select">
+                        <option value="">Choose a seller</option>
+                        {% for seller in importers %}
+                            <option value="{{ seller.id }}">{{ seller.description }}</option>
+                        {% endfor %}
+                    </select>
+                    <div class="purchase-current-choice">Current selection: <span id="seller_current_choice">None</span></div>
+                    <div class="purchase-inline-action">
+                        <button type="button" class="purchase-btn purchase-btn-secondary" onclick="addSeller()">Add seller</button>
+                    </div>
+                </div>
+
+                <div class="purchase-field">
+                    <label for="date_from">From</label>
+                    <input type="date" name="date_from" id="date_from" value="{{ date_from|default:'' }}">
+                </div>
+
+                <div class="purchase-field">
+                    <label for="product_select">Product</label>
+                    <select id="product_select">
+                        <option value="">Choose a product</option>
+                        {% for product in products %}
+                            <option value="{{ product.id }}">{{ product.description }}</option>
+                        {% endfor %}
+                    </select>
+                    <div class="purchase-current-choice">Current selection: <span id="product_current_choice">None</span></div>
+                    <div class="purchase-inline-action">
+                        <button type="button" class="purchase-btn purchase-btn-secondary" onclick="addProduct()">Add product</button>
+                    </div>
+                </div>
+
+                <div class="purchase-field">
+                    <label for="date_to">To</label>
+                    <input type="date" name="date_to" id="date_to" value="{{ date_to|default:'' }}">
+                </div>
+            </div>
+
+            <div class="purchase-selection-grid">
+                <div class="purchase-selection-card">
+                    <strong>Selected sellers</strong>
+                    <ul id="selected_sellers_list"></ul>
+                </div>
+
+                <div class="purchase-selection-card">
+                    <strong>Selected products</strong>
+                    <ul id="selected_products_list"></ul>
+                </div>
+            </div>
+
+            <div id="hidden_sellers_container">
+                {% for seller_id in selected_importers %}
+                    <input type="hidden" name="importers" value="{{ seller_id }}">
+                {% endfor %}
+            </div>
+
+            <div id="hidden_products_container">
+                {% for product_id in selected_products %}
+                    <input type="hidden" name="products" value="{{ product_id }}">
+                {% endfor %}
+            </div>
+        </form>
+    </div>
+
+    <div class="purchase-kpis">
+        <div class="purchase-kpi">
+            <span class="purchase-kpi-label">Total Quantity</span>
+            <div class="purchase-kpi-value">{{ total_qty }}</div>
+        </div>
+        <div class="purchase-kpi">
+            <span class="purchase-kpi-label">Gross Value</span>
+            <div class="purchase-kpi-value">{{ total_gross }}</div>
+        </div>
+        <div class="purchase-kpi">
+            <span class="purchase-kpi-label">VAT</span>
+            <div class="purchase-kpi-value">{{ total_vat }}</div>
+        </div>
+        <div class="purchase-kpi">
+            <span class="purchase-kpi-label">Freight</span>
+            <div class="purchase-kpi-value">{{ total_freight }}</div>
+        </div>
+        <div class="purchase-kpi">
+            <span class="purchase-kpi-label">Total Amount</span>
+            <div class="purchase-kpi-value">{{ total_amount }}</div>
+        </div>
+    </div>
+
+    <div class="purchase-panel">
+        <div class="purchase-summary-line">
+            <div><strong>From Date:</strong> {{ from_date|default:"-" }}</div>
+            <div><strong>To Date:</strong> {{ to_date|default:"-" }}</div>
+            <div><strong>Orders:</strong> {{ purchase_orders|length }}</div>
+        </div>
+
+        <div class="purchase-chart-card">
+            <div class="purchase-panel-header" style="margin-bottom: 14px;">
+                <div>
+                    <h2 class="purchase-panel-title">Monthly Purchase Chart</h2>
+                    <p class="purchase-panel-subtitle">A clear month-by-month view of total purchase amount.</p>
+                </div>
+            </div>
+            <div class="purchase-chart-wrap">
+                <canvas id="chart"></canvas>
+            </div>
+        </div>
+
+        <div class="purchase-results-grid">
+            <div class="purchase-table-card">
+                <div class="purchase-table-head">
+                    <div>
+                        <h3>Purchase Orders</h3>
+                        <p>Scroll vertically for long lists and horizontally if all columns do not fit.</p>
+                    </div>
+                </div>
+
+                {% if purchase_orders %}
+                    <div class="purchase-table-controls no-print">
+                        <div class="purchase-page-size">
+                            <input
+                                id="purchase-page-size-input"
+                                type="number"
+                                min="1"
+                                value="10"
+                            >
+                            <button type="button" id="purchase-page-size-apply">Apply</button>
+                        </div>
+                        <div class="purchase-table-info" id="purchase-table-info"></div>
+                    </div>
+                    <div class="purchase-table-scroll">
+                        <table id="purchase-orders-table">
+                            <thead>
+                                <tr>
+                                    <th style="padding: 12px 14px; border-bottom: 1px solid #dce6ef; text-align: left;">Date</th>
+                                    <th style="padding: 12px 14px; border-bottom: 1px solid #dce6ef; text-align: left;">Number</th>
+                                    <th style="padding: 12px 14px; border-bottom: 1px solid #dce6ef; text-align: left;">Seller</th>
+                                    <th style="padding: 12px 14px; border-bottom: 1px solid #dce6ef; text-align: right;">Qty</th>
+                                    <th style="padding: 12px 14px; border-bottom: 1px solid #dce6ef; text-align: right;">Gross Value</th>
+                                    <th style="padding: 12px 14px; border-bottom: 1px solid #dce6ef; text-align: right;">VAT</th>
+                                    <th style="padding: 12px 14px; border-bottom: 1px solid #dce6ef; text-align: right;">Freight</th>
+                                    <th style="padding: 12px 14px; border-bottom: 1px solid #dce6ef; text-align: right;">Total Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody id="purchase-orders-tbody">
+                                {% for po in purchase_orders %}
+                                    <tr>
+                                        <td style="padding: 12px 14px; border-bottom: 1px solid #edf2f7;">{{ po.purchase_date|date:"Y-m-d" }}</td>
+                                        <td style="padding: 12px 14px; border-bottom: 1px solid #edf2f7; font-weight: 600; color: #224460;">{{ po.purchase_number }}</td>
+                                        <td style="padding: 12px 14px; border-bottom: 1px solid #edf2f7;">{{ po.seller }}</td>
+                                        <td style="padding: 12px 14px; border-bottom: 1px solid #edf2f7; text-align: right;">{{ po.qty_total }}</td>
+                                        <td style="padding: 12px 14px; border-bottom: 1px solid #edf2f7; text-align: right;">{{ po.gross_value_db }}</td>
+                                        <td style="padding: 12px 14px; border-bottom: 1px solid #edf2f7; text-align: right;">{{ po.vat_amount }}</td>
+                                        <td style="padding: 12px 14px; border-bottom: 1px solid #edf2f7; text-align: right;">{{ po.freight }}</td>
+                                        <td style="padding: 12px 14px; border-bottom: 1px solid #edf2f7; text-align: right; font-weight: 700; color: #183247;">{{ po.total_amount }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="purchase-pagination no-print" id="purchase-pagination"></div>
+                {% else %}
+                    <div class="purchase-empty">No purchase orders found for the selected filters.</div>
+                {% endif %}
+            </div>
+
+            <div class="purchase-side-card">
+                <h3>Summary</h3>
+                <div class="purchase-metric-list">
+                    <div class="purchase-metric-row">
+                        <span>Total Quantity</span>
+                        <strong>{{ total_qty }}</strong>
+                    </div>
+                    <div class="purchase-metric-row">
+                        <span>Gross Value</span>
+                        <strong>{{ total_gross }}</strong>
+                    </div>
+                    <div class="purchase-metric-row">
+                        <span>VAT</span>
+                        <strong>{{ total_vat }}</strong>
+                    </div>
+                    <div class="purchase-metric-row">
+                        <span>Freight</span>
+                        <strong>{{ total_freight }}</strong>
+                    </div>
+                    <div class="purchase-metric-row">
+                        <span>Total Amount</span>
+                        <strong>{{ total_amount }}</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const chartLabels = {{ chart_labels|safe }};
+    const chartTotals = {{ chart_totals|safe }};
+
+    new Chart(document.getElementById("chart"), {
+        type: "bar",
+        data: {
+            labels: chartLabels,
+            datasets: [{
+                label: "Total Amount",
+                data: chartTotals,
+                backgroundColor: "rgba(237, 151, 160, 0.88)",
+                borderColor: "#5b5b5b",
+                borderWidth: 1.2,
+                borderRadius: 0,
+                barPercentage: 1.0,
+                categoryPercentage: 1.0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true
+                }
+            },
+            scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: "Month"
+                    },
+                    grid: {
+                        display: false
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: "Total Amount"
+                    },
+                    ticks: {
+                        callback: function(value) {
+                            return Number(value).toLocaleString();
+                        }
+                    }
+                }
+            }
+        }
+    });
+</script>
+
+<script>
+    const sellersMap = {
+        {% for seller in importers %}
+            "{{ seller.id }}": "{{ seller.description|escapejs }}",
+        {% endfor %}
+    };
+
+    const productsMap = {
+        {% for product in products %}
+            "{{ product.id }}": "{{ product.description|escapejs }}",
+        {% endfor %}
+    };
+
+    function renderSellers() {
+        const list = document.getElementById("selected_sellers_list");
+        const inputs = document.querySelectorAll('#hidden_sellers_container input[name="importers"]');
+        list.innerHTML = "";
+
+        inputs.forEach(input => {
+            const sellerId = input.value;
+            const sellerText = sellersMap[sellerId] || sellerId;
+
+            const li = document.createElement("li");
+            li.style.marginBottom = "8px";
+            li.innerHTML = `
+                ${sellerText}
+                <button type="button" onclick="removeSeller('${sellerId}')" style="margin-left: 8px;">
+                    Remove
+                </button>
+            `;
+            list.appendChild(li);
+        });
+    }
+
+    function renderProducts() {
+        const list = document.getElementById("selected_products_list");
+        const inputs = document.querySelectorAll('#hidden_products_container input[name="products"]');
+        list.innerHTML = "";
+
+        inputs.forEach(input => {
+            const productId = input.value;
+            const productText = productsMap[productId] || productId;
+
+            const li = document.createElement("li");
+            li.style.marginBottom = "8px";
+            li.innerHTML = `
+                ${productText}
+                <button type="button" onclick="removeProduct('${productId}')" style="margin-left: 8px;">
+                    Remove
+                </button>
+            `;
+            list.appendChild(li);
+        });
+    }
+
+    function addSeller() {
+        const select = document.getElementById("seller_select");
+        const sellerId = select.value;
+        if (!sellerId) return;
+
+        const hiddenContainer = document.getElementById("hidden_sellers_container");
+        const existingInputs = hiddenContainer.querySelectorAll('input[name="importers"]');
+
+        for (let input of existingInputs) {
+            if (input.value === sellerId) return;
+        }
+
+        const hiddenInput = document.createElement("input");
+        hiddenInput.type = "hidden";
+        hiddenInput.name = "importers";
+        hiddenInput.value = sellerId;
+        hiddenContainer.appendChild(hiddenInput);
+
+        select.value = "";
+        updateCurrentChoice("seller_select", "seller_current_choice", "None");
+        renderSellers();
+    }
+
+    function removeSeller(sellerId) {
+        const hiddenContainer = document.getElementById("hidden_sellers_container");
+        const inputs = hiddenContainer.querySelectorAll('input[name="importers"]');
+
+        for (let input of inputs) {
+            if (input.value === sellerId) input.remove();
+        }
+
+        renderSellers();
+    }
+
+    function addProduct() {
+        const select = document.getElementById("product_select");
+        const productId = select.value;
+        if (!productId) return;
+
+        const hiddenContainer = document.getElementById("hidden_products_container");
+        const existingInputs = hiddenContainer.querySelectorAll('input[name="products"]');
+
+        for (let input of existingInputs) {
+            if (input.value === productId) return;
+        }
+
+        const hiddenInput = document.createElement("input");
+        hiddenInput.type = "hidden";
+        hiddenInput.name = "products";
+        hiddenInput.value = productId;
+        hiddenContainer.appendChild(hiddenInput);
+
+        select.value = "";
+        updateCurrentChoice("product_select", "product_current_choice", "None");
+        renderProducts();
+    }
+
+    function removeProduct(productId) {
+        const hiddenContainer = document.getElementById("hidden_products_container");
+        const inputs = hiddenContainer.querySelectorAll('input[name="products"]');
+
+        for (let input of inputs) {
+            if (input.value === productId) input.remove();
+        }
+
+        renderProducts();
+    }
+
+    function updateCurrentChoice(selectId, outputId, emptyLabel) {
+        const select = document.getElementById(selectId);
+        const output = document.getElementById(outputId);
+        const selectedText = select.options[select.selectedIndex] ? select.options[select.selectedIndex].text : "";
+
+        if (!select.value) {
+            output.textContent = emptyLabel;
+            return;
+        }
+
+        output.textContent = selectedText;
+    }
+
+    document.getElementById("seller_select").addEventListener("change", function() {
+        updateCurrentChoice("seller_select", "seller_current_choice", "None");
+    });
+
+    document.getElementById("product_select").addEventListener("change", function() {
+        updateCurrentChoice("product_select", "product_current_choice", "None");
+    });
+
+    updateCurrentChoice("seller_select", "seller_current_choice", "None");
+    updateCurrentChoice("product_select", "product_current_choice", "None");
+    renderSellers();
+    renderProducts();
+
+    (function setupPurchaseTablePagination() {
+        const tbody = document.getElementById("purchase-orders-tbody");
+        const pageSizeInput = document.getElementById("purchase-page-size-input");
+        const applyButton = document.getElementById("purchase-page-size-apply");
+        const info = document.getElementById("purchase-table-info");
+        const pagination = document.getElementById("purchase-pagination");
+        const url = new URL(window.location.href);
+        const storedPageSize = window.localStorage.getItem("purchase-report-page-size");
+
+        if (!tbody || !pageSizeInput || !applyButton || !info || !pagination) {
+            return;
+        }
+
+        const rows = Array.from(tbody.querySelectorAll("tr"));
+        let currentPage = 1;
+        let pageSize = parseInt(url.searchParams.get("page_size") || storedPageSize || pageSizeInput.value || "10", 10);
+
+        if (!pageSize || pageSize < 1) {
+            pageSize = 10;
+        }
+
+        pageSizeInput.value = pageSize;
+
+        function render() {
+            const totalItems = rows.length;
+            const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+
+            if (currentPage > totalPages) {
+                currentPage = totalPages;
+            }
+
+            const startIndex = (currentPage - 1) * pageSize;
+            const endIndex = Math.min(startIndex + pageSize, totalItems);
+
+            rows.forEach(function (row, index) {
+                row.style.display = index >= startIndex && index < endIndex ? "" : "none";
+            });
+
+            info.textContent = "Showing " + (totalItems ? startIndex + 1 : 0) + " to " + endIndex + " of " + totalItems + " entries";
+
+            pagination.innerHTML = "";
+
+            const prevButton = document.createElement("button");
+            prevButton.type = "button";
+            prevButton.textContent = "Previous";
+            prevButton.disabled = currentPage === 1;
+            prevButton.addEventListener("click", function () {
+                if (currentPage > 1) {
+                    currentPage -= 1;
+                    render();
+                }
+            });
+            pagination.appendChild(prevButton);
+
+            for (let page = 1; page <= totalPages; page += 1) {
+                const pageButton = document.createElement("button");
+                pageButton.type = "button";
+                pageButton.textContent = page;
+
+                if (page === currentPage) {
+                    pageButton.classList.add("is-active");
+                }
+
+                pageButton.addEventListener("click", function () {
+                    currentPage = page;
+                    render();
+                });
+
+                pagination.appendChild(pageButton);
+            }
+
+            const nextButton = document.createElement("button");
+            nextButton.type = "button";
+            nextButton.textContent = "Next";
+            nextButton.disabled = currentPage === totalPages;
+            nextButton.addEventListener("click", function () {
+                if (currentPage < totalPages) {
+                    currentPage += 1;
+                    render();
+                }
+            });
+            pagination.appendChild(nextButton);
+        }
+
+        function applyPageSize() {
+            const value = parseInt(pageSizeInput.value, 10);
+
+            if (!value || value < 1) {
+                pageSizeInput.value = pageSize;
+                return;
+            }
+
+            window.localStorage.setItem("purchase-report-page-size", value);
+            url.searchParams.set("page_size", value);
+            window.history.replaceState({}, "", url.toString());
+
+            pageSize = value;
+            currentPage = 1;
+            render();
+        }
+
+        applyButton.addEventListener("click", applyPageSize);
+        pageSizeInput.addEventListener("keydown", function (event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                applyPageSize();
+            }
+        });
+
+        render();
+    })();
+</script>
+{% endblock %}

@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Purchase Orders Report</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 12mm 10mm;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 8.5pt;
+            line-height: 1.3;
+            color: #253241;
+            margin: 0;
+        }
+
+        .page {
+            border-top: 4px solid #1e5f86;
+            padding-top: 6px;
+        }
+
+        .alert {
+            margin-bottom: 12px;
+            padding: 10px 12px;
+            border: 1px solid #d8b44c;
+            background: #fbf3d0;
+            color: #6b4d00;
+        }
+
+        .alert small {
+            display: block;
+            margin-top: 4px;
+            color: #705d28;
+            word-break: break-word;
+        }
+
+        .hero {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #cfd9e2;
+        }
+
+        .hero td {
+            vertical-align: top;
+            padding-bottom: 8px;
+        }
+
+        .logo {
+            max-width: 68px;
+            max-height: 42px;
+            display: block;
+            margin-left: auto;
+            margin-bottom: 4px;
+        }
+
+        .brand {
+            font-size: 14pt;
+            font-weight: 700;
+            color: #1b4c6a;
+        }
+
+        .subtitle {
+            margin-top: 2px;
+            color: #617387;
+            font-size: 7.5pt;
+        }
+
+        .doc-title {
+            text-align: right;
+            font-size: 11.5pt;
+            font-weight: 700;
+            color: #17384c;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+        }
+
+        .filters-table,
+        .summary-table,
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .filters-wrap {
+            margin-bottom: 10px;
+            border: 1px solid #cfd9e2;
+            background: #f8fbfd;
+        }
+
+        .filters-table td {
+            width: 25%;
+            padding: 8px 10px;
+            border-right: 1px solid #d9e3eb;
+        }
+
+        .filters-table td:last-child {
+            border-right: 0;
+        }
+
+        .filter-label {
+            display: block;
+            font-size: 6.5pt;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            color: #6a7f92;
+            margin-bottom: 3px;
+            font-weight: 700;
+        }
+
+        .filter-value {
+            font-size: 9pt;
+            font-weight: 700;
+            color: #1f3546;
+        }
+
+        .report-table {
+            border: 1px solid #cfd9e2;
+            margin-bottom: 12px;
+        }
+
+        .report-table thead th {
+            background: #eaf2f8;
+            color: #1b4762;
+            font-size: 6.8pt;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            font-weight: 700;
+            padding: 6px 7px;
+            border: 1px solid #d3dde6;
+            text-align: left;
+        }
+
+        .report-table tbody td {
+            padding: 5px 6px;
+            border: 1px solid #e0e7ee;
+            vertical-align: top;
+            font-size: 7.1pt;
+        }
+
+        .report-table tbody tr:nth-child(even) td {
+            background: #fbfdff;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .summary-wrap {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 6px;
+        }
+
+        .summary-wrap td {
+            vertical-align: top;
+        }
+
+        .summary-spacer {
+            width: 60%;
+        }
+
+        .summary-card {
+            width: 40%;
+            margin-left: auto;
+            border: 1px solid #cfd9e2;
+            background: #ffffff;
+        }
+
+        .summary-table td {
+            padding: 7px 9px;
+            border-bottom: 1px solid #e0e7ee;
+        }
+
+        .summary-table tr:last-child td {
+            border-bottom: 0;
+        }
+
+        .summary-label {
+            color: #5d7488;
+            font-weight: 700;
+        }
+
+        .summary-value {
+            text-align: right;
+            color: #17384c;
+            font-weight: 700;
+        }
+
+        .summary-total td {
+            background: #eaf2f8;
+            color: #14344a;
+            font-size: 9.5pt;
+            font-weight: 700;
+        }
+
+        .chart-section {
+            margin: 12px 0;
+            border: 1px solid #cfd9e2;
+            background: #fbfdff;
+            padding: 10px 12px 12px;
+        }
+
+        .section-title {
+            margin: 0 0 8px;
+            font-size: 8pt;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #1b4762;
+            font-weight: 700;
+        }
+
+        .chart-subtitle {
+            margin: 0 0 10px;
+            color: #6a7f92;
+            font-size: 7pt;
+        }
+
+        .chart-svg-wrap {
+            width: 100%;
+            margin-top: 4px;
+            text-align: center;
+        }
+
+        .chart-svg-wrap svg {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .chart-empty {
+            padding: 12px 0 4px;
+            text-align: center;
+            color: #6a7f92;
+        }
+
+        .footer-note {
+            margin-top: 12px;
+            padding-top: 6px;
+            border-top: 1px solid #cfd9e2;
+            color: #627386;
+            font-size: 7pt;
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        {% if render_as_html and pdf_error %}
+        <div class="alert">
+            <strong>{{ pdf_error }}</strong>
+            {% if pdf_error_details %}
+            <small>{{ pdf_error_details }}</small>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <table class="hero">
+            <tr>
+                <td>
+                    <div class="brand">{{ company.company_name|default:"Company" }}</div>
+                    <div class="subtitle">Purchase orders report prepared for export and printing</div>
+                </td>
+                <td>
+                    {% if company_logo_url %}
+                    <img src="{{ company_logo_url }}" alt="Company logo" class="logo">
+                    {% endif %}
+                    <div class="doc-title">Purchase Orders Report</div>
+                </td>
+            </tr>
+        </table>
+
+        <div class="filters-wrap">
+            <table class="filters-table">
+                <tr>
+                    <td>
+                        <span class="filter-label">From Date</span>
+                        <span class="filter-value">{{ from_date|default:"-" }}</span>
+                    </td>
+                    <td>
+                        <span class="filter-label">To Date</span>
+                        <span class="filter-value">{{ to_date|default:"-" }}</span>
+                    </td>
+                    <td>
+                        <span class="filter-label">Year</span>
+                        <span class="filter-value">{{ year|default:"-" }}</span>
+                    </td>
+                    <td>
+                        <span class="filter-label">Orders</span>
+                        <span class="filter-value">{{ purchase_orders|length }}</span>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <table class="report-table">
+            <thead>
+                <tr>
+                    <th style="width: 12%;">Date</th>
+                    <th style="width: 16%;">Number</th>
+                    <th style="width: 28%;">Seller</th>
+                    <th class="text-right" style="width: 8%;">Qty</th>
+                    <th class="text-right" style="width: 12%;">Gross Value</th>
+                    <th class="text-right" style="width: 8%;">VAT</th>
+                    <th class="text-right" style="width: 8%;">Freight</th>
+                    <th class="text-right" style="width: 16%;">Total Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for po in purchase_orders %}
+                <tr>
+                    <td>{{ po.purchase_date|date:"Y-m-d" }}</td>
+                    <td>{{ po.purchase_number }}</td>
+                    <td>{{ po.seller }}</td>
+                    <td class="text-right">{{ po.qty_total }}</td>
+                    <td class="text-right">{{ po.gross_value_db|floatformat:2 }} {{ company.currency|default:"EUR" }}</td>
+                    <td class="text-right">{{ po.vat_amount|floatformat:2 }} {{ company.currency|default:"EUR" }}</td>
+                    <td class="text-right">{{ po.freight|floatformat:2 }} {{ company.currency|default:"EUR" }}</td>
+                    <td class="text-right">{{ po.total_amount|floatformat:2 }} {{ company.currency|default:"EUR" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" style="text-align: center; color: #6a7f92;">No purchase orders found for the selected filters.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        {% if chart_rows %}
+        <div class="chart-section">
+            <div class="section-title">Purchase Amount Chart</div>
+            <div class="chart-subtitle">Monthly total amount distribution for the selected report period</div>
+            <div class="chart-svg-wrap">{{ chart_svg|safe }}</div>
+        </div>
+        {% else %}
+        <div class="chart-section">
+            <div class="section-title">Purchase Amount Chart</div>
+            <div class="chart-empty">No chart data available for the selected period.</div>
+        </div>
+        {% endif %}
+
+        <table class="summary-wrap">
+            <tr>
+                <td class="summary-spacer"></td>
+                <td>
+                    <div class="summary-card">
+                        <table class="summary-table">
+                            <tr>
+                                <td class="summary-label">Qty</td>
+                                <td class="summary-value">{{ total_qty }}</td>
+                            </tr>
+                            <tr>
+                                <td class="summary-label">Gross Value</td>
+                                <td class="summary-value">{{ total_gross|floatformat:2 }} {{ company.currency|default:"EUR" }}</td>
+                            </tr>
+                            <tr>
+                                <td class="summary-label">VAT</td>
+                                <td class="summary-value">{{ total_vat|floatformat:2 }} {{ company.currency|default:"EUR" }}</td>
+                            </tr>
+                            <tr>
+                                <td class="summary-label">Freight</td>
+                                <td class="summary-value">{{ total_freight|floatformat:2 }} {{ company.currency|default:"EUR" }}</td>
+                            </tr>
+                            <tr class="summary-total">
+                                <td class="summary-label">Total Amount</td>
+                                <td class="summary-value">{{ total_amount|floatformat:2 }} {{ company.currency|default:"EUR" }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </td>
+            </tr>
+        </table>
+
+        {% if company.footer_order %}
+        <div class="footer-note">{{ company.footer_order }}</div>
+        {% endif %}
+    </div>
+</body>
+</html>

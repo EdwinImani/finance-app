@@ -1,0 +1,95 @@
+from decimal import Decimal
+from django.shortcuts import render
+from .models import PurchaseOrder
+from .forms import PurchaseReportForm
+
+
+def purchase_home(request):
+    orders = PurchaseOrder.objects.all().prefetch_related("items", "seller").order_by("-purchase_date")
+    return render(request, "purchase/home.html", {"orders": orders})
+
+
+def purchase_report_filter(request):
+    form = PurchaseReportForm(request.GET or None)
+    return render(request, "purchase/report_filter.html", {"form": form})
+
+
+def purchase_report_result(request):
+    form = PurchaseReportForm(request.GET or None)
+
+    orders = PurchaseOrder.objects.all().prefetch_related("items", "items__product", "seller")
+
+    if form.is_valid():
+        year = form.cleaned_data.get("year")
+        date_from = form.cleaned_data.get("date_from")
+        date_to = form.cleaned_data.get("date_to")
+        seller = form.cleaned_data.get("seller")
+        product = form.cleaned_data.get("product")
+
+        if year:
+            orders = orders.filter(purchase_date__year=year)
+
+        if date_from:
+            orders = orders.filter(purchase_date__gte=date_from)
+
+        if date_to:
+            orders = orders.filter(purchase_date__lte=date_to)
+
+        if seller:
+            orders = orders.filter(seller=seller)
+
+        if product:
+            orders = orders.filter(items__product=product).distinct()
+
+    rows = []
+    total_qty = Decimal("0.00")
+    total_gross = Decimal("0.00")
+    total_vat = Decimal("0.00")
+    total_freight = Decimal("0.00")
+    total_amount = Decimal("0.00")
+
+    chart_labels = []
+    chart_values = []
+
+    for order in orders:
+        qty = sum(item.quantity for item in order.items.all())
+        gross = order.gross_value()
+        vat = order.vat_amount()
+        freight = order.freight or Decimal("0.00")
+        amount = order.total_amount()
+
+        rows.append({
+            "date": order.purchase_date,
+            "number": order.purchase_number,
+            "seller": order.seller.description if order.seller else "-",
+            "qty": qty,
+            "gross": gross,
+            "vat": vat,
+            "freight": freight,
+            "amount": amount,
+        })
+
+        total_qty += Decimal(qty)
+        total_gross += gross
+        total_vat += vat
+        total_freight += freight
+        total_amount += amount
+
+        chart_labels.append(order.purchase_date.strftime("%Y-%m-%d"))
+        chart_values.append(float(amount))
+
+    context = {
+        "form": form,
+        "rows": rows,
+        "total_qty": total_qty,
+        "total_gross": total_gross,
+        "total_vat": total_vat,
+        "total_freight": total_freight,
+        "total_amount": total_amount,
+        "chart_labels": chart_labels,
+        "chart_values": chart_values,
+        "date_from": request.GET.get("date_from", ""),
+        "date_to": request.GET.get("date_to", ""),
+    }
+
+    return render(request, "purchase/report_result.html", context)
