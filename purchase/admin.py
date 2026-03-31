@@ -15,6 +15,7 @@ from django.urls import path
 from django.urls import reverse
 from django.utils import timezone
 from financeapp.admin_mixins import PageSizeAdminMixin
+from financeapp.pdf_rendering import get_pdf_fallback_reason, should_try_weasyprint
 
 from company.models import CompanySetting
 from partners.models import Partner
@@ -441,6 +442,9 @@ class PurchaseOrderAdmin(PageSizeAdminMixin, admin.ModelAdmin):
 
         html_string = render_to_string("admin/purchase/report_pdf.html", context, request=request)
         try:
+            if not should_try_weasyprint():
+                raise OSError(get_pdf_fallback_reason())
+
             pdf_bytes = self._build_pdf_with_weasyprint(
                 html_string=html_string,
                 base_url=request.build_absolute_uri("/"),

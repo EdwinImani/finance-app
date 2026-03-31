@@ -1,15 +1,147 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
     <meta charset="utf-8">
-    <title>Choix de type de facture</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Choisir un type de facture</title>
+    <style>
+        :root {
+            --bg: #f5f7fb;
+            --card: #ffffff;
+            --text: #172033;
+            --muted: #5b6475;
+            --primary: #0b63ce;
+            --primary-dark: #084d9f;
+            --border: #dce3ef;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: "Segoe UI", Tahoma, sans-serif;
+            background: linear-gradient(180deg, #eef4ff 0%, var(--bg) 100%);
+            color: var(--text);
+        }
+
+        .container {
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 48px 20px;
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        .hero h1 {
+            margin: 0 0 10px;
+            font-size: 2.2rem;
+        }
+
+        .hero p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 1.05rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 18px;
+            margin-top: 28px;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 10px 30px rgba(18, 40, 76, 0.08);
+        }
+
+        .card h2 {
+            margin-top: 0;
+            margin-bottom: 12px;
+        }
+
+        .card p {
+            color: var(--muted);
+            line-height: 1.5;
+            min-height: 72px;
+        }
+
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .button {
+            display: inline-block;
+            padding: 10px 14px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: background-color 0.2s ease;
+        }
+
+        .button.primary {
+            background: var(--primary);
+            color: #fff;
+        }
+
+        .button.primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .button.secondary {
+            background: #eef3fb;
+            color: var(--text);
+        }
+
+        .button.secondary:hover {
+            background: #dde7f7;
+        }
+
+        .footer-links {
+            margin-top: 24px;
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
-    <h1>Choix du type de facture</h1>
-    <ul>
-        <li><a href="/invoices/new/proforma/">Créer une facture proforma</a></li>
-        <li><a href="/invoices/new/commercial/">Créer une facture commerciale</a></li>
-    </ul>
-    <a href="/">Retour à l'accueil</a>
+    <main class="container">
+        <section class="hero">
+            <h1>Factures</h1>
+            <p>Choisissez le type de document a creer ou ouvrez directement la gestion dans l'admin.</p>
+        </section>
+
+        <section class="grid">
+            <article class="card">
+                <h2>Facture proforma</h2>
+                <p>Preparation d'une facture proforma avec les informations client, les references et les lignes produit.</p>
+                <div class="actions">
+                    <a class="button primary" href="{% url 'create_proforma_invoice' %}">Nouvelle proforma</a>
+                    <a class="button secondary" href="/admin/invoices/proformainvoice/">Voir dans l'admin</a>
+                </div>
+            </article>
+
+            <article class="card">
+                <h2>Facture commerciale</h2>
+                <p>Creation d'une facture commerciale avec numero de commande, references et lignes de facturation.</p>
+                <div class="actions">
+                    <a class="button primary" href="{% url 'create_commercial_invoice' %}">Nouvelle facture</a>
+                    <a class="button secondary" href="/admin/invoices/commercialinvoice/">Voir dans l'admin</a>
+                </div>
+            </article>
+        </section>
+
+        <div class="footer-links">
+            <a class="button secondary" href="/admin/">Retour a l'admin</a>
+        </div>
+    </main>
 </body>
 </html>

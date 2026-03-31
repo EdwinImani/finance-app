@@ -16,6 +16,7 @@ from django.utils.html import format_html
 from django.utils import timezone
 from django.template.loader import render_to_string
 from financeapp.admin_mixins import PageSizeAdminMixin
+from financeapp.pdf_rendering import get_pdf_fallback_reason, should_try_weasyprint
 from company.models import CompanySetting
 from partners.models import Partner
 from products.models import Product
@@ -323,6 +324,9 @@ class InvoiceAdminMixin:
         context = self.get_invoice_pdf_context(request, obj)
         html_string = render_to_string("admin/invoices/pdf.html", context)
         try:
+            if not should_try_weasyprint():
+                raise OSError(get_pdf_fallback_reason())
+
             pdf_bytes = self._build_pdf_with_weasyprint(
                 html_string=html_string,
                 base_url=request.build_absolute_uri("/"),
