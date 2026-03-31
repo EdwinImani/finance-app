@@ -7,26 +7,23 @@
 {{ block.super }}
 <style>
     :root {
-        --global-admin-bg: #e7e1f4;
-        --global-admin-bg-deep: #4b68b7;
-        --global-admin-bg-soft: #d890a7;
-        --global-admin-panel: rgba(255, 247, 252, 0.58);
-        --global-admin-panel-strong: rgba(255, 250, 254, 0.72);
-        --global-admin-border: rgba(255, 255, 255, 0.34);
-        --global-admin-text: #22384d;
-        --global-admin-muted: #6f7e96;
-        --global-admin-accent: #294e85;
-        --global-admin-accent-soft: #6d88c0;
-        --global-admin-shadow: 0 22px 48px rgba(60, 75, 120, 0.18);
+        --global-admin-bg: #f7f1ef;
+        --global-admin-panel: rgba(255, 255, 255, 0.82);
+        --global-admin-panel-strong: rgba(255, 255, 255, 0.92);
+        --global-admin-border: rgba(162, 32, 42, 0.10);
+        --global-admin-text: #1f2a37;
+        --global-admin-muted: #7c8797;
+        --global-admin-accent: #a2202a;
+        --global-admin-accent-soft: #d86c73;
+        --global-admin-shadow: 0 18px 42px rgba(91, 27, 35, 0.10);
         --global-admin-radius: 22px;
     }
 
     body {
         background:
-            radial-gradient(circle at 12% 18%, rgba(240, 162, 181, 0.42), transparent 24%),
-            radial-gradient(circle at 84% 20%, rgba(139, 165, 234, 0.30), transparent 22%),
-            radial-gradient(circle at 78% 74%, rgba(107, 133, 215, 0.24), transparent 26%),
-            linear-gradient(135deg, #e5a3b6 0%, #c2a5d7 32%, #7d86d1 68%, #5073c5 100%);
+            radial-gradient(circle at 14% 20%, rgba(220, 90, 100, 0.12), transparent 24%),
+            radial-gradient(circle at 84% 18%, rgba(162, 32, 42, 0.08), transparent 22%),
+            linear-gradient(180deg, #fdf9f8 0%, #f7f1ef 100%);
         color: var(--global-admin-text);
         min-height: 100vh;
     }
@@ -36,18 +33,20 @@
         position: fixed;
         inset: 0;
         background:
-            radial-gradient(circle at 40% 28%, rgba(255, 255, 255, 0.18), transparent 22%),
-            radial-gradient(circle at 28% 78%, rgba(255, 255, 255, 0.12), transparent 18%);
+            linear-gradient(90deg, rgba(162, 32, 42, 0.03) 1px, transparent 1px),
+            linear-gradient(180deg, rgba(162, 32, 42, 0.03) 1px, transparent 1px);
+        background-size: 34px 34px;
         pointer-events: none;
+        opacity: 0.34;
     }
 
     #header {
-        background: linear-gradient(90deg, rgba(18, 45, 88, 0.92) 0%, rgba(35, 74, 130, 0.90) 100%);
+        background: rgba(255, 255, 255, 0.84);
         color: #fff;
-        box-shadow: 0 16px 34px rgba(28, 44, 91, 0.22);
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
-        border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+        box-shadow: 0 12px 30px rgba(91, 27, 35, 0.08);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-bottom: 1px solid rgba(162, 32, 42, 0.08);
     }
 
     #branding a,
@@ -55,43 +54,43 @@
     #user-tools a,
     #header a:link,
     #header a:visited {
-        color: #fff;
+        color: var(--global-admin-text);
     }
 
     .breadcrumbs {
-        background: rgba(255, 247, 252, 0.42);
-        border-bottom: 1px solid rgba(255, 255, 255, 0.22);
-        color: rgba(33, 53, 83, 0.82);
-        backdrop-filter: blur(14px);
-        -webkit-backdrop-filter: blur(14px);
+        background: rgba(255, 255, 255, 0.56);
+        border-bottom: 1px solid rgba(162, 32, 42, 0.07);
+        color: #6f7a8a;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
     }
 
     .breadcrumbs a {
-        color: #2e4d84;
+        color: var(--global-admin-accent);
     }
 
     #nav-sidebar {
-        background: rgba(255, 247, 252, 0.28);
-        border-right: 1px solid rgba(255, 255, 255, 0.18);
-        backdrop-filter: blur(14px);
-        -webkit-backdrop-filter: blur(14px);
+        background: rgba(255, 255, 255, 0.46);
+        border-right: 1px solid rgba(162, 32, 42, 0.06);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
     }
 
     #nav-sidebar .module {
-        background: rgba(255, 250, 254, 0.48);
-        border: 1px solid rgba(255, 255, 255, 0.22);
+        background: rgba(255, 255, 255, 0.84);
+        border: 1px solid rgba(162, 32, 42, 0.08);
         border-radius: 20px;
-        box-shadow: 0 14px 28px rgba(53, 63, 106, 0.10);
+        box-shadow: 0 12px 24px rgba(91, 27, 35, 0.08);
         overflow: hidden;
-        backdrop-filter: blur(14px);
-        -webkit-backdrop-filter: blur(14px);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
     }
 
     #nav-sidebar .module caption,
     #nav-sidebar .module h2,
     #nav-sidebar .module th {
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.05) 100%);
-        color: #304d81 !important;
+        background: linear-gradient(180deg, rgba(162, 32, 42, 0.06) 0%, rgba(162, 32, 42, 0.02) 100%);
+        color: #8c1d26 !important;
         font-weight: 800;
         letter-spacing: 0.04em;
         text-transform: uppercase;
@@ -99,11 +98,11 @@
 
     #nav-sidebar td,
     #nav-sidebar th {
-        border-color: rgba(113, 133, 181, 0.12);
+        border-color: rgba(162, 32, 42, 0.06);
     }
 
     #nav-sidebar a {
-        color: #304d81;
+        color: #8c1d26;
         font-weight: 600;
     }
 
@@ -116,21 +115,21 @@
         min-height: 30px;
         padding: 0 12px;
         border-radius: 999px;
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.64) 0%, rgba(228, 235, 255, 0.54) 100%);
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        color: #2e4d84 !important;
+        background: linear-gradient(180deg, rgba(255, 247, 245, 0.96) 0%, rgba(252, 236, 237, 0.92) 100%);
+        border: 1px solid rgba(162, 32, 42, 0.12);
+        color: #8c1d26 !important;
         font-weight: 800;
         font-size: 12px;
         letter-spacing: 0.01em;
         text-decoration: none;
-        box-shadow: 0 10px 18px rgba(66, 84, 138, 0.12);
+        box-shadow: 0 8px 16px rgba(145, 29, 38, 0.10);
         transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
     }
 
     #nav-sidebar td a.addlink:hover,
     #nav-sidebar td a[href$="/add/"]:hover {
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.74) 0%, rgba(221, 232, 255, 0.64) 100%);
-        box-shadow: 0 12px 22px rgba(66, 84, 138, 0.16);
+        background: linear-gradient(180deg, rgba(255, 250, 249, 1) 0%, rgba(251, 230, 232, 0.96) 100%);
+        box-shadow: 0 10px 18px rgba(145, 29, 38, 0.12);
         transform: translateY(-1px);
     }
 
@@ -141,41 +140,41 @@
         font-size: 16px;
         line-height: 1;
         font-weight: 900;
-        color: #5d84d6;
+        color: var(--global-admin-accent);
     }
 
     #nav-sidebar .current-app .section:link,
     #nav-sidebar .current-app .section:visited,
     #nav-sidebar .current-model {
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.58) 0%, rgba(219, 228, 255, 0.62) 100%);
-        color: #294e85 !important;
+        background: linear-gradient(180deg, rgba(255, 245, 244, 0.96) 0%, rgba(250, 228, 230, 0.94) 100%);
+        color: #8c1d26 !important;
         font-weight: 800;
     }
 
     #nav-sidebar input[type="search"],
     #nav-sidebar input[type="text"] {
         border-radius: 999px;
-        border: 1px solid rgba(255, 255, 255, 0.34);
-        background: rgba(255, 250, 254, 0.64);
-        color: #28416a;
+        border: 1px solid rgba(162, 32, 42, 0.10);
+        background: rgba(255, 255, 255, 0.88);
+        color: var(--global-admin-text);
     }
 
     .module,
     .inline-group {
         border-radius: var(--global-admin-radius);
-        border-color: rgba(255, 255, 255, 0.24);
+        border-color: rgba(162, 32, 42, 0.08);
         box-shadow: var(--global-admin-shadow);
         overflow: hidden;
         background: var(--global-admin-panel);
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
     }
 
     .module caption,
     .module h2,
     .inline-group h2 {
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.04) 100%);
-        color: #284b80;
+        background: linear-gradient(180deg, rgba(162, 32, 42, 0.05) 0%, rgba(162, 32, 42, 0.02) 100%);
+        color: #8c1d26;
     }
 
     .object-tools a,
@@ -191,10 +190,10 @@
     #toolbar,
     .actions {
         border-radius: 14px;
-        border-color: rgba(255, 255, 255, 0.26);
-        background: rgba(255, 249, 253, 0.44);
-        backdrop-filter: blur(14px);
-        -webkit-backdrop-filter: blur(14px);
+        border-color: rgba(162, 32, 42, 0.08);
+        background: rgba(255, 255, 255, 0.72);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
     }
 
     #result_list {
@@ -203,16 +202,16 @@
     }
 
     #result_list thead th {
-        background: rgba(222, 231, 255, 0.72);
-        color: #2f4f84;
+        background: rgba(251, 238, 239, 0.96);
+        color: #8c1d26;
     }
 
     #result_list tbody tr:nth-child(even) {
-        background: rgba(255, 253, 255, 0.40);
+        background: rgba(255, 251, 250, 0.8);
     }
 
     #result_list tbody tr:hover {
-        background: rgba(233, 238, 255, 0.46);
+        background: rgba(252, 239, 240, 0.94);
     }
 
     .messagelist li {
@@ -234,7 +233,7 @@
 {% block branding %}
 <div id="site-name" style="display:flex; align-items:center; gap:12px;">
   {% if company_brand_logo_url %}
-  <a href="{% url 'admin:index' %}" style="display:inline-flex; align-items:center; justify-content:center; width:42px; height:42px; border-radius:12px; background:rgba(255,255,255,0.14); overflow:hidden; box-shadow:inset 0 1px 0 rgba(255,255,255,0.18);">
+  <a href="{% url 'admin:index' %}" style="display:inline-flex; align-items:center; justify-content:center; width:42px; height:42px; border-radius:12px; background:rgba(162,32,42,0.06); overflow:hidden; box-shadow:inset 0 1px 0 rgba(255,255,255,0.9);">
     <img src="{{ company_brand_logo_url }}" alt="{{ company_brand_name|default:site_header }}" style="max-width:30px; max-height:30px; object-fit:contain;">
   </a>
   {% endif %}

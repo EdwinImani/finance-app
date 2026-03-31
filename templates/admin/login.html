@@ -5,55 +5,38 @@
 {{ block.super }}
 <style>
     :root {
-        --login-bg-deep: #345fa7;
-        --login-bg-soft: #d48ea1;
-        --login-card: rgba(255, 246, 250, 0.42);
-        --login-card-edge: rgba(255, 255, 255, 0.34);
-        --login-panel: rgba(45, 73, 114, 0.72);
-        --login-panel-border: rgba(255, 255, 255, 0.22);
-        --login-text: #203445;
-        --login-muted: #66788a;
-        --login-button: #97acd2;
-        --login-button-text: #ffffff;
-        --login-shadow: 0 34px 70px rgba(42, 58, 92, 0.30);
+        --login-bg: #f8f3f1;
+        --login-bg-soft: #fff7f5;
+        --login-accent: #a2202a;
+        --login-accent-dark: #7f1720;
+        --login-accent-soft: #d86c73;
+        --login-text: #1f2a37;
+        --login-muted: #768295;
+        --login-card: rgba(255, 255, 255, 0.92);
+        --login-border: rgba(162, 32, 42, 0.10);
+        --login-shadow: 0 28px 60px rgba(91, 27, 35, 0.14);
+        --login-input: #fffdfc;
     }
 
     body.login {
         min-height: 100vh;
         background:
-            radial-gradient(circle at 18% 24%, rgba(242, 163, 180, 0.85), transparent 32%),
-            radial-gradient(circle at 82% 78%, rgba(94, 141, 224, 0.72), transparent 34%),
-            radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.14), transparent 42%),
-            linear-gradient(135deg, #db90a1 0%, #b588b6 28%, #5b6db7 68%, #3766b7 100%);
+            radial-gradient(circle at 16% 20%, rgba(226, 112, 119, 0.16), transparent 28%),
+            radial-gradient(circle at 82% 18%, rgba(162, 32, 42, 0.10), transparent 24%),
+            linear-gradient(180deg, #fcf8f7 0%, #f8f3f1 100%);
         color: var(--login-text);
-        overflow-x: hidden;
-    }
-
-    body.login::before,
-    body.login::after {
-        content: "";
-        position: fixed;
-        inset: auto;
-        border-radius: 50%;
-        pointer-events: none;
-        filter: blur(22px);
-        opacity: 0.7;
     }
 
     body.login::before {
-        width: 260px;
-        height: 260px;
-        top: 8%;
-        left: 10%;
-        background: rgba(255, 226, 232, 0.32);
-    }
-
-    body.login::after {
-        width: 300px;
-        height: 300px;
-        right: 8%;
-        bottom: 10%;
-        background: rgba(204, 224, 255, 0.26);
+        content: "";
+        position: fixed;
+        inset: 0;
+        background:
+            linear-gradient(90deg, rgba(162, 32, 42, 0.04) 1px, transparent 1px),
+            linear-gradient(180deg, rgba(162, 32, 42, 0.04) 1px, transparent 1px);
+        background-size: 32px 32px;
+        opacity: 0.22;
+        pointer-events: none;
     }
 
     body.login #container {
@@ -75,111 +58,86 @@
 
     .login-shell {
         min-height: calc(100vh - 48px);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 24px 12px;
-    }
-
-    .login-stack {
-        width: 100%;
-        max-width: 430px;
-        position: relative;
-        padding-top: 54px;
-    }
-
-    .login-avatar {
-        position: absolute;
-        top: 0;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 96px;
-        height: 96px;
-        border-radius: 50%;
-        background: linear-gradient(180deg, #143d79 0%, #0e2f60 100%);
-        box-shadow: 0 18px 30px rgba(13, 36, 77, 0.34);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 2;
-        border: 1px solid rgba(255, 255, 255, 0.18);
-    }
-
-    .login-avatar svg {
-        width: 44px;
-        height: 44px;
-        stroke: rgba(255, 255, 255, 0.95);
-        stroke-width: 1.8;
-        fill: none;
+        display: grid;
+        place-items: center;
+        padding: 20px;
     }
 
     .login-card {
+        width: min(100%, 460px);
         position: relative;
-        padding: 74px 34px 28px;
-        border-radius: 26px;
+        padding: 92px 38px 34px;
+        border-radius: 30px;
         background: var(--login-card);
-        border: 1px solid var(--login-card-edge);
+        border: 1px solid var(--login-border);
         box-shadow: var(--login-shadow);
-        backdrop-filter: blur(28px) saturate(140%);
-        -webkit-backdrop-filter: blur(28px) saturate(140%);
-        overflow: hidden;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
     }
 
     .login-card::before {
         content: "";
         position: absolute;
-        inset: 0;
-        background:
-            linear-gradient(180deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0.04) 42%, rgba(255, 255, 255, 0.08) 100%);
-        pointer-events: none;
+        inset: 0 0 auto;
+        height: 6px;
+        border-radius: 30px 30px 0 0;
+        background: linear-gradient(90deg, #7f1720 0%, #a2202a 52%, #d86c73 100%);
     }
 
-    .login-card::after {
-        content: "";
+    .login-avatar {
         position: absolute;
-        inset: 1px;
-        border-radius: 25px;
-        border: 1px solid rgba(255, 255, 255, 0.14);
-        pointer-events: none;
+        top: -44px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 88px;
+        height: 88px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        background: linear-gradient(180deg, #b32632 0%, #85161e 100%);
+        box-shadow: 0 20px 34px rgba(125, 26, 34, 0.24);
+        border: 6px solid rgba(255, 247, 245, 0.92);
+    }
+
+    .login-avatar svg {
+        width: 40px;
+        height: 40px;
+        stroke: #fff;
+        stroke-width: 1.8;
+        fill: none;
     }
 
     .login-brand {
-        position: relative;
         text-align: center;
-        margin-bottom: 18px;
-        z-index: 1;
+        margin-bottom: 22px;
     }
 
     .login-brand-name {
-        font-size: 1.45rem;
-        font-weight: 700;
-        color: #173456;
-        letter-spacing: 0.01em;
+        font-size: 2rem;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        color: #7f1720;
     }
 
     .login-brand-subtitle {
-        margin-top: 6px;
+        margin-top: 8px;
         color: var(--login-muted);
-        font-size: 0.92rem;
+        font-size: 0.98rem;
     }
 
     .errornote,
     .messagelist li {
-        position: relative;
         margin: 0 0 14px;
         padding: 12px 14px;
-        border-radius: 14px;
-        z-index: 1;
+        border-radius: 16px;
     }
 
     #login-form {
-        position: relative;
         margin-top: 18px;
-        z-index: 1;
     }
 
     .form-row {
-        margin-bottom: 14px;
+        margin-bottom: 16px;
     }
 
     .form-row label {
@@ -191,79 +149,68 @@
     }
 
     .input-wrap::before {
+        content: "";
         position: absolute;
         top: 50%;
-        left: 14px;
+        left: 16px;
+        width: 16px;
+        height: 16px;
+        border-radius: 5px;
         transform: translateY(-50%);
-        width: 18px;
-        text-align: center;
-        color: rgba(255, 255, 255, 0.85);
-        font-size: 0.9rem;
-        z-index: 1;
-    }
-
-    .input-wrap.user::before {
-        content: "◧";
-    }
-
-    .input-wrap.password::before {
-        content: "◫";
+        background: linear-gradient(180deg, rgba(162, 32, 42, 0.18), rgba(162, 32, 42, 0.10));
+        box-shadow: inset 0 0 0 1px rgba(162, 32, 42, 0.14);
     }
 
     .form-row input[type="text"],
     .form-row input[type="password"] {
         width: 100%;
-        height: 48px;
-        padding: 0 14px 0 40px;
-        border: 1px solid var(--login-panel-border);
-        border-radius: 10px;
-        background: var(--login-panel);
-        color: #f7fbff;
-        font-size: 0.95rem;
+        height: 56px;
+        padding: 0 18px 0 46px;
+        border-radius: 16px;
+        border: 1px solid rgba(162, 32, 42, 0.12);
+        background: var(--login-input);
+        color: var(--login-text);
+        font-size: 0.98rem;
         box-sizing: border-box;
-        box-shadow:
-            inset 0 1px 0 rgba(255, 255, 255, 0.06),
-            inset 0 -12px 24px rgba(18, 37, 67, 0.10);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+        transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
     }
 
     .form-row input[type="text"]::placeholder,
     .form-row input[type="password"]::placeholder {
-        color: rgba(233, 240, 255, 0.68);
+        color: #9aa3b0;
     }
 
     .form-row input[type="text"]:focus,
     .form-row input[type="password"]:focus {
         outline: none;
-        border-color: rgba(255, 255, 255, 0.34);
-        box-shadow:
-            0 0 0 4px rgba(121, 153, 212, 0.16),
-            inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        border-color: rgba(162, 32, 42, 0.42);
+        box-shadow: 0 0 0 4px rgba(162, 32, 42, 0.10);
+        transform: translateY(-1px);
     }
 
     .login-options {
-        position: relative;
         display: flex;
         align-items: center;
         justify-content: space-between;
         gap: 12px;
-        margin: 8px 0 18px;
-        font-size: 0.8rem;
+        margin: 4px 0 22px;
+        font-size: 0.9rem;
         color: var(--login-muted);
-        z-index: 1;
     }
 
     .login-remember {
         display: inline-flex;
         align-items: center;
-        gap: 6px;
+        gap: 8px;
     }
 
     .login-remember input {
-        accent-color: #3b5d93;
+        accent-color: var(--login-accent);
     }
 
     .login-options a {
-        color: #6b7fa1;
+        color: #8f1d27;
         text-decoration: none;
     }
 
@@ -277,29 +224,26 @@
 
     .submit-row input[type="submit"] {
         width: 100%;
-        height: 50px;
+        height: 56px;
         border: 0;
-        border-radius: 14px !important;
-        background: linear-gradient(180deg, rgba(179, 195, 224, 0.96) 0%, rgba(142, 166, 208, 0.94) 100%);
-        color: var(--login-button-text);
-        font-weight: 700;
-        letter-spacing: 0.12em;
+        border-radius: 18px !important;
+        background: linear-gradient(180deg, #b92b36 0%, #911d26 100%);
+        color: #fff;
+        font-weight: 800;
+        font-size: 0.96rem;
+        letter-spacing: 0.14em;
         text-transform: uppercase;
-        box-shadow:
-            0 14px 22px rgba(115, 137, 180, 0.26),
-            inset 0 1px 0 rgba(255, 255, 255, 0.38);
+        box-shadow: 0 18px 28px rgba(145, 29, 38, 0.22);
     }
 
     .login-shadow-card {
-        width: calc(100% - 56px);
-        height: 64px;
-        margin: -14px auto 0;
-        border-radius: 0 0 18px 18px;
-        background: rgba(243, 236, 247, 0.34);
-        box-shadow: 0 18px 26px rgba(78, 76, 121, 0.16);
-        backdrop-filter: blur(18px) saturate(130%);
-        -webkit-backdrop-filter: blur(18px) saturate(130%);
-        border: 1px solid rgba(255, 255, 255, 0.18);
+        width: calc(100% - 68px);
+        height: 72px;
+        margin: -16px auto 0;
+        border-radius: 0 0 22px 22px;
+        background: rgba(255, 255, 255, 0.58);
+        border: 1px solid rgba(162, 32, 42, 0.08);
+        box-shadow: 0 20px 30px rgba(97, 24, 31, 0.08);
     }
 
     @media (max-width: 520px) {
@@ -307,17 +251,18 @@
             padding: 14px;
         }
 
-        .login-stack {
-            max-width: 100%;
-        }
-
         .login-card {
-            padding: 70px 22px 24px;
-            border-radius: 22px;
+            padding: 82px 22px 24px;
+            border-radius: 24px;
         }
 
         .login-shadow-card {
-            width: calc(100% - 36px);
+            width: calc(100% - 34px);
+        }
+
+        .login-options {
+            flex-direction: column;
+            align-items: flex-start;
         }
     }
 </style>
@@ -330,15 +275,15 @@
 
 {% block content %}
 <div class="login-shell">
-    <div class="login-stack">
-        <div class="login-avatar" aria-hidden="true">
-            <svg viewBox="0 0 48 48">
-                <circle cx="24" cy="16" r="9"></circle>
-                <path d="M10 39c2.5-8 9-12 14-12s11.5 4 14 12"></path>
-            </svg>
-        </div>
-
+    <div style="width:min(100%,460px);">
         <section class="login-card">
+            <div class="login-avatar" aria-hidden="true">
+                <svg viewBox="0 0 48 48">
+                    <circle cx="24" cy="16" r="9"></circle>
+                    <path d="M10 39c2.5-8 9-12 14-12s11.5 4 14 12"></path>
+                </svg>
+            </div>
+
             <div class="login-brand">
                 <div class="login-brand-name">{{ company_brand_name|default:site_header|default:_("Django administration") }}</div>
                 <div class="login-brand-subtitle">Administration login</div>
@@ -371,7 +316,6 @@
 
             <form action="{{ app_path }}" method="post" id="login-form">
                 {% csrf_token %}
-
                 <div class="form-row">
                     <div class="input-wrap user">
                         <input
@@ -379,7 +323,7 @@
                             name="{{ form.username.html_name }}"
                             id="{{ form.username.id_for_label }}"
                             value="{{ form.username.value|default_if_none:'' }}"
-                            placeholder="Email ID"
+                            placeholder="Username or email"
                             autocapitalize="none"
                             autocomplete="username"
                             maxlength="150"
@@ -411,7 +355,7 @@
                         <input type="checkbox" checked>
                         <span>Remember me</span>
                     </label>
-                    <a href="#">Forgot Password?</a>
+                    <a href="#">Need help?</a>
                 </div>
 
                 <div class="submit-row">
