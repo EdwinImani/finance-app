@@ -1,0 +1,423 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    :root {
+        --login-bg: #f5f1e8;
+        --login-card: rgba(255, 252, 245, 0.92);
+        --login-border: rgba(140, 159, 152, 0.22);
+        --login-text: #20343f;
+        --login-muted: #61707a;
+        --login-accent: #2f6f78;
+        --login-accent-2: #c18c5d;
+        --login-input: #f9f7f0;
+        --login-shadow: 0 30px 70px rgba(41, 63, 74, 0.18);
+    }
+
+    body.login {
+        min-height: 100vh;
+        background:
+            radial-gradient(circle at 15% 20%, rgba(65, 120, 129, 0.20), transparent 24%),
+            radial-gradient(circle at 85% 18%, rgba(210, 168, 111, 0.18), transparent 20%),
+            radial-gradient(circle at 50% 100%, rgba(43, 86, 92, 0.15), transparent 35%),
+            linear-gradient(135deg, #fbfaf6 0%, #f0ede4 48%, #e4ece9 100%);
+        color: var(--login-text);
+    }
+
+    body.login #container {
+        min-height: 100vh;
+        padding: 28px;
+    }
+
+    body.login #header,
+    body.login .breadcrumbs,
+    body.login #nav-sidebar,
+    body.login .toggle-nav-sidebar {
+        display: none;
+    }
+
+    body.login #content {
+        margin: 0;
+        padding: 0;
+    }
+
+    .login-shell {
+        min-height: calc(100vh - 56px);
+        display: grid;
+        grid-template-columns: minmax(320px, 520px) minmax(320px, 520px);
+        align-items: center;
+        justify-content: center;
+        gap: 28px;
+    }
+
+    .login-hero {
+        position: relative;
+        padding: 52px 42px;
+        border-radius: 30px;
+        overflow: hidden;
+        background:
+            linear-gradient(145deg, rgba(31, 67, 78, 0.94) 0%, rgba(50, 107, 117, 0.88) 55%, rgba(72, 127, 120, 0.82) 100%);
+        color: #fffaf2;
+        box-shadow: var(--login-shadow);
+        min-height: 620px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .login-hero::before,
+    .login-hero::after {
+        content: "";
+        position: absolute;
+        border-radius: 999px;
+        pointer-events: none;
+    }
+
+    .login-hero::before {
+        width: 280px;
+        height: 280px;
+        top: -70px;
+        right: -70px;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.20), transparent 68%);
+    }
+
+    .login-hero::after {
+        width: 240px;
+        height: 240px;
+        bottom: -90px;
+        left: -80px;
+        background: radial-gradient(circle, rgba(241, 193, 131, 0.25), transparent 72%);
+    }
+
+    .login-kicker {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        width: fit-content;
+        padding: 10px 16px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.10);
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        backdrop-filter: blur(10px);
+        font-size: 0.82rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    .login-hero h1 {
+        position: relative;
+        margin: 24px 0 14px;
+        font-size: clamp(2.4rem, 4vw, 4rem);
+        line-height: 0.96;
+        letter-spacing: -0.04em;
+        color: #fffdf8;
+    }
+
+    .login-hero p {
+        position: relative;
+        max-width: 430px;
+        margin: 0;
+        color: rgba(255, 250, 242, 0.82);
+        font-size: 1.02rem;
+        line-height: 1.7;
+    }
+
+    .hero-metrics {
+        position: relative;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(120px, 1fr));
+        gap: 14px;
+        margin-top: 34px;
+    }
+
+    .hero-metric {
+        padding: 18px 18px 16px;
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.10);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        backdrop-filter: blur(8px);
+    }
+
+    .hero-metric strong {
+        display: block;
+        font-size: 1.35rem;
+        color: #fff;
+    }
+
+    .hero-metric span {
+        display: block;
+        margin-top: 6px;
+        color: rgba(255, 248, 238, 0.74);
+        font-size: 0.92rem;
+    }
+
+    .login-card {
+        position: relative;
+        background: var(--login-card);
+        border: 1px solid var(--login-border);
+        border-radius: 30px;
+        box-shadow: var(--login-shadow);
+        padding: 34px;
+        backdrop-filter: blur(16px);
+    }
+
+    .login-card-header {
+        margin-bottom: 24px;
+    }
+
+    .login-card-header h2 {
+        margin: 0 0 8px;
+        font-size: 1.7rem;
+        color: var(--login-text);
+    }
+
+    .login-card-header p {
+        margin: 0;
+        color: var(--login-muted);
+        line-height: 1.6;
+    }
+
+    .login-card form {
+        margin: 0;
+    }
+
+    .login-card .form-row {
+        margin-bottom: 18px;
+    }
+
+    .login-card label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 700;
+        color: var(--login-text);
+    }
+
+    .login-card input[type="text"],
+    .login-card input[type="password"] {
+        width: 100%;
+        min-height: 58px;
+        padding: 16px 18px;
+        border-radius: 18px;
+        border: 1px solid rgba(104, 126, 128, 0.22);
+        background: var(--login-input);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+        color: var(--login-text);
+        font-size: 1rem;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+    }
+
+    .login-card input[type="text"]:focus,
+    .login-card input[type="password"]:focus {
+        outline: none;
+        border-color: rgba(47, 111, 120, 0.55);
+        box-shadow: 0 0 0 5px rgba(47, 111, 120, 0.12);
+        transform: translateY(-1px);
+    }
+
+    .submit-row {
+        margin: 24px 0 0;
+        padding: 0;
+        background: transparent;
+        border: 0;
+        box-shadow: none;
+    }
+
+    .submit-row input[type="submit"] {
+        width: 100%;
+        min-height: 58px;
+        border: 0;
+        border-radius: 18px !important;
+        background: linear-gradient(135deg, var(--login-accent) 0%, #3f8390 100%);
+        color: #fff;
+        font-size: 1rem;
+        font-weight: 800;
+        letter-spacing: 0.02em;
+        box-shadow: 0 14px 26px rgba(47, 111, 120, 0.24);
+        transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+    }
+
+    .submit-row input[type="submit"]:hover {
+        transform: translateY(-1px);
+        filter: brightness(1.02);
+        box-shadow: 0 18px 28px rgba(47, 111, 120, 0.30);
+    }
+
+    .login-help {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(120px, 1fr));
+        gap: 12px;
+        margin-top: 18px;
+    }
+
+    .login-help-card {
+        padding: 14px 15px;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.72);
+        border: 1px solid rgba(140, 159, 152, 0.14);
+    }
+
+    .login-help-card strong {
+        display: block;
+        margin-bottom: 5px;
+        color: #284652;
+    }
+
+    .login-help-card span {
+        color: var(--login-muted);
+        font-size: 0.92rem;
+        line-height: 1.45;
+    }
+
+    .errornote,
+    .messagelist li {
+        border-radius: 18px;
+        margin-bottom: 18px;
+    }
+
+    .login-footer {
+        margin-top: 22px;
+        color: var(--login-muted);
+        font-size: 0.92rem;
+        text-align: center;
+    }
+
+    @media (max-width: 980px) {
+        .login-shell {
+            grid-template-columns: 1fr;
+            min-height: auto;
+        }
+
+        .login-hero {
+            min-height: auto;
+            padding: 36px 28px;
+        }
+
+        .login-card {
+            padding: 26px;
+        }
+    }
+
+    @media (max-width: 640px) {
+        body.login #container {
+            padding: 14px;
+        }
+
+        .login-shell {
+            gap: 18px;
+        }
+
+        .login-hero,
+        .login-card {
+            border-radius: 24px;
+        }
+
+        .hero-metrics,
+        .login-help {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block bodyclass %}{{ block.super }} login{% endblock %}
+{% block nav-global %}{% endblock %}
+{% block breadcrumbs %}{% endblock %}
+
+{% block content_title %}{% endblock %}
+
+{% block content %}
+<div class="login-shell">
+    <section class="login-hero">
+        <div>
+            <div class="login-kicker">Finance App Control Panel</div>
+            <h1>{{ site_header|default:_("Django administration") }}</h1>
+            <p>
+                Accedez a votre espace d'administration pour piloter les factures, produits,
+                partenaires et achats dans une interface plus claire et plus elegante.
+            </p>
+            <div class="hero-metrics">
+                <div class="hero-metric">
+                    <strong>Invoices</strong>
+                    <span>Suivi rapide des documents commerciaux et PDF.</span>
+                </div>
+                <div class="hero-metric">
+                    <strong>Partners</strong>
+                    <span>Gestion centralisee des clients, importers et end users.</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="login-footer">
+            Back-office securise pour votre environnement de gestion.
+        </div>
+    </section>
+
+    <section class="login-card">
+        <div class="login-card-header">
+            <h2>Connexion administrateur</h2>
+            <p>Entrez vos identifiants pour acceder au tableau de bord Django.</p>
+        </div>
+
+        {% if form.errors and not form.non_field_errors %}
+        <p class="errornote">
+            {% blocktranslate count counter=form.errors.items|length %}
+            Please correct the error below.
+            {% plural %}
+            Please correct the errors below.
+            {% endblocktranslate %}
+        </p>
+        {% endif %}
+
+        {% if form.non_field_errors %}
+        {% for error in form.non_field_errors %}
+        <p class="errornote">{{ error }}</p>
+        {% endfor %}
+        {% endif %}
+
+        {% if user.is_authenticated %}
+        <p class="errornote">
+            {% blocktranslate trimmed %}
+            You are authenticated as {{ username }}, but are not authorized to access this page.
+            Would you like to login to a different account?
+            {% endblocktranslate %}
+        </p>
+        {% endif %}
+
+        <form action="{{ app_path }}" method="post" id="login-form">
+            {% csrf_token %}
+            <div class="form-row">
+                {{ form.username.label_tag }}
+                {{ form.username }}
+            </div>
+            <div class="form-row">
+                {{ form.password.label_tag }}
+                {{ form.password }}
+                <input type="hidden" name="next" value="{{ next }}">
+            </div>
+
+            {% for field in form.hidden_fields %}
+            {{ field }}
+            {% endfor %}
+
+            <div class="submit-row">
+                <input type="submit" value="{% translate 'Log in' %}">
+            </div>
+        </form>
+
+        <div class="login-help">
+            <div class="login-help-card">
+                <strong>Acces securise</strong>
+                <span>Connexion reservee aux utilisateurs autorises de l'administration.</span>
+            </div>
+            <div class="login-help-card">
+                <strong>Gestion centralisee</strong>
+                <span>Produits, achats, partenaires et factures au meme endroit.</span>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}
