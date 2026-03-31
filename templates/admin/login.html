@@ -58,7 +58,7 @@
         border-radius: 30px;
         overflow: hidden;
         background:
-            linear-gradient(145deg, rgba(31, 67, 78, 0.94) 0%, rgba(50, 107, 117, 0.88) 55%, rgba(72, 127, 120, 0.82) 100%);
+            linear-gradient(145deg, rgba(19, 43, 58, 0.98) 0%, rgba(31, 66, 78, 0.95) 38%, rgba(53, 103, 106, 0.92) 74%, rgba(173, 130, 79, 0.78) 100%);
         color: #fffaf2;
         box-shadow: var(--login-shadow);
         min-height: 620px;
@@ -108,6 +108,57 @@
         text-transform: uppercase;
     }
 
+    .login-brand {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-top: 26px;
+    }
+
+    .login-brand-mark {
+        width: 72px;
+        height: 72px;
+        flex: 0 0 72px;
+        border-radius: 22px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.08));
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+        overflow: hidden;
+        backdrop-filter: blur(8px);
+    }
+
+    .login-brand-mark img {
+        width: 46px;
+        height: 46px;
+        object-fit: contain;
+        filter: drop-shadow(0 6px 12px rgba(6, 18, 27, 0.18));
+    }
+
+    .login-brand-copy {
+        min-width: 0;
+    }
+
+    .login-brand-copy strong {
+        display: block;
+        font-size: 1.05rem;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: rgba(255, 248, 238, 0.78);
+    }
+
+    .login-brand-copy span {
+        display: block;
+        margin-top: 6px;
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #fffef8;
+    }
+
     .login-hero h1 {
         position: relative;
         margin: 24px 0 14px;
@@ -155,6 +206,24 @@
         font-size: 0.92rem;
     }
 
+    .hero-stripe {
+        position: relative;
+        margin-top: 34px;
+        padding-top: 22px;
+        border-top: 1px solid rgba(255, 255, 255, 0.14);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        color: rgba(255, 248, 238, 0.72);
+        font-size: 0.92rem;
+    }
+
+    .hero-stripe strong {
+        color: #fffef7;
+        font-weight: 700;
+    }
+
     .login-card {
         position: relative;
         background: var(--login-card);
@@ -163,6 +232,15 @@
         box-shadow: var(--login-shadow);
         padding: 34px;
         backdrop-filter: blur(16px);
+    }
+
+    .login-card::before {
+        content: "";
+        position: absolute;
+        inset: 0 0 auto 0;
+        height: 6px;
+        border-radius: 30px 30px 0 0;
+        background: linear-gradient(90deg, #2f6f78 0%, #79a1a4 52%, #c18c5d 100%);
     }
 
     .login-card-header {
@@ -334,10 +412,23 @@
     <section class="login-hero">
         <div>
             <div class="login-kicker">Finance App Control Panel</div>
-            <h1>{{ site_header|default:_("Django administration") }}</h1>
+            <div class="login-brand">
+                <div class="login-brand-mark">
+                    {% if company_brand_logo_url %}
+                    <img src="{{ company_brand_logo_url }}" alt="{{ company_brand_name|default:site_header|default:_('Django administration') }}">
+                    {% else %}
+                    <span style="font-size:1.4rem; font-weight:800; color:#fff;">{{ company_brand_name|default:"FA"|slice:":2"|upper }}</span>
+                    {% endif %}
+                </div>
+                <div class="login-brand-copy">
+                    <strong>Administration</strong>
+                    <span>{{ company_brand_name|default:site_header|default:_("Django administration") }}</span>
+                </div>
+            </div>
+            <h1>Secure finance operations, with a sharper front door.</h1>
             <p>
                 Accedez a votre espace d'administration pour piloter les factures, produits,
-                partenaires et achats dans une interface plus claire et plus elegante.
+                partenaires et achats dans une interface plus premium, plus claire et plus rassurante.
             </p>
             <div class="hero-metrics">
                 <div class="hero-metric">
@@ -348,6 +439,10 @@
                     <strong>Partners</strong>
                     <span>Gestion centralisee des clients, importers et end users.</span>
                 </div>
+            </div>
+            <div class="hero-stripe">
+                <span><strong>Elegant UI</strong> pour les acces internes et les operations sensibles.</span>
+                <span>Back office prive</span>
             </div>
         </div>
 
