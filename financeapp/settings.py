@@ -8,7 +8,12 @@ SECRET_KEY = 'django-insecure-dl@2!*0p51!mcfh2=#o9yigkere1drj@bd#hltxk*0$2m#b)(&
 
 DEBUG = True
 
-ALLOWED_HOSTS = ["finance-app-2-0usq.onrender.com", "localhost", "127.0.0.1"]
+ALLOWED_HOSTS = [
+    "finance-app-2-0usq.onrender.com",
+    "localhost",
+    "127.0.0.1",
+    "nimadvr4.pythonanywhere.com",
+]
 
 
 # APPLICATIONS
