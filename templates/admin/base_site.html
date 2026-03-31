@@ -7,28 +7,47 @@
 {{ block.super }}
 <style>
     :root {
-        --global-admin-bg: #f7f6f2;
-        --global-admin-panel: #fffdf9;
-        --global-admin-border: #ddd8cb;
-        --global-admin-text: #243746;
-        --global-admin-muted: #6d7d88;
-        --global-admin-accent: #2f6f78;
-        --global-admin-shadow: 0 12px 30px rgba(46, 61, 72, 0.08);
-        --global-admin-radius: 18px;
+        --global-admin-bg: #e7e1f4;
+        --global-admin-bg-deep: #4b68b7;
+        --global-admin-bg-soft: #d890a7;
+        --global-admin-panel: rgba(255, 247, 252, 0.58);
+        --global-admin-panel-strong: rgba(255, 250, 254, 0.72);
+        --global-admin-border: rgba(255, 255, 255, 0.34);
+        --global-admin-text: #22384d;
+        --global-admin-muted: #6f7e96;
+        --global-admin-accent: #294e85;
+        --global-admin-accent-soft: #6d88c0;
+        --global-admin-shadow: 0 22px 48px rgba(60, 75, 120, 0.18);
+        --global-admin-radius: 22px;
     }
 
     body {
         background:
-            radial-gradient(circle at top left, rgba(83, 134, 143, 0.1), transparent 28%),
-            radial-gradient(circle at top right, rgba(220, 184, 122, 0.09), transparent 24%),
-            linear-gradient(180deg, #fbfcf8 0%, var(--global-admin-bg) 100%);
+            radial-gradient(circle at 12% 18%, rgba(240, 162, 181, 0.42), transparent 24%),
+            radial-gradient(circle at 84% 20%, rgba(139, 165, 234, 0.30), transparent 22%),
+            radial-gradient(circle at 78% 74%, rgba(107, 133, 215, 0.24), transparent 26%),
+            linear-gradient(135deg, #e5a3b6 0%, #c2a5d7 32%, #7d86d1 68%, #5073c5 100%);
         color: var(--global-admin-text);
+        min-height: 100vh;
+    }
+
+    body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background:
+            radial-gradient(circle at 40% 28%, rgba(255, 255, 255, 0.18), transparent 22%),
+            radial-gradient(circle at 28% 78%, rgba(255, 255, 255, 0.12), transparent 18%);
+        pointer-events: none;
     }
 
     #header {
-        background: linear-gradient(90deg, #356f77 0%, #294f64 100%);
+        background: linear-gradient(90deg, rgba(18, 45, 88, 0.92) 0%, rgba(35, 74, 130, 0.90) 100%);
         color: #fff;
-        box-shadow: 0 8px 24px rgba(41, 65, 83, 0.16);
+        box-shadow: 0 16px 34px rgba(28, 44, 91, 0.22);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.12);
     }
 
     #branding a,
@@ -40,33 +59,39 @@
     }
 
     .breadcrumbs {
-        background: rgba(255, 252, 245, 0.9);
-        border-bottom: 1px solid var(--global-admin-border);
-        color: var(--global-admin-muted);
+        background: rgba(255, 247, 252, 0.42);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.22);
+        color: rgba(33, 53, 83, 0.82);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
     }
 
     .breadcrumbs a {
-        color: #315f68;
+        color: #2e4d84;
     }
 
     #nav-sidebar {
-        background: linear-gradient(180deg, #fbfbf7 0%, #f1efe8 100%);
-        border-right: 1px solid var(--global-admin-border);
+        background: rgba(255, 247, 252, 0.28);
+        border-right: 1px solid rgba(255, 255, 255, 0.18);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
     }
 
     #nav-sidebar .module {
-        background: #ffffff;
-        border: 1px solid var(--global-admin-border);
-        border-radius: 18px;
-        box-shadow: 0 8px 22px rgba(31, 51, 73, 0.05);
+        background: rgba(255, 250, 254, 0.48);
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        border-radius: 20px;
+        box-shadow: 0 14px 28px rgba(53, 63, 106, 0.10);
         overflow: hidden;
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
     }
 
     #nav-sidebar .module caption,
     #nav-sidebar .module h2,
     #nav-sidebar .module th {
-        background: linear-gradient(180deg, #f4f3ee 0%, #ebe8df 100%);
-        color: #395864 !important;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.05) 100%);
+        color: #304d81 !important;
         font-weight: 800;
         letter-spacing: 0.04em;
         text-transform: uppercase;
@@ -74,11 +99,11 @@
 
     #nav-sidebar td,
     #nav-sidebar th {
-        border-color: #e9e4d8;
+        border-color: rgba(113, 133, 181, 0.12);
     }
 
     #nav-sidebar a {
-        color: #315f68;
+        color: #304d81;
         font-weight: 600;
     }
 
@@ -91,21 +116,21 @@
         min-height: 30px;
         padding: 0 12px;
         border-radius: 999px;
-        background: linear-gradient(180deg, #fffefb 0%, #eef5f3 100%);
-        border: 1px solid #ccd9d6;
-        color: #326973 !important;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.64) 0%, rgba(228, 235, 255, 0.54) 100%);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: #2e4d84 !important;
         font-weight: 800;
         font-size: 12px;
         letter-spacing: 0.01em;
         text-decoration: none;
-        box-shadow: 0 6px 14px rgba(58, 88, 96, 0.08);
+        box-shadow: 0 10px 18px rgba(66, 84, 138, 0.12);
         transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
     }
 
     #nav-sidebar td a.addlink:hover,
     #nav-sidebar td a[href$="/add/"]:hover {
-        background: linear-gradient(180deg, #fffefb 0%, #e7f0ee 100%);
-        box-shadow: 0 10px 18px rgba(58, 88, 96, 0.12);
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.74) 0%, rgba(221, 232, 255, 0.64) 100%);
+        box-shadow: 0 12px 22px rgba(66, 84, 138, 0.16);
         transform: translateY(-1px);
     }
 
@@ -116,39 +141,41 @@
         font-size: 16px;
         line-height: 1;
         font-weight: 900;
-        color: #5da53b;
+        color: #5d84d6;
     }
 
     #nav-sidebar .current-app .section:link,
     #nav-sidebar .current-app .section:visited,
     #nav-sidebar .current-model {
-        background: linear-gradient(180deg, #f6ecd2 0%, #efe1bc 100%);
-        color: #6f5730 !important;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.58) 0%, rgba(219, 228, 255, 0.62) 100%);
+        color: #294e85 !important;
         font-weight: 800;
     }
 
     #nav-sidebar input[type="search"],
     #nav-sidebar input[type="text"] {
         border-radius: 999px;
-        border: 1px solid var(--global-admin-border);
-        background: #fffefb;
-        color: #28414f;
+        border: 1px solid rgba(255, 255, 255, 0.34);
+        background: rgba(255, 250, 254, 0.64);
+        color: #28416a;
     }
 
     .module,
     .inline-group {
         border-radius: var(--global-admin-radius);
-        border-color: var(--global-admin-border);
+        border-color: rgba(255, 255, 255, 0.24);
         box-shadow: var(--global-admin-shadow);
         overflow: hidden;
         background: var(--global-admin-panel);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
     }
 
     .module caption,
     .module h2,
     .inline-group h2 {
-        background: linear-gradient(180deg, #faf9f4 0%, #f0ede4 100%);
-        color: #305160;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.04) 100%);
+        color: #284b80;
     }
 
     .object-tools a,
@@ -164,8 +191,10 @@
     #toolbar,
     .actions {
         border-radius: 14px;
-        border-color: var(--global-admin-border);
-        background: #faf8f2;
+        border-color: rgba(255, 255, 255, 0.26);
+        background: rgba(255, 249, 253, 0.44);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
     }
 
     #result_list {
@@ -174,20 +203,30 @@
     }
 
     #result_list thead th {
-        background: #edf3f1;
-        color: #315767;
+        background: rgba(222, 231, 255, 0.72);
+        color: #2f4f84;
     }
 
     #result_list tbody tr:nth-child(even) {
-        background: #fffefb;
+        background: rgba(255, 253, 255, 0.40);
     }
 
     #result_list tbody tr:hover {
-        background: #f6f4ed;
+        background: rgba(233, 238, 255, 0.46);
     }
 
     .messagelist li {
         border-radius: 14px;
+    }
+
+    #content {
+        position: relative;
+        z-index: 1;
+    }
+
+    #content-related .module,
+    #content-main .module {
+        background: var(--global-admin-panel-strong);
     }
 </style>
 {% endblock %}
