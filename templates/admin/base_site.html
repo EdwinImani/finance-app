@@ -227,6 +227,118 @@
     #content-main .module {
         background: var(--global-admin-panel-strong);
     }
+
+    body.dashboard #nav-sidebar,
+    body.dashboard .toggle-nav-sidebar {
+        display: none;
+    }
+
+    body.dashboard .main.shifted,
+    body.dashboard #main.shifted,
+    body.dashboard #content-start {
+        margin-left: 0 !important;
+    }
+
+    .form-row input[type="text"],
+    .form-row input[type="password"],
+    .form-row input[type="email"],
+    .form-row input[type="number"],
+    .form-row input[type="url"],
+    .form-row input[type="tel"],
+    .form-row input[type="date"],
+    .form-row input[type="datetime-local"],
+    .form-row select,
+    .form-row textarea,
+    .vTextField,
+    .vURLField,
+    .vIntegerField,
+    .vDateField,
+    .vDateTimeField,
+    .vLargeTextField,
+    .vForeignKeyRawIdAdminField {
+        border-radius: 14px;
+        border: 1px solid rgba(162, 32, 42, 0.10);
+        background: rgba(255, 255, 255, 0.92);
+        color: var(--global-admin-text);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.96);
+    }
+
+    .form-row input:focus,
+    .form-row select:focus,
+    .form-row textarea:focus,
+    .vTextField:focus,
+    .vURLField:focus,
+    .vIntegerField:focus,
+    .vDateField:focus,
+    .vDateTimeField:focus,
+    .vLargeTextField:focus,
+    .vForeignKeyRawIdAdminField:focus {
+        border-color: rgba(162, 32, 42, 0.34);
+        box-shadow: 0 0 0 4px rgba(162, 32, 42, 0.08);
+        outline: none;
+    }
+
+    .selector,
+    .selector-available,
+    .selector-chosen,
+    .calendarbox,
+    .clockbox {
+        border-radius: 18px;
+        border-color: rgba(162, 32, 42, 0.08);
+        background: rgba(255, 255, 255, 0.88);
+        box-shadow: var(--global-admin-shadow);
+    }
+
+    .selector h2,
+    .calendarbox h2,
+    .clockbox h2 {
+        color: #8c1d26;
+    }
+
+    .aligned label,
+    .form-row label,
+    .inline-group .tabular tr th {
+        color: #7f1720;
+        font-weight: 700;
+    }
+
+    .help,
+    p.help,
+    .helptext {
+        color: var(--global-admin-muted);
+    }
+
+    .submit-row input[type="submit"],
+    .button.default,
+    input[type="submit"].default {
+        background: linear-gradient(180deg, #b92b36 0%, #911d26 100%);
+        color: #fff;
+        border: 0;
+        box-shadow: 0 14px 24px rgba(145, 29, 38, 0.16);
+    }
+
+    .object-tools a,
+    .button,
+    a.button,
+    input[type="button"],
+    button {
+        border: 1px solid rgba(162, 32, 42, 0.10);
+        background: linear-gradient(180deg, rgba(255, 247, 245, 1) 0%, rgba(252, 235, 236, 0.94) 100%);
+        color: #8c1d26;
+        box-shadow: 0 8px 16px rgba(145, 29, 38, 0.08);
+    }
+
+    .object-tools a:hover,
+    .button:hover,
+    a.button:hover,
+    input[type="button"]:hover,
+    button:hover {
+        background: linear-gradient(180deg, rgba(255, 252, 251, 1) 0%, rgba(250, 228, 230, 0.96) 100%);
+    }
+
+    .inline-related {
+        background: rgba(255, 255, 255, 0.72);
+    }
 </style>
 {% endblock %}
 
