@@ -1,34 +1,64 @@
 {% extends "admin/base_site.html" %}
-{% load i18n static %}
+{% load i18n %}
 
 {% block extrastyle %}
 {{ block.super }}
 <style>
     :root {
-        --login-bg: #f5f1e8;
-        --login-card: rgba(255, 252, 245, 0.92);
-        --login-border: rgba(140, 159, 152, 0.22);
-        --login-text: #20343f;
-        --login-muted: #61707a;
-        --login-accent: #2f6f78;
-        --login-accent-2: #c18c5d;
-        --login-input: #f9f7f0;
-        --login-shadow: 0 30px 70px rgba(41, 63, 74, 0.18);
+        --login-bg-deep: #345fa7;
+        --login-bg-soft: #d48ea1;
+        --login-card: rgba(255, 246, 250, 0.42);
+        --login-card-edge: rgba(255, 255, 255, 0.34);
+        --login-panel: rgba(45, 73, 114, 0.72);
+        --login-panel-border: rgba(255, 255, 255, 0.22);
+        --login-text: #203445;
+        --login-muted: #66788a;
+        --login-button: #97acd2;
+        --login-button-text: #ffffff;
+        --login-shadow: 0 34px 70px rgba(42, 58, 92, 0.30);
     }
 
     body.login {
         min-height: 100vh;
         background:
-            radial-gradient(circle at 15% 20%, rgba(65, 120, 129, 0.20), transparent 24%),
-            radial-gradient(circle at 85% 18%, rgba(210, 168, 111, 0.18), transparent 20%),
-            radial-gradient(circle at 50% 100%, rgba(43, 86, 92, 0.15), transparent 35%),
-            linear-gradient(135deg, #fbfaf6 0%, #f0ede4 48%, #e4ece9 100%);
+            radial-gradient(circle at 18% 24%, rgba(242, 163, 180, 0.85), transparent 32%),
+            radial-gradient(circle at 82% 78%, rgba(94, 141, 224, 0.72), transparent 34%),
+            radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.14), transparent 42%),
+            linear-gradient(135deg, #db90a1 0%, #b588b6 28%, #5b6db7 68%, #3766b7 100%);
         color: var(--login-text);
+        overflow-x: hidden;
+    }
+
+    body.login::before,
+    body.login::after {
+        content: "";
+        position: fixed;
+        inset: auto;
+        border-radius: 50%;
+        pointer-events: none;
+        filter: blur(22px);
+        opacity: 0.7;
+    }
+
+    body.login::before {
+        width: 260px;
+        height: 260px;
+        top: 8%;
+        left: 10%;
+        background: rgba(255, 226, 232, 0.32);
+    }
+
+    body.login::after {
+        width: 300px;
+        height: 300px;
+        right: 8%;
+        bottom: 10%;
+        background: rgba(204, 224, 255, 0.26);
     }
 
     body.login #container {
         min-height: 100vh;
-        padding: 28px;
+        padding: 24px;
     }
 
     body.login #header,
@@ -44,260 +74,201 @@
     }
 
     .login-shell {
-        min-height: calc(100vh - 56px);
-        display: grid;
-        grid-template-columns: minmax(320px, 520px) minmax(320px, 520px);
-        align-items: center;
-        justify-content: center;
-        gap: 28px;
-    }
-
-    .login-hero {
-        position: relative;
-        padding: 52px 42px;
-        border-radius: 30px;
-        overflow: hidden;
-        background:
-            linear-gradient(145deg, rgba(19, 43, 58, 0.98) 0%, rgba(31, 66, 78, 0.95) 38%, rgba(53, 103, 106, 0.92) 74%, rgba(173, 130, 79, 0.78) 100%);
-        color: #fffaf2;
-        box-shadow: var(--login-shadow);
-        min-height: 620px;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-    }
-
-    .login-hero::before,
-    .login-hero::after {
-        content: "";
-        position: absolute;
-        border-radius: 999px;
-        pointer-events: none;
-    }
-
-    .login-hero::before {
-        width: 280px;
-        height: 280px;
-        top: -70px;
-        right: -70px;
-        background: radial-gradient(circle, rgba(255, 255, 255, 0.20), transparent 68%);
-    }
-
-    .login-hero::after {
-        width: 240px;
-        height: 240px;
-        bottom: -90px;
-        left: -80px;
-        background: radial-gradient(circle, rgba(241, 193, 131, 0.25), transparent 72%);
-    }
-
-    .login-kicker {
-        position: relative;
-        display: inline-flex;
-        align-items: center;
-        gap: 10px;
-        width: fit-content;
-        padding: 10px 16px;
-        border-radius: 999px;
-        background: rgba(255, 255, 255, 0.10);
-        border: 1px solid rgba(255, 255, 255, 0.16);
-        backdrop-filter: blur(10px);
-        font-size: 0.82rem;
-        font-weight: 700;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-    }
-
-    .login-brand {
-        position: relative;
-        display: flex;
-        align-items: center;
-        gap: 16px;
-        margin-top: 26px;
-    }
-
-    .login-brand-mark {
-        width: 72px;
-        height: 72px;
-        flex: 0 0 72px;
-        border-radius: 22px;
+        min-height: calc(100vh - 48px);
         display: flex;
         align-items: center;
         justify-content: center;
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.08));
-        border: 1px solid rgba(255, 255, 255, 0.14);
-        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
-        overflow: hidden;
-        backdrop-filter: blur(8px);
+        padding: 24px 12px;
     }
 
-    .login-brand-mark img {
-        width: 46px;
-        height: 46px;
-        object-fit: contain;
-        filter: drop-shadow(0 6px 12px rgba(6, 18, 27, 0.18));
-    }
-
-    .login-brand-copy {
-        min-width: 0;
-    }
-
-    .login-brand-copy strong {
-        display: block;
-        font-size: 1.05rem;
-        font-weight: 800;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-        color: rgba(255, 248, 238, 0.78);
-    }
-
-    .login-brand-copy span {
-        display: block;
-        margin-top: 6px;
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: #fffef8;
-    }
-
-    .login-hero h1 {
-        position: relative;
-        margin: 24px 0 14px;
-        font-size: clamp(2.4rem, 4vw, 4rem);
-        line-height: 0.96;
-        letter-spacing: -0.04em;
-        color: #fffdf8;
-    }
-
-    .login-hero p {
-        position: relative;
+    .login-stack {
+        width: 100%;
         max-width: 430px;
-        margin: 0;
-        color: rgba(255, 250, 242, 0.82);
-        font-size: 1.02rem;
-        line-height: 1.7;
-    }
-
-    .hero-metrics {
         position: relative;
-        display: grid;
-        grid-template-columns: repeat(2, minmax(120px, 1fr));
-        gap: 14px;
-        margin-top: 34px;
+        padding-top: 54px;
     }
 
-    .hero-metric {
-        padding: 18px 18px 16px;
-        border-radius: 20px;
-        background: rgba(255, 255, 255, 0.10);
-        border: 1px solid rgba(255, 255, 255, 0.12);
-        backdrop-filter: blur(8px);
-    }
-
-    .hero-metric strong {
-        display: block;
-        font-size: 1.35rem;
-        color: #fff;
-    }
-
-    .hero-metric span {
-        display: block;
-        margin-top: 6px;
-        color: rgba(255, 248, 238, 0.74);
-        font-size: 0.92rem;
-    }
-
-    .hero-stripe {
-        position: relative;
-        margin-top: 34px;
-        padding-top: 22px;
-        border-top: 1px solid rgba(255, 255, 255, 0.14);
+    .login-avatar {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 96px;
+        height: 96px;
+        border-radius: 50%;
+        background: linear-gradient(180deg, #143d79 0%, #0e2f60 100%);
+        box-shadow: 0 18px 30px rgba(13, 36, 77, 0.34);
         display: flex;
         align-items: center;
-        justify-content: space-between;
-        gap: 18px;
-        color: rgba(255, 248, 238, 0.72);
-        font-size: 0.92rem;
+        justify-content: center;
+        z-index: 2;
+        border: 1px solid rgba(255, 255, 255, 0.18);
     }
 
-    .hero-stripe strong {
-        color: #fffef7;
-        font-weight: 700;
+    .login-avatar svg {
+        width: 44px;
+        height: 44px;
+        stroke: rgba(255, 255, 255, 0.95);
+        stroke-width: 1.8;
+        fill: none;
     }
 
     .login-card {
         position: relative;
+        padding: 74px 34px 28px;
+        border-radius: 26px;
         background: var(--login-card);
-        border: 1px solid var(--login-border);
-        border-radius: 30px;
+        border: 1px solid var(--login-card-edge);
         box-shadow: var(--login-shadow);
-        padding: 34px;
-        backdrop-filter: blur(16px);
+        backdrop-filter: blur(28px) saturate(140%);
+        -webkit-backdrop-filter: blur(28px) saturate(140%);
+        overflow: hidden;
     }
 
     .login-card::before {
         content: "";
         position: absolute;
-        inset: 0 0 auto 0;
-        height: 6px;
-        border-radius: 30px 30px 0 0;
-        background: linear-gradient(90deg, #2f6f78 0%, #79a1a4 52%, #c18c5d 100%);
+        inset: 0;
+        background:
+            linear-gradient(180deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0.04) 42%, rgba(255, 255, 255, 0.08) 100%);
+        pointer-events: none;
     }
 
-    .login-card-header {
-        margin-bottom: 24px;
+    .login-card::after {
+        content: "";
+        position: absolute;
+        inset: 1px;
+        border-radius: 25px;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        pointer-events: none;
     }
 
-    .login-card-header h2 {
-        margin: 0 0 8px;
-        font-size: 1.7rem;
-        color: var(--login-text);
-    }
-
-    .login-card-header p {
-        margin: 0;
-        color: var(--login-muted);
-        line-height: 1.6;
-    }
-
-    .login-card form {
-        margin: 0;
-    }
-
-    .login-card .form-row {
+    .login-brand {
+        position: relative;
+        text-align: center;
         margin-bottom: 18px;
+        z-index: 1;
     }
 
-    .login-card label {
-        display: block;
-        margin-bottom: 8px;
+    .login-brand-name {
+        font-size: 1.45rem;
         font-weight: 700;
-        color: var(--login-text);
+        color: #173456;
+        letter-spacing: 0.01em;
     }
 
-    .login-card input[type="text"],
-    .login-card input[type="password"] {
+    .login-brand-subtitle {
+        margin-top: 6px;
+        color: var(--login-muted);
+        font-size: 0.92rem;
+    }
+
+    .errornote,
+    .messagelist li {
+        position: relative;
+        margin: 0 0 14px;
+        padding: 12px 14px;
+        border-radius: 14px;
+        z-index: 1;
+    }
+
+    #login-form {
+        position: relative;
+        margin-top: 18px;
+        z-index: 1;
+    }
+
+    .form-row {
+        margin-bottom: 14px;
+    }
+
+    .form-row label {
+        display: none;
+    }
+
+    .input-wrap {
+        position: relative;
+    }
+
+    .input-wrap::before {
+        position: absolute;
+        top: 50%;
+        left: 14px;
+        transform: translateY(-50%);
+        width: 18px;
+        text-align: center;
+        color: rgba(255, 255, 255, 0.85);
+        font-size: 0.9rem;
+        z-index: 1;
+    }
+
+    .input-wrap.user::before {
+        content: "◧";
+    }
+
+    .input-wrap.password::before {
+        content: "◫";
+    }
+
+    .form-row input[type="text"],
+    .form-row input[type="password"] {
         width: 100%;
-        min-height: 58px;
-        padding: 16px 18px;
-        border-radius: 18px;
-        border: 1px solid rgba(104, 126, 128, 0.22);
-        background: var(--login-input);
-        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
-        color: var(--login-text);
-        font-size: 1rem;
-        transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+        height: 48px;
+        padding: 0 14px 0 40px;
+        border: 1px solid var(--login-panel-border);
+        border-radius: 10px;
+        background: var(--login-panel);
+        color: #f7fbff;
+        font-size: 0.95rem;
+        box-sizing: border-box;
+        box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.06),
+            inset 0 -12px 24px rgba(18, 37, 67, 0.10);
     }
 
-    .login-card input[type="text"]:focus,
-    .login-card input[type="password"]:focus {
+    .form-row input[type="text"]::placeholder,
+    .form-row input[type="password"]::placeholder {
+        color: rgba(233, 240, 255, 0.68);
+    }
+
+    .form-row input[type="text"]:focus,
+    .form-row input[type="password"]:focus {
         outline: none;
-        border-color: rgba(47, 111, 120, 0.55);
-        box-shadow: 0 0 0 5px rgba(47, 111, 120, 0.12);
-        transform: translateY(-1px);
+        border-color: rgba(255, 255, 255, 0.34);
+        box-shadow:
+            0 0 0 4px rgba(121, 153, 212, 0.16),
+            inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    }
+
+    .login-options {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin: 8px 0 18px;
+        font-size: 0.8rem;
+        color: var(--login-muted);
+        z-index: 1;
+    }
+
+    .login-remember {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .login-remember input {
+        accent-color: #3b5d93;
+    }
+
+    .login-options a {
+        color: #6b7fa1;
+        text-decoration: none;
     }
 
     .submit-row {
-        margin: 24px 0 0;
+        margin: 0;
         padding: 0;
         background: transparent;
         border: 0;
@@ -306,96 +277,47 @@
 
     .submit-row input[type="submit"] {
         width: 100%;
-        min-height: 58px;
+        height: 50px;
         border: 0;
-        border-radius: 18px !important;
-        background: linear-gradient(135deg, var(--login-accent) 0%, #3f8390 100%);
-        color: #fff;
-        font-size: 1rem;
-        font-weight: 800;
-        letter-spacing: 0.02em;
-        box-shadow: 0 14px 26px rgba(47, 111, 120, 0.24);
-        transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+        border-radius: 14px !important;
+        background: linear-gradient(180deg, rgba(179, 195, 224, 0.96) 0%, rgba(142, 166, 208, 0.94) 100%);
+        color: var(--login-button-text);
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        box-shadow:
+            0 14px 22px rgba(115, 137, 180, 0.26),
+            inset 0 1px 0 rgba(255, 255, 255, 0.38);
     }
 
-    .submit-row input[type="submit"]:hover {
-        transform: translateY(-1px);
-        filter: brightness(1.02);
-        box-shadow: 0 18px 28px rgba(47, 111, 120, 0.30);
+    .login-shadow-card {
+        width: calc(100% - 56px);
+        height: 64px;
+        margin: -14px auto 0;
+        border-radius: 0 0 18px 18px;
+        background: rgba(243, 236, 247, 0.34);
+        box-shadow: 0 18px 26px rgba(78, 76, 121, 0.16);
+        backdrop-filter: blur(18px) saturate(130%);
+        -webkit-backdrop-filter: blur(18px) saturate(130%);
+        border: 1px solid rgba(255, 255, 255, 0.18);
     }
 
-    .login-help {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(120px, 1fr));
-        gap: 12px;
-        margin-top: 18px;
-    }
-
-    .login-help-card {
-        padding: 14px 15px;
-        border-radius: 18px;
-        background: rgba(255, 255, 255, 0.72);
-        border: 1px solid rgba(140, 159, 152, 0.14);
-    }
-
-    .login-help-card strong {
-        display: block;
-        margin-bottom: 5px;
-        color: #284652;
-    }
-
-    .login-help-card span {
-        color: var(--login-muted);
-        font-size: 0.92rem;
-        line-height: 1.45;
-    }
-
-    .errornote,
-    .messagelist li {
-        border-radius: 18px;
-        margin-bottom: 18px;
-    }
-
-    .login-footer {
-        margin-top: 22px;
-        color: var(--login-muted);
-        font-size: 0.92rem;
-        text-align: center;
-    }
-
-    @media (max-width: 980px) {
-        .login-shell {
-            grid-template-columns: 1fr;
-            min-height: auto;
-        }
-
-        .login-hero {
-            min-height: auto;
-            padding: 36px 28px;
-        }
-
-        .login-card {
-            padding: 26px;
-        }
-    }
-
-    @media (max-width: 640px) {
+    @media (max-width: 520px) {
         body.login #container {
             padding: 14px;
         }
 
-        .login-shell {
-            gap: 18px;
+        .login-stack {
+            max-width: 100%;
         }
 
-        .login-hero,
         .login-card {
-            border-radius: 24px;
+            padding: 70px 22px 24px;
+            border-radius: 22px;
         }
 
-        .hero-metrics,
-        .login-help {
-            grid-template-columns: 1fr;
+        .login-shadow-card {
+            width: calc(100% - 36px);
         }
     }
 </style>
@@ -404,115 +326,101 @@
 {% block bodyclass %}{{ block.super }} login{% endblock %}
 {% block nav-global %}{% endblock %}
 {% block breadcrumbs %}{% endblock %}
-
 {% block content_title %}{% endblock %}
 
 {% block content %}
 <div class="login-shell">
-    <section class="login-hero">
-        <div>
-            <div class="login-kicker">Finance App Control Panel</div>
+    <div class="login-stack">
+        <div class="login-avatar" aria-hidden="true">
+            <svg viewBox="0 0 48 48">
+                <circle cx="24" cy="16" r="9"></circle>
+                <path d="M10 39c2.5-8 9-12 14-12s11.5 4 14 12"></path>
+            </svg>
+        </div>
+
+        <section class="login-card">
             <div class="login-brand">
-                <div class="login-brand-mark">
-                    {% if company_brand_logo_url %}
-                    <img src="{{ company_brand_logo_url }}" alt="{{ company_brand_name|default:site_header|default:_('Django administration') }}">
-                    {% else %}
-                    <span style="font-size:1.4rem; font-weight:800; color:#fff;">{{ company_brand_name|default:"FA"|slice:":2"|upper }}</span>
-                    {% endif %}
-                </div>
-                <div class="login-brand-copy">
-                    <strong>Administration</strong>
-                    <span>{{ company_brand_name|default:site_header|default:_("Django administration") }}</span>
-                </div>
+                <div class="login-brand-name">{{ company_brand_name|default:site_header|default:_("Django administration") }}</div>
+                <div class="login-brand-subtitle">Administration login</div>
             </div>
-            <h1>Secure finance operations, with a sharper front door.</h1>
-            <p>
-                Accedez a votre espace d'administration pour piloter les factures, produits,
-                partenaires et achats dans une interface plus premium, plus claire et plus rassurante.
+
+            {% if form.errors and not form.non_field_errors %}
+            <p class="errornote">
+                {% blocktranslate count counter=form.errors.items|length %}
+                Please correct the error below.
+                {% plural %}
+                Please correct the errors below.
+                {% endblocktranslate %}
             </p>
-            <div class="hero-metrics">
-                <div class="hero-metric">
-                    <strong>Invoices</strong>
-                    <span>Suivi rapide des documents commerciaux et PDF.</span>
-                </div>
-                <div class="hero-metric">
-                    <strong>Partners</strong>
-                    <span>Gestion centralisee des clients, importers et end users.</span>
-                </div>
-            </div>
-            <div class="hero-stripe">
-                <span><strong>Elegant UI</strong> pour les acces internes et les operations sensibles.</span>
-                <span>Back office prive</span>
-            </div>
-        </div>
+            {% endif %}
 
-        <div class="login-footer">
-            Back-office securise pour votre environnement de gestion.
-        </div>
-    </section>
-
-    <section class="login-card">
-        <div class="login-card-header">
-            <h2>Connexion administrateur</h2>
-            <p>Entrez vos identifiants pour acceder au tableau de bord Django.</p>
-        </div>
-
-        {% if form.errors and not form.non_field_errors %}
-        <p class="errornote">
-            {% blocktranslate count counter=form.errors.items|length %}
-            Please correct the error below.
-            {% plural %}
-            Please correct the errors below.
-            {% endblocktranslate %}
-        </p>
-        {% endif %}
-
-        {% if form.non_field_errors %}
-        {% for error in form.non_field_errors %}
-        <p class="errornote">{{ error }}</p>
-        {% endfor %}
-        {% endif %}
-
-        {% if user.is_authenticated %}
-        <p class="errornote">
-            {% blocktranslate trimmed %}
-            You are authenticated as {{ username }}, but are not authorized to access this page.
-            Would you like to login to a different account?
-            {% endblocktranslate %}
-        </p>
-        {% endif %}
-
-        <form action="{{ app_path }}" method="post" id="login-form">
-            {% csrf_token %}
-            <div class="form-row">
-                {{ form.username.label_tag }}
-                {{ form.username }}
-            </div>
-            <div class="form-row">
-                {{ form.password.label_tag }}
-                {{ form.password }}
-                <input type="hidden" name="next" value="{{ next }}">
-            </div>
-
-            {% for field in form.hidden_fields %}
-            {{ field }}
+            {% if form.non_field_errors %}
+            {% for error in form.non_field_errors %}
+            <p class="errornote">{{ error }}</p>
             {% endfor %}
+            {% endif %}
 
-            <div class="submit-row">
-                <input type="submit" value="{% translate 'Log in' %}">
-            </div>
-        </form>
+            {% if user.is_authenticated %}
+            <p class="errornote">
+                {% blocktranslate trimmed %}
+                You are authenticated as {{ username }}, but are not authorized to access this page.
+                Would you like to login to a different account?
+                {% endblocktranslate %}
+            </p>
+            {% endif %}
 
-        <div class="login-help">
-            <div class="login-help-card">
-                <strong>Acces securise</strong>
-                <span>Connexion reservee aux utilisateurs autorises de l'administration.</span>
-            </div>
-            <div class="login-help-card">
-                <strong>Gestion centralisee</strong>
-                <span>Produits, achats, partenaires et factures au meme endroit.</span>
-            </div>
-        </div>
-    </section>
+            <form action="{{ app_path }}" method="post" id="login-form">
+                {% csrf_token %}
+
+                <div class="form-row">
+                    <div class="input-wrap user">
+                        <input
+                            type="text"
+                            name="{{ form.username.html_name }}"
+                            id="{{ form.username.id_for_label }}"
+                            value="{{ form.username.value|default_if_none:'' }}"
+                            placeholder="Email ID"
+                            autocapitalize="none"
+                            autocomplete="username"
+                            maxlength="150"
+                            required
+                        >
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="input-wrap password">
+                        <input
+                            type="password"
+                            name="{{ form.password.html_name }}"
+                            id="{{ form.password.id_for_label }}"
+                            placeholder="Password"
+                            autocomplete="current-password"
+                            required
+                        >
+                    </div>
+                    <input type="hidden" name="next" value="{{ next }}">
+                </div>
+
+                {% for field in form.hidden_fields %}
+                {{ field }}
+                {% endfor %}
+
+                <div class="login-options">
+                    <label class="login-remember">
+                        <input type="checkbox" checked>
+                        <span>Remember me</span>
+                    </label>
+                    <a href="#">Forgot Password?</a>
+                </div>
+
+                <div class="submit-row">
+                    <input type="submit" value="{% translate 'Login' %}">
+                </div>
+            </form>
+        </section>
+
+        <div class="login-shadow-card" aria-hidden="true"></div>
+    </div>
 </div>
 {% endblock %}
