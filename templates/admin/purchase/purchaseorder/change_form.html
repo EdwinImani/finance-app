@@ -4,70 +4,21 @@
 {{ block.super }}
 <style>
     :root {
-        --po-form-bg: #f7f5ef;
-        --po-form-panel: #fffdf9;
-        --po-form-border: #ddd8cb;
-        --po-form-text: #243746;
-        --po-form-muted: #6d7d88;
-        --po-form-accent: #356f77;
-        --po-form-shadow: 0 14px 36px rgba(46, 61, 72, 0.08);
+        --po-form-bg: #f7f1ef;
+        --po-form-panel: rgba(255, 255, 255, 0.92);
+        --po-form-border: rgba(162, 32, 42, 0.10);
+        --po-form-text: #23384d;
+        --po-form-muted: #708090;
+        --po-form-accent: #a2202a;
+        --po-form-shadow: 0 18px 42px rgba(91, 27, 35, 0.10);
         --po-form-radius: 18px;
     }
 
     #content {
         background:
-            radial-gradient(circle at top left, rgba(83, 134, 143, 0.12), transparent 28%),
-            radial-gradient(circle at top right, rgba(220, 184, 122, 0.1), transparent 24%),
-            linear-gradient(180deg, #fbfcf8 0%, var(--po-form-bg) 100%);
-    }
-
-    #nav-sidebar {
-        background: linear-gradient(180deg, #fbfbf7 0%, #f1efe8 100%);
-        border-right: 1px solid var(--po-form-border);
-    }
-
-    #nav-sidebar .module {
-        background: #ffffff;
-        border: 1px solid var(--po-form-border);
-        border-radius: 18px;
-        box-shadow: 0 8px 22px rgba(31, 51, 73, 0.05);
-        overflow: hidden;
-    }
-
-    #nav-sidebar .module th,
-    #nav-sidebar .module caption,
-    #nav-sidebar .module h2 {
-        background: linear-gradient(180deg, #f4f3ee 0%, #ebe8df 100%);
-        color: #395864 !important;
-        font-weight: 800;
-        letter-spacing: 0.04em;
-        text-transform: uppercase;
-    }
-
-    #nav-sidebar .module td,
-    #nav-sidebar .module th {
-        border-color: #e9e4d8;
-    }
-
-    #nav-sidebar a {
-        color: #315f68;
-        font-weight: 600;
-    }
-
-    #nav-sidebar .current-app .section:link,
-    #nav-sidebar .current-app .section:visited,
-    #nav-sidebar .current-model {
-        background: linear-gradient(180deg, #f6ecd2 0%, #efe1bc 100%);
-        color: #6f5730 !important;
-        font-weight: 800;
-    }
-
-    #nav-sidebar input[type="search"],
-    #nav-sidebar input[type="text"] {
-        border-radius: 999px;
-        border: 1px solid var(--po-form-border);
-        background: #fffefb;
-        color: #28414f;
+            radial-gradient(circle at top left, rgba(220, 90, 100, 0.12), transparent 28%),
+            radial-gradient(circle at top right, rgba(162, 32, 42, 0.10), transparent 24%),
+            linear-gradient(180deg, #fdf9f8 0%, var(--po-form-bg) 100%);
     }
 
     .change-form #content-main {
@@ -95,8 +46,8 @@
     .change-form .module h2,
     .change-form .module caption,
     .change-form .inline-group h2 {
-        background: linear-gradient(180deg, #faf9f4 0%, #f0ede4 100%);
-        color: #315767;
+        background: linear-gradient(180deg, rgba(255, 248, 247, 1) 0%, rgba(249, 236, 237, 0.92) 100%);
+        color: #8c1d26;
         padding: 16px 20px;
         font-size: 15px;
         letter-spacing: 0.03em;
@@ -157,13 +108,13 @@
         width: 34px;
         height: 34px;
         border-radius: 999px;
-        background: #fffefb;
+        background: #fff7f5;
         border: 1px solid var(--po-form-border);
-        box-shadow: 0 4px 12px rgba(46, 61, 72, 0.06);
+        box-shadow: 0 4px 12px rgba(145, 29, 38, 0.06);
     }
 
     .change-form .related-widget-wrapper a.related-widget-wrapper-link:hover {
-        background: #eef4f2;
+        background: #fff0f1;
     }
 
     .change-form .field-seller .related-widget-wrapper,
@@ -196,8 +147,8 @@
     }
 
     .inline-group .tabular th {
-        background: #edf3f1;
-        color: #315767;
+        background: #fbefef;
+        color: #8c1d26;
         text-transform: uppercase;
         letter-spacing: 0.04em;
         font-size: 11px;

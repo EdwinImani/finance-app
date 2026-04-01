@@ -143,21 +143,21 @@ document.addEventListener("DOMContentLoaded", function () {
 </script>
 <style>
     :root {
-        --company-bg: #f7f5ef;
-        --company-panel: #fffdf9;
-        --company-border: #ddd8cb;
-        --company-text: #243746;
-        --company-muted: #6d7d88;
-        --company-accent: #356f77;
-        --company-shadow: 0 14px 36px rgba(46, 61, 72, 0.08);
+        --company-bg: #f7f1ef;
+        --company-panel: rgba(255, 255, 255, 0.92);
+        --company-border: rgba(162, 32, 42, 0.10);
+        --company-text: #23384d;
+        --company-muted: #708090;
+        --company-accent: #a2202a;
+        --company-shadow: 0 18px 42px rgba(91, 27, 35, 0.10);
         --company-radius: 18px;
     }
 
     #content {
         background:
-            radial-gradient(circle at top left, rgba(83, 134, 143, 0.12), transparent 28%),
-            radial-gradient(circle at top right, rgba(220, 184, 122, 0.1), transparent 24%),
-            linear-gradient(180deg, #fbfcf8 0%, var(--company-bg) 100%);
+            radial-gradient(circle at top left, rgba(220, 90, 100, 0.12), transparent 28%),
+            radial-gradient(circle at top right, rgba(162, 32, 42, 0.10), transparent 24%),
+            linear-gradient(180deg, #fdf9f8 0%, var(--company-bg) 100%);
     }
 
     .change-form #content-main {
@@ -184,8 +184,8 @@ document.addEventListener("DOMContentLoaded", function () {
     .change-form .module h2,
     .change-form .module caption,
     .inline-group h2 {
-        background: linear-gradient(180deg, #faf9f4 0%, #f0ede4 100%);
-        color: #315767;
+        background: linear-gradient(180deg, rgba(255, 248, 247, 1) 0%, rgba(249, 236, 237, 0.92) 100%);
+        color: #8c1d26;
         padding: 16px 20px;
         font-size: 15px;
         letter-spacing: 0.03em;
@@ -219,18 +219,18 @@ document.addEventListener("DOMContentLoaded", function () {
     .company-logo-save-button {
         margin-left: 12px;
         border: 1px solid var(--company-accent);
-        background: var(--company-accent);
+        background: linear-gradient(180deg, #b92b36 0%, #911d26 100%);
         color: #fff;
         border-radius: 999px;
         padding: 9px 14px;
         font-weight: 700;
         cursor: pointer;
-        box-shadow: 0 8px 18px rgba(53, 111, 119, 0.2);
+        box-shadow: 0 12px 20px rgba(145, 29, 38, 0.18);
     }
 
     .company-logo-save-button:hover {
-        background: #2b5c63;
-        border-color: #2b5c63;
+        background: linear-gradient(180deg, #c4333f 0%, #9a1f29 100%);
+        border-color: #9a1f29;
     }
 
     .company-logo-remove-button {
@@ -285,7 +285,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     .company-summary-card {
-        background: linear-gradient(180deg, #ffffff 0%, #f8fbfe 100%);
+        background: linear-gradient(180deg, #ffffff 0%, #fff7f5 100%);
         border: 1px solid var(--company-border);
         border-radius: 16px;
         padding: 16px;
@@ -301,7 +301,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     .company-summary-card span {
-        color: #183247;
+        color: #23384d;
         font-size: 18px;
         font-weight: 700;
     }

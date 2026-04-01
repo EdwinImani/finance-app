@@ -17,6 +17,14 @@
         --global-admin-accent-soft: #d86c73;
         --global-admin-shadow: 0 18px 42px rgba(91, 27, 35, 0.10);
         --global-admin-radius: 22px;
+        --global-sidebar-bg: #2b4157;
+        --global-sidebar-bg-strong: #24384d;
+        --global-sidebar-panel: rgba(255, 255, 255, 0.06);
+        --global-sidebar-panel-strong: rgba(255, 255, 255, 0.10);
+        --global-sidebar-border: rgba(255, 255, 255, 0.08);
+        --global-sidebar-text: #f5fbff;
+        --global-sidebar-muted: rgba(223, 234, 244, 0.72);
+        --global-sidebar-accent: #3dd6c6;
     }
 
     body {
@@ -70,40 +78,77 @@
     }
 
     #nav-sidebar {
-        background: rgba(255, 255, 255, 0.46);
-        border-right: 1px solid rgba(162, 32, 42, 0.06);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
+        background: linear-gradient(180deg, var(--global-sidebar-bg) 0%, var(--global-sidebar-bg-strong) 100%);
+        border-right: 1px solid rgba(255, 255, 255, 0.05);
+        box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.04);
+        padding: 18px 12px 18px;
     }
 
     #nav-sidebar .module {
-        background: rgba(255, 255, 255, 0.84);
-        border: 1px solid rgba(162, 32, 42, 0.08);
-        border-radius: 20px;
-        box-shadow: 0 12px 24px rgba(91, 27, 35, 0.08);
+        background: var(--global-sidebar-panel);
+        border: 1px solid var(--global-sidebar-border);
+        border-radius: 22px;
+        box-shadow: 0 12px 24px rgba(14, 23, 32, 0.16);
         overflow: hidden;
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
+        margin-bottom: 14px;
     }
 
     #nav-sidebar .module caption,
     #nav-sidebar .module h2,
     #nav-sidebar .module th {
-        background: linear-gradient(180deg, rgba(162, 32, 42, 0.06) 0%, rgba(162, 32, 42, 0.02) 100%);
-        color: #8c1d26 !important;
+        background: transparent;
+        color: var(--global-sidebar-text) !important;
         font-weight: 800;
-        letter-spacing: 0.04em;
+        letter-spacing: 0.06em;
         text-transform: uppercase;
+        font-size: 0.9rem;
+        padding: 16px 16px 10px;
     }
 
     #nav-sidebar td,
     #nav-sidebar th {
-        border-color: rgba(162, 32, 42, 0.06);
+        border-color: rgba(255, 255, 255, 0.05);
     }
 
     #nav-sidebar a {
-        color: #8c1d26;
+        color: var(--global-sidebar-text);
         font-weight: 600;
+    }
+
+    #nav-sidebar .module table,
+    #nav-sidebar .module tbody,
+    #nav-sidebar .module tr {
+        background: transparent;
+    }
+
+    #nav-sidebar tbody th,
+    #nav-sidebar tbody td {
+        padding: 0;
+    }
+
+    #nav-sidebar tbody tr {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 10px;
+        margin: 0 10px 10px;
+        padding: 14px 12px;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    #nav-sidebar tbody tr:last-child {
+        margin-bottom: 12px;
+    }
+
+    #nav-sidebar tbody th a,
+    #nav-sidebar tbody td a:not(.addlink):not([href$="/add/"]) {
+        display: block;
+        color: var(--global-sidebar-text) !important;
+        text-decoration: none;
+        font-weight: 700;
+        line-height: 1.35;
     }
 
     #nav-sidebar td a.addlink,
@@ -115,21 +160,21 @@
         min-height: 30px;
         padding: 0 12px;
         border-radius: 999px;
-        background: linear-gradient(180deg, rgba(255, 247, 245, 0.96) 0%, rgba(252, 236, 237, 0.92) 100%);
-        border: 1px solid rgba(162, 32, 42, 0.12);
-        color: #8c1d26 !important;
+        background: rgba(61, 214, 198, 0.18);
+        border: 1px solid rgba(61, 214, 198, 0.22);
+        color: #eafffb !important;
         font-weight: 800;
         font-size: 12px;
         letter-spacing: 0.01em;
         text-decoration: none;
-        box-shadow: 0 8px 16px rgba(145, 29, 38, 0.10);
+        box-shadow: 0 8px 16px rgba(11, 67, 76, 0.18);
         transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
     }
 
     #nav-sidebar td a.addlink:hover,
     #nav-sidebar td a[href$="/add/"]:hover {
-        background: linear-gradient(180deg, rgba(255, 250, 249, 1) 0%, rgba(251, 230, 232, 0.96) 100%);
-        box-shadow: 0 10px 18px rgba(145, 29, 38, 0.12);
+        background: rgba(61, 214, 198, 0.26);
+        box-shadow: 0 10px 18px rgba(11, 67, 76, 0.24);
         transform: translateY(-1px);
     }
 
@@ -140,23 +185,48 @@
         font-size: 16px;
         line-height: 1;
         font-weight: 900;
-        color: var(--global-admin-accent);
+        color: var(--global-sidebar-accent);
     }
 
     #nav-sidebar .current-app .section:link,
     #nav-sidebar .current-app .section:visited,
-    #nav-sidebar .current-model {
-        background: linear-gradient(180deg, rgba(255, 245, 244, 0.96) 0%, rgba(250, 228, 230, 0.94) 100%);
-        color: #8c1d26 !important;
+    #nav-sidebar .current-model,
+    #nav-sidebar tbody tr:has(.current-model),
+    #nav-sidebar tbody tr:has(.section.current-model) {
+        background: rgba(255, 255, 255, 0.12);
+        color: var(--global-sidebar-text) !important;
         font-weight: 800;
     }
 
     #nav-sidebar input[type="search"],
     #nav-sidebar input[type="text"] {
         border-radius: 999px;
-        border: 1px solid rgba(162, 32, 42, 0.10);
-        background: rgba(255, 255, 255, 0.88);
-        color: var(--global-admin-text);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.10);
+        color: var(--global-sidebar-text);
+        min-height: 42px;
+        padding: 0 14px;
+        box-sizing: border-box;
+    }
+
+    #nav-sidebar input[type="search"]::placeholder,
+    #nav-sidebar input[type="text"]::placeholder {
+        color: var(--global-sidebar-muted);
+    }
+
+    #toggle-nav-sidebar,
+    .toggle-nav-sidebar {
+        background: linear-gradient(180deg, var(--global-sidebar-bg) 0%, var(--global-sidebar-bg-strong) 100%);
+        color: var(--global-sidebar-text);
+    }
+
+    #nav-filter {
+        padding: 0 8px 12px;
+    }
+
+    #nav-filter + table,
+    #nav-filter + div {
+        margin-top: 4px;
     }
 
     .module,

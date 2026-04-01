@@ -4,129 +4,430 @@
 {% block extrastyle %}
 {{ block.super }}
 <style>
-    .dashboard-shell {
-        padding: 28px 0 8px;
-        max-width: 1240px;
-        margin: 0 auto;
+    body.dashboard #main,
+    body.dashboard .main,
+    body.dashboard #content,
+    body.dashboard #content-main {
+        width: 100% !important;
+        max-width: none !important;
+        margin: 0 !important;
+        float: none !important;
+        box-sizing: border-box;
     }
 
-    .dashboard-hero {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
+    body.dashboard #content {
+        padding: 0 28px 28px !important;
+    }
+
+    .finance-dashboard {
+        --dash-navy: #23384d;
+        --dash-navy-soft: #314b63;
+        --dash-cyan: #3dd6c6;
+        --dash-red: #e64a5f;
+        --dash-orange: #f3a43b;
+        --dash-blue: #295ce6;
+        --dash-violet: #7d56d8;
+        --dash-surface: rgba(255, 255, 255, 0.92);
+        --dash-surface-soft: rgba(248, 244, 243, 0.85);
+        --dash-border: rgba(142, 30, 39, 0.08);
+        --dash-text: #213040;
+        --dash-muted: #708090;
+        width: 100%;
+        max-width: 100%;
+        padding: 26px 0 14px;
+        box-sizing: border-box;
+    }
+
+    .finance-frame {
+        display: grid;
+        grid-template-columns: 276px minmax(0, 1fr);
         gap: 24px;
-        margin-bottom: 26px;
-        padding: 28px 30px;
-        border-radius: 28px;
-        background: linear-gradient(135deg, rgba(255, 255, 255, 0.94) 0%, rgba(255, 248, 247, 0.96) 100%);
-        border: 1px solid rgba(162, 32, 42, 0.10);
-        box-shadow: 0 24px 54px rgba(91, 27, 35, 0.10);
-        color: #1f2a37;
+        align-items: start;
+        width: 100%;
     }
 
-    .dashboard-hero-copy h1 {
-        margin: 0;
-        font-size: clamp(2rem, 4vw, 3rem);
-        line-height: 1.02;
-        letter-spacing: -0.04em;
-        color: #7f1720;
-    }
-
-    .dashboard-hero-copy p {
-        margin: 14px 0 0;
-        max-width: 760px;
-        color: #667487;
-        font-size: 1.02rem;
-        line-height: 1.7;
-    }
-
-    .dashboard-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 10px;
-        margin-bottom: 14px;
-        padding: 10px 16px;
-        border-radius: 999px;
-        background: rgba(162, 32, 42, 0.06);
-        border: 1px solid rgba(162, 32, 42, 0.10);
-        font-size: 0.82rem;
-        font-weight: 700;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        color: #9a1f29;
-    }
-
-    .dashboard-brand {
-        width: 84px;
-        height: 84px;
-        flex: 0 0 84px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 24px;
-        background: rgba(162, 32, 42, 0.05);
-        border: 1px solid rgba(162, 32, 42, 0.08);
-        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.92);
+    .finance-sidebar {
+        position: sticky;
+        top: 26px;
+        padding: 18px 16px;
+        border-radius: 30px;
+        background: linear-gradient(180deg, #294157 0%, #24384d 100%);
+        color: #f5fbff;
+        box-shadow: 0 24px 46px rgba(23, 36, 48, 0.24);
         overflow: hidden;
     }
 
-    .dashboard-brand img {
-        max-width: 54px;
-        max-height: 54px;
+    .finance-sidebar::before {
+        content: "";
+        position: absolute;
+        inset: auto -20% -18% auto;
+        width: 180px;
+        height: 180px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(61, 214, 198, 0.14), transparent 70%);
+        pointer-events: none;
+    }
+
+    .finance-brand {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        justify-items: start;
+        gap: 10px;
+        padding: 8px 10px 18px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .finance-brand-mark {
+        width: 56px;
+        height: 56px;
+        border-radius: 18px;
+        display: grid;
+        place-items: center;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        overflow: hidden;
+    }
+
+    .finance-brand-mark img {
+        width: 38px;
+        height: 38px;
         object-fit: contain;
     }
 
-    .dashboard-grid {
+    .finance-brand-name {
+        font-size: 1.15rem;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+    }
+
+    .finance-brand-chip {
+        display: inline-flex;
+        align-items: center;
+        min-height: 28px;
+        padding: 0 12px;
+        border-radius: 999px;
+        background: rgba(61, 214, 198, 0.18);
+        color: #bafff6;
+        font-size: 0.72rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    .finance-sidebar-stack {
+        position: relative;
+        z-index: 1;
         display: grid;
-        grid-template-columns: minmax(0, 1.9fr) minmax(300px, 0.9fr);
-        gap: 24px;
-        align-items: start;
+        gap: 10px;
+        margin-top: 18px;
     }
 
-    .dashboard-panel {
-        border-radius: 26px;
-        background: rgba(255, 255, 255, 0.88);
-        border: 1px solid rgba(162, 32, 42, 0.08);
-        box-shadow: 0 20px 44px rgba(91, 27, 35, 0.08);
-        overflow: hidden;
+    .finance-side-card {
+        padding: 16px 16px;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.07);
+        color: #f5fbff;
     }
 
-    .dashboard-panel-header {
+    .finance-side-label {
+        display: block;
+        color: rgba(223, 234, 244, 0.72);
+        font-size: 0.76rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    .finance-side-value {
+        margin-top: 8px;
+        font-size: 1.3rem;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+    }
+
+    .finance-side-note {
+        margin-top: 6px;
+        color: rgba(223, 234, 244, 0.72);
+        font-size: 0.86rem;
+        line-height: 1.5;
+    }
+
+    .finance-side-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 38px;
+        margin-top: 10px;
+        padding: 0 14px;
+        border-radius: 999px;
+        background: rgba(61, 214, 198, 0.18);
+        border: 1px solid rgba(61, 214, 198, 0.22);
+        color: #eafffb;
+        font-weight: 800;
+        text-decoration: none;
+    }
+
+    .finance-side-button:hover {
+        background: rgba(61, 214, 198, 0.26);
+    }
+
+    .finance-main {
+        display: grid;
+        gap: 22px;
+        min-width: 0;
+        width: 100%;
+    }
+
+    .finance-topbar {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 18px;
-        padding: 20px 24px 0;
+        gap: 20px;
+        padding: 8px 6px 0;
     }
 
-    .dashboard-panel-header h2 {
+    .finance-topbar-title h1 {
+        margin: 0;
+        color: #a2202a;
+        font-size: clamp(2rem, 3vw, 2.5rem);
+        letter-spacing: -0.04em;
+    }
+
+    .finance-topbar-title p {
+        margin: 8px 0 0;
+        color: var(--dash-muted);
+        max-width: 760px;
+        line-height: 1.7;
+    }
+
+    .finance-year {
+        display: inline-flex;
+        align-items: center;
+        min-height: 40px;
+        padding: 0 16px;
+        border-radius: 999px;
+        background: rgba(162, 32, 42, 0.08);
+        color: #8c1d26;
+        font-weight: 800;
+    }
+
+    .finance-topbar-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .finance-back-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 40px;
+        padding: 0 16px;
+        border-radius: 999px;
+        border: 1px solid rgba(35, 56, 77, 0.10);
+        background: rgba(255, 255, 255, 0.88);
+        color: #23384d;
+        font-weight: 800;
+        text-decoration: none;
+        box-shadow: 0 10px 18px rgba(35, 56, 77, 0.08);
+    }
+
+    .finance-back-button:hover {
+        background: rgba(255, 255, 255, 1);
+    }
+
+    .finance-hero-panel,
+    .finance-summary,
+    .finance-apps-panel,
+    .finance-actions-panel {
+        background: var(--dash-surface);
+        border: 1px solid var(--dash-border);
+        border-radius: 30px;
+        box-shadow: 0 22px 44px rgba(91, 27, 35, 0.08);
+    }
+
+    .finance-hero-panel {
+        padding: 22px 24px 24px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .finance-overview-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.6fr) minmax(280px, 0.9fr);
+        gap: 20px;
+        align-items: center;
+    }
+
+    .finance-overview-table {
+        display: grid;
+        gap: 12px;
+    }
+
+    .finance-overview-row {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid rgba(140, 29, 38, 0.08);
+    }
+
+    .finance-overview-row:last-child {
+        padding-bottom: 0;
+        border-bottom: 0;
+    }
+
+    .finance-overview-item strong {
+        display: block;
+        margin-bottom: 6px;
+        color: #8c1d26;
+        font-size: 0.82rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+    }
+
+    .finance-overview-item span {
+        color: var(--dash-text);
+        font-weight: 700;
+    }
+
+    .finance-chart-wrap {
+        display: grid;
+        justify-items: center;
+        gap: 14px;
+        padding: 8px 0 8px;
+    }
+
+    .finance-chart-legend {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px 12px;
+    }
+
+    .finance-legend-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--dash-muted);
+        font-size: 0.82rem;
+    }
+
+    .finance-legend-swatch {
+        width: 14px;
+        height: 14px;
+        border-radius: 999px;
+        flex: 0 0 14px;
+    }
+
+    .finance-donut {
+        width: 188px;
+        height: 188px;
+        border-radius: 50%;
+        background:
+            radial-gradient(circle at center, rgba(255, 255, 255, 1) 0 31%, transparent 32%),
+            conic-gradient(
+                var(--dash-blue) 0 35%,
+                var(--dash-red) 35% 42%,
+                var(--dash-violet) 42% 71%,
+                var(--dash-orange) 71% 82%,
+                #c86d4a 82% 92%,
+                #6ec9a9 92% 100%
+            );
+        box-shadow: inset 0 0 0 14px rgba(255, 255, 255, 0.82), 0 18px 28px rgba(41, 92, 230, 0.12);
+    }
+
+    .finance-summary {
+        padding: 22px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .finance-summary-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 16px;
+    }
+
+    .finance-stat {
+        padding: 18px;
+        border-radius: 22px;
+        background: var(--dash-surface-soft);
+        border: 1px solid rgba(140, 29, 38, 0.08);
+    }
+
+    .finance-stat-label {
+        color: var(--dash-muted);
+        font-size: 0.8rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+    }
+
+    .finance-stat-value {
+        margin-top: 10px;
+        color: #1f2a37;
+        font-size: clamp(1.5rem, 2vw, 2rem);
+        font-weight: 800;
+        letter-spacing: -0.04em;
+    }
+
+    .finance-stat-note {
+        margin-top: 6px;
+        color: var(--dash-muted);
+        font-size: 0.9rem;
+    }
+
+    .finance-lower-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.5fr) minmax(320px, 0.9fr);
+        gap: 22px;
+    }
+
+    .finance-apps-panel,
+    .finance-actions-panel {
+        padding: 22px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .finance-panel-head {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 18px;
+        margin-bottom: 18px;
+    }
+
+    .finance-panel-head h2 {
         margin: 0;
         color: #7f1720;
         font-size: 1.35rem;
     }
 
-    .dashboard-panel-header p {
+    .finance-panel-head p {
         margin: 6px 0 0;
-        color: #7c8797;
+        color: var(--dash-muted);
     }
 
-    .dashboard-apps {
-        padding: 20px 24px 24px;
+    .finance-apps-grid {
         display: grid;
-        gap: 18px;
+        gap: 16px;
     }
 
-    .dashboard-app-card {
-        border-radius: 22px;
-        background: rgba(255, 255, 255, 0.94);
-        border: 1px solid rgba(162, 32, 42, 0.08);
-        box-shadow: 0 10px 22px rgba(91, 27, 35, 0.06);
+    .finance-app-card {
+        border-radius: 24px;
+        border: 1px solid rgba(140, 29, 38, 0.08);
+        background: rgba(255, 255, 255, 0.82);
         overflow: hidden;
     }
 
-    .dashboard-app-title {
+    .finance-app-title {
         padding: 16px 18px;
-        border-bottom: 1px solid rgba(162, 32, 42, 0.08);
+        background: linear-gradient(180deg, rgba(255, 248, 247, 1) 0%, rgba(249, 236, 237, 0.92) 100%);
         color: #8c1d26;
         font-size: 0.9rem;
         font-weight: 800;
@@ -134,36 +435,37 @@
         text-transform: uppercase;
     }
 
-    .dashboard-model-list {
-        padding: 8px;
+    .finance-model-list {
+        padding: 10px;
         display: grid;
-        gap: 8px;
+        gap: 10px;
     }
 
-    .dashboard-model-item {
+    .finance-model-item {
         display: grid;
         grid-template-columns: minmax(0, 1fr) auto;
+        gap: 14px;
         align-items: center;
-        gap: 16px;
-        padding: 14px 14px 14px 16px;
-        border-radius: 16px;
-        background: rgba(252, 248, 247, 0.92);
+        padding: 14px;
+        border-radius: 18px;
+        background: rgba(248, 244, 243, 0.88);
     }
 
-    .dashboard-model-name {
-        color: #7f1720;
+    .finance-model-item a,
+    .finance-model-item span {
+        color: #23384d;
         font-weight: 700;
         text-decoration: none;
     }
 
-    .dashboard-model-actions {
+    .finance-model-actions {
         display: flex;
         align-items: center;
-        gap: 8px;
         flex-wrap: wrap;
+        gap: 8px;
     }
 
-    .dashboard-pill {
+    .finance-chip {
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -171,90 +473,88 @@
         padding: 0 14px;
         border-radius: 999px;
         text-decoration: none;
-        font-size: 0.86rem;
-        font-weight: 700;
-        border: 1px solid rgba(162, 32, 42, 0.10);
-        box-shadow: 0 8px 16px rgba(91, 27, 35, 0.08);
+        font-size: 0.84rem;
+        font-weight: 800;
     }
 
-    .dashboard-pill.add {
-        background: linear-gradient(180deg, rgba(178, 41, 53, 0.96) 0%, rgba(145, 29, 38, 0.94) 100%);
+    .finance-chip.primary {
+        background: linear-gradient(180deg, #b92b36 0%, #911d26 100%);
         color: #fff;
+        box-shadow: 0 12px 18px rgba(145, 29, 38, 0.18);
     }
 
-    .dashboard-pill.change {
-        background: linear-gradient(180deg, rgba(255, 247, 245, 1) 0%, rgba(252, 235, 236, 0.94) 100%);
-        color: #8c1d26;
+    .finance-chip.secondary {
+        background: rgba(35, 56, 77, 0.08);
+        border: 1px solid rgba(35, 56, 77, 0.08);
+        color: #23384d;
     }
 
-    .dashboard-actions {
-        padding: 18px 22px 22px;
-    }
-
-    .dashboard-actions h2 {
-        margin: 0;
-        color: #7f1720;
-        font-size: 1.35rem;
-    }
-
-    .dashboard-actions p {
-        margin: 8px 0 18px;
-        color: #7c8797;
-    }
-
-    .dashboard-action-list {
+    .finance-actions-list {
         display: grid;
         gap: 10px;
     }
 
-    .dashboard-action-item {
-        padding: 14px 14px 13px;
-        border-radius: 16px;
-        background: rgba(252, 248, 247, 0.94);
-        border: 1px solid rgba(162, 32, 42, 0.08);
+    .finance-action-item {
+        padding: 14px 15px;
+        border-radius: 18px;
+        background: rgba(248, 244, 243, 0.88);
+        border: 1px solid rgba(140, 29, 38, 0.08);
     }
 
-    .dashboard-action-item a {
-        color: #7f1720;
+    .finance-action-item a,
+    .finance-action-item span {
+        color: #23384d;
         font-weight: 700;
         text-decoration: none;
     }
 
-    .dashboard-action-meta {
-        margin-top: 4px;
-        color: #7c8797;
-        font-size: 0.9rem;
+    .finance-action-meta {
+        margin-top: 5px;
+        color: var(--dash-muted);
+        font-size: 0.88rem;
     }
 
-    .dashboard-empty {
+    .finance-empty {
         padding: 18px;
         border-radius: 18px;
-        background: rgba(252, 248, 247, 0.94);
-        color: #7c8797;
+        color: var(--dash-muted);
+        background: rgba(248, 244, 243, 0.88);
     }
 
-    @media (max-width: 1100px) {
-        .dashboard-grid {
+    @media (max-width: 1280px) {
+        .finance-frame,
+        .finance-lower-grid,
+        .finance-overview-grid {
             grid-template-columns: 1fr;
+        }
+
+        .finance-sidebar {
+            position: relative;
+            top: 0;
+        }
+    }
+
+    @media (max-width: 900px) {
+        .finance-summary-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
         }
     }
 
     @media (max-width: 680px) {
-        .dashboard-hero {
-            padding: 22px 20px;
-            border-radius: 24px;
+        .finance-dashboard {
+            padding-top: 16px;
+        }
+
+        .finance-topbar {
             flex-direction: column;
-            align-items: flex-start;
-        }
-
-        .dashboard-panel,
-        .dashboard-app-card {
-            border-radius: 20px;
-        }
-
-        .dashboard-model-item {
-            grid-template-columns: 1fr;
             align-items: start;
+        }
+
+        .finance-overview-row,
+        .finance-summary-grid,
+        .finance-chart-legend,
+        .finance-model-item {
+            grid-template-columns: 1fr;
         }
     }
 </style>
@@ -263,82 +563,175 @@
 {% block bodyclass %}{{ block.super }} dashboard{% endblock %}
 
 {% block content %}
-<div class="dashboard-shell">
-    <section class="dashboard-hero">
-        <div class="dashboard-hero-copy">
-            <div class="dashboard-badge">Red Signature Workspace</div>
-            <h1>{{ company_brand_name|default:site_header|default:_("Django administration") }}</h1>
-            <p>Un dashboard moderne, blanc et rouge, plus chic et plus net pour piloter vos produits, partenaires, achats et factures dans une interface premium.</p>
-        </div>
-        {% if company_brand_logo_url %}
-        <div class="dashboard-brand">
-            <img src="{{ company_brand_logo_url }}" alt="{{ company_brand_name|default:site_header }}">
-        </div>
-        {% endif %}
-    </section>
-
-    <div class="dashboard-grid">
-        <section class="dashboard-panel">
-            <div class="dashboard-panel-header">
-                <div>
-                    <h2>{% translate "Management modules" %}</h2>
-                    <p>{% translate "Acces rapide aux sections principales de votre back-office." %}</p>
+{% get_admin_log 8 as admin_log for_user user %}
+<div class="finance-dashboard">
+    <div class="finance-frame">
+        <aside class="finance-sidebar">
+            <div class="finance-brand">
+                <div class="finance-brand-mark">
+                    {% if company_brand_logo_url %}
+                    <img src="{{ company_brand_logo_url }}" alt="{{ company_brand_name|default:site_header }}">
+                    {% else %}
+                    <span>{{ company_brand_name|default:site_header|default:"FA"|slice:":2"|upper }}</span>
+                    {% endif %}
                 </div>
+                <div class="finance-brand-name">{{ company_brand_name|default:site_header|default:_("Finance Admin") }}</div>
+                <div class="finance-brand-chip">{% now "Y-m-d" %}</div>
             </div>
 
-            <div class="dashboard-apps">
-                {% for app in app_list %}
-                <article class="dashboard-app-card">
-                    <div class="dashboard-app-title">{{ app.name }}</div>
-                    <div class="dashboard-model-list">
-                        {% for model in app.models %}
-                        <div class="dashboard-model-item">
-                            <div>
-                                {% if model.admin_url %}
-                                <a href="{{ model.admin_url }}" class="dashboard-model-name">{{ model.name }}</a>
-                                {% else %}
-                                <span class="dashboard-model-name">{{ model.name }}</span>
-                                {% endif %}
-                            </div>
-                            <div class="dashboard-model-actions">
-                                {% if model.add_url %}
-                                <a href="{{ model.add_url }}" class="dashboard-pill add">{% translate "Add" %}</a>
-                                {% endif %}
-                                {% if model.admin_url %}
-                                <a href="{{ model.admin_url }}" class="dashboard-pill change">{% translate "Manage" %}</a>
-                                {% endif %}
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </article>
-                {% endfor %}
-            </div>
-        </section>
-
-        <aside class="dashboard-panel">
-            <div class="dashboard-actions">
-                <h2>{% translate "Recent actions" %}</h2>
-                <p>{% translate "Vos dernieres modifications dans l'administration." %}</p>
-                {% get_admin_log 12 as admin_log for_user user %}
-                {% if admin_log %}
-                <div class="dashboard-action-list">
-                    {% for entry in admin_log %}
-                    <div class="dashboard-action-item">
-                        {% if entry.get_admin_url %}
-                        <a href="{{ entry.get_admin_url }}">{{ entry.object_repr }}</a>
-                        {% else %}
-                        <span>{{ entry.object_repr }}</span>
-                        {% endif %}
-                        <div class="dashboard-action-meta">{{ entry.content_type.name|capfirst }}</div>
-                    </div>
-                    {% endfor %}
+            <div class="finance-sidebar-stack">
+                <div class="finance-side-card">
+                    <span class="finance-side-label">{% translate "Missing part number" %}</span>
+                    <div class="finance-side-value">{{ dashboard_alerts.products_missing_part_number }}</div>
+                    <div class="finance-side-note">{% translate "Products to complete before documents or export." %}</div>
+                    <a href="{% url 'admin:products_product_changelist' %}" class="finance-side-button">{% translate "Open products" %}</a>
                 </div>
-                {% else %}
-                <div class="dashboard-empty">{% translate "No recent actions available yet." %}</div>
-                {% endif %}
+                <div class="finance-side-card">
+                    <span class="finance-side-label">{% translate "Missing HS code" %}</span>
+                    <div class="finance-side-value">{{ dashboard_alerts.proformas_missing_hs_code }}</div>
+                    <div class="finance-side-note">{% translate "Proforma invoices without an HS code to review." %}</div>
+                    <a href="{% url 'admin:invoices_proformainvoice_changelist' %}" class="finance-side-button">{% translate "Open proformas" %}</a>
+                </div>
+                <div class="finance-side-card">
+                    <span class="finance-side-label">{% translate "Low stock" %}</span>
+                    <div class="finance-side-value">{{ dashboard_alerts.products_low_stock }}</div>
+                    <div class="finance-side-note">{% translate "Products with low or zero stock to review." %}</div>
+                    <a href="{% url 'admin:products_product_changelist' %}" class="finance-side-button">{% translate "Open products" %}</a>
+                </div>
             </div>
         </aside>
+
+        <div class="finance-main">
+            <section class="finance-topbar">
+                <div class="finance-topbar-title">
+                    <h1>{{ company_brand_name|default:site_header|default:_("Finance Dashboard") }}</h1>
+                </div>
+                <div class="finance-topbar-actions">
+                    <a href="#" class="finance-back-button" onclick="history.back(); return false;">{% translate "Back" %}</a>
+                    <div class="finance-year">{{ company_year|default:"-" }} Overview</div>
+                </div>
+            </section>
+
+            <section class="finance-hero-panel">
+                <div class="finance-overview-grid">
+                    <div class="finance-overview-table">
+                        <div class="finance-overview-row">
+                            <div class="finance-overview-item">
+                                <strong>{% translate "From date" %}</strong>
+                                <span>{{ dashboard_period_start|date:"Y-m-d" }}</span>
+                            </div>
+                            <div class="finance-overview-item">
+                                <strong>{% translate "To date" %}</strong>
+                                <span>{{ dashboard_period_end|date:"Y-m-d" }}</span>
+                            </div>
+                        </div>
+                        <div class="finance-overview-row">
+                            <div class="finance-overview-item">
+                                <strong>{% translate "Gross Value Sale" %}</strong>
+                                <span>{{ dashboard_sales.gross|floatformat:2 }}</span>
+                            </div>
+                            <div class="finance-overview-item">
+                                <strong>{% translate "Currency" %}</strong>
+                                <span>{{ company_currency|default:"-" }}</span>
+                            </div>
+                        </div>
+                        <div class="finance-overview-row">
+                            <div class="finance-overview-item">
+                                <strong>{% translate "Freight Sale" %}</strong>
+                                <span>{{ dashboard_sales.freight|floatformat:2 }}</span>
+                            </div>
+                            <div class="finance-overview-item">
+                                <strong>{% translate "Commercial invoices" %}</strong>
+                                <span>{{ dashboard_sales_count }}</span>
+                            </div>
+                        </div>
+                        <div class="finance-overview-row">
+                            <div class="finance-overview-item">
+                                <strong>{% translate "Vat Sale" %}</strong>
+                                <span>{{ dashboard_sales.vat|floatformat:2 }}</span>
+                            </div>
+                            <div class="finance-overview-item">
+                                <strong>{% translate "Total Amount Sale" %}</strong>
+                                <span>{{ dashboard_sales.total|floatformat:2 }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="finance-chart-wrap">
+                        <div class="finance-chart-legend">
+                            <div class="finance-legend-item"><span class="finance-legend-swatch" style="background:#c86d4a;"></span><span>Gross Value Sale</span></div>
+                            <div class="finance-legend-item"><span class="finance-legend-swatch" style="background:#7d56d8;"></span><span>Freight Sale</span></div>
+                            <div class="finance-legend-item"><span class="finance-legend-swatch" style="background:#f3a43b;"></span><span>Vat Sale</span></div>
+                            <div class="finance-legend-item"><span class="finance-legend-swatch" style="background:#295ce6;"></span><span>Total Amount Sale</span></div>
+                        </div>
+                        <div class="finance-donut" aria-hidden="true"></div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="finance-summary">
+                <div class="finance-summary-grid">
+                    <article class="finance-stat">
+                        <div class="finance-stat-label">{% translate "Gross Sale" %}</div>
+                        <div class="finance-stat-value">{{ dashboard_sales.gross|floatformat:2 }}</div>
+                        <div class="finance-stat-note">{% translate "Sales amount before freight for the selected year." %}</div>
+                    </article>
+                    <article class="finance-stat">
+                        <div class="finance-stat-label">{% translate "Freight Sale" %}</div>
+                        <div class="finance-stat-value">{{ dashboard_sales.freight|floatformat:2 }}</div>
+                        <div class="finance-stat-note">{% translate "Total freight across commercial invoices for the selected year." %}</div>
+                    </article>
+                    <article class="finance-stat">
+                        <div class="finance-stat-label">{% translate "Vat Sale" %}</div>
+                        <div class="finance-stat-value">{{ dashboard_sales.vat|floatformat:2 }}</div>
+                        <div class="finance-stat-note">{% translate "Total VAT across commercial invoices for the selected year." %}</div>
+                    </article>
+                    <article class="finance-stat">
+                        <div class="finance-stat-label">{% translate "Total Sale" %}</div>
+                        <div class="finance-stat-value">{{ dashboard_sales.total|floatformat:2 }}</div>
+                        <div class="finance-stat-note">{% translate "Total sales including freight and VAT." %}</div>
+                    </article>
+                </div>
+            </section>
+
+            <section class="finance-apps-panel">
+                <div class="finance-panel-head">
+                    <div>
+                        <h2>{% translate "Management modules" %}</h2>
+                        <p>{% translate "Quick access to the main working sections, inspired by your example." %}</p>
+                    </div>
+                </div>
+
+                <div class="finance-apps-grid">
+                    {% for app in app_list %}
+                    <article class="finance-app-card">
+                        <div class="finance-app-title">{{ app.name }}</div>
+                        <div class="finance-model-list">
+                            {% for model in app.models %}
+                            <div class="finance-model-item">
+                                <div>
+                                    {% if model.admin_url %}
+                                    <a href="{{ model.admin_url }}">{{ model.name }}</a>
+                                    {% else %}
+                                    <span>{{ model.name }}</span>
+                                    {% endif %}
+                                </div>
+                                <div class="finance-model-actions">
+                                    {% if model.add_url %}
+                                    <a href="{{ model.add_url }}" class="finance-chip primary">{% translate "Add" %}</a>
+                                    {% endif %}
+                                    {% if model.admin_url %}
+                                    <a href="{{ model.admin_url }}" class="finance-chip secondary">{% translate "Manage" %}</a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </article>
+                    {% endfor %}
+                </div>
+            </section>
+        </div>
     </div>
 </div>
 {% endblock %}

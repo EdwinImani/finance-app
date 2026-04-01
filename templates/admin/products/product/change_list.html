@@ -4,21 +4,21 @@
 {{ block.super }}
 <style>
     :root {
-        --product-bg: #f7f5ef;
-        --product-panel: #fffdf9;
-        --product-border: #ddd8cb;
-        --product-text: #243746;
-        --product-muted: #6d7d88;
-        --product-accent: #356f77;
-        --product-shadow: 0 12px 30px rgba(46, 61, 72, 0.08);
+        --product-bg: #f7f1ef;
+        --product-panel: rgba(255, 255, 255, 0.92);
+        --product-border: rgba(162, 32, 42, 0.10);
+        --product-text: #23384d;
+        --product-muted: #708090;
+        --product-accent: #a2202a;
+        --product-shadow: 0 18px 42px rgba(91, 27, 35, 0.10);
         --product-radius: 18px;
     }
 
     #content {
         background:
-            radial-gradient(circle at top left, rgba(83, 134, 143, 0.12), transparent 28%),
-            radial-gradient(circle at top right, rgba(220, 184, 122, 0.1), transparent 24%),
-            linear-gradient(180deg, #fbfcf8 0%, var(--product-bg) 100%);
+            radial-gradient(circle at top left, rgba(220, 90, 100, 0.12), transparent 28%),
+            radial-gradient(circle at top right, rgba(162, 32, 42, 0.10), transparent 24%),
+            linear-gradient(180deg, #fdf9f8 0%, var(--product-bg) 100%);
     }
 
     .change-list #content-main {
@@ -37,8 +37,8 @@
         border-radius: 999px;
         padding: 11px 18px !important;
         font-weight: 800;
-        border: 1px solid #2f6770;
-        box-shadow: 0 10px 18px rgba(49, 89, 94, 0.16);
+        border: 1px solid #911d26;
+        box-shadow: 0 10px 18px rgba(145, 29, 38, 0.16);
         letter-spacing: 0.03em;
         text-transform: uppercase;
         font-size: 12px;
@@ -48,7 +48,7 @@
     }
 
     .change-list .object-tools a.addlink {
-        background: linear-gradient(135deg, #3c7d86 0%, #2f6770 100%) !important;
+        background: linear-gradient(135deg, #b92b36 0%, #911d26 100%) !important;
         color: #fff !important;
     }
 
@@ -61,7 +61,7 @@
 
     .change-list .object-tools a:hover {
         transform: translateY(-1px);
-        box-shadow: 0 14px 24px rgba(49, 89, 94, 0.2);
+        box-shadow: 0 14px 24px rgba(145, 29, 38, 0.2);
     }
 
     .change-list #changelist {
@@ -81,7 +81,7 @@
     }
 
     .change-list #toolbar {
-        background: #fbf9f3;
+        background: #fff8f6;
         border: 1px solid var(--product-border);
         border-radius: 14px;
         padding: 14px 16px;
@@ -116,7 +116,7 @@
     }
 
     .change-list .actions {
-        background: #f8fbfe;
+        background: #fff8f8;
         border: 1px solid var(--product-border);
         border-radius: 14px;
         padding: 10px 14px;
@@ -132,8 +132,8 @@
     }
 
     .change-list #result_list thead th {
-        background: #edf3f1;
-        color: #315767;
+        background: #fbefef;
+        color: #8c1d26;
         text-transform: uppercase;
         letter-spacing: 0.04em;
         font-size: 11px;
@@ -157,7 +157,7 @@
     }
 
     .change-list #result_list tbody th a {
-        color: #315f68;
+        color: #8c1d26;
         font-weight: 700;
     }
 
@@ -170,14 +170,14 @@
     }
 
     .change-list #changelist-filter {
-        background: linear-gradient(180deg, #fffefb 0%, #f8f5ee 100%);
+        background: linear-gradient(180deg, #fffefb 0%, #fff5f4 100%);
         border-left: 1px solid var(--product-border);
         padding: 18px 16px;
     }
 
     .change-list #changelist-filter h2,
     .change-list #changelist-filter h3 {
-        color: #315767;
+        color: #8c1d26;
     }
 
     .product-list-hero {
@@ -193,7 +193,7 @@
         font-size: 32px;
         line-height: 1.1;
         letter-spacing: -0.03em;
-        color: #315767;
+        color: #8c1d26;
     }
 
     .product-list-hero p {
@@ -208,7 +208,7 @@
         border: 1px solid var(--product-border);
         border-radius: 999px;
         padding: 10px 14px;
-        color: #315767;
+        color: #8c1d26;
         font-weight: 700;
         white-space: nowrap;
     }
