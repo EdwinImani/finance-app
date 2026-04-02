@@ -106,9 +106,6 @@ class BaseInvoice(models.Model):
 # ----------------------
 
 class ProformaInvoice(BaseInvoice):
-
-    hs_code = models.CharField(max_length=20, blank=True)
-
     our_reference = models.CharField(max_length=100, blank=True)
 
     def ready_for_report(self):
@@ -151,7 +148,7 @@ class ProformaInvoice(BaseInvoice):
                 CommercialInvoiceItem.objects.create(
                     invoice=commercial,
                     product=item.product,
-                    hs_code=self.hs_code if self.hs_code else "-",
+                    hs_code=item.hs_code,
                     quantity=item.quantity,
                     unit_price=item.unit_price
                 )
@@ -180,6 +177,8 @@ class ProformaInvoiceItem(models.Model):
         on_delete=models.PROTECT
     )
 
+    hs_code = models.CharField(max_length=20, blank=True)
+
     quantity = models.IntegerField(default=0)
 
     unit_price = models.DecimalField(
@@ -187,6 +186,15 @@ class ProformaInvoiceItem(models.Model):
         decimal_places=2,
         default=Decimal("0.00")
     )
+
+    def save(self, *args, **kwargs):
+        if not self.hs_code and self.product_id:
+            self.hs_code = self.product.hs_code or "-"
+
+        if not self.hs_code:
+            self.hs_code = "-"
+
+        super().save(*args, **kwargs)
 
     def total_line(self):
 
@@ -241,6 +249,9 @@ class CommercialInvoiceItem(models.Model):
     )
 
     def save(self, *args, **kwargs):
+        if not self.hs_code and self.product_id:
+            self.hs_code = self.product.hs_code or "-"
+
         if not self.hs_code:
             self.hs_code = "-"
 

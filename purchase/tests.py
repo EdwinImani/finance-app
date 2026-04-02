@@ -14,6 +14,7 @@ class ProductInfoViewTests(TestCase):
         product = Product.objects.create(
             description="Produit API",
             part_number="API-001",
+            hs_code="8471.30",
             note="Note produit",
             unit_qty=12,
             purchase_price=Decimal("5.50"),
@@ -28,6 +29,7 @@ class ProductInfoViewTests(TestCase):
             {
                 "description": "Produit API",
                 "part_number": "API-001",
+                "hs_code": "8471.30",
                 "note": "Note produit",
                 "unit_qty": "12",
                 "unit_price": "5.50",

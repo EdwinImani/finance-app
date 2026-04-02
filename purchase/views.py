@@ -10,6 +10,7 @@ def product_info(request, product_id):
         data = {
             "description": product.description,
             "part_number": product.part_number,
+            "hs_code": product.hs_code,
             "note": product.note,
             "unit_qty": str(product.unit_qty),
             "unit_price": str(product.purchase_price),

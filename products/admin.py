@@ -41,6 +41,7 @@ class ProductAdmin(PageSizeAdminMixin, admin.ModelAdmin):
     list_display = (
         "description",
         "part_number_display",
+        "hs_code_display",
         "unit_qty",
         "sale_price",
         "total_sold",
@@ -49,6 +50,7 @@ class ProductAdmin(PageSizeAdminMixin, admin.ModelAdmin):
     search_fields = (
         "description",
         "part_number",
+        "hs_code",
         "note",
     )
 
@@ -66,6 +68,11 @@ class ProductAdmin(PageSizeAdminMixin, admin.ModelAdmin):
         return obj.part_number if obj.part_number else "Not specified"
 
     part_number_display.short_description = "Part Number"
+
+    def hs_code_display(self, obj):
+        return obj.hs_code if obj.hs_code else "Not specified"
+
+    hs_code_display.short_description = "HS Code"
 
     # ----------------------
     # QUERYSET WITH SALES

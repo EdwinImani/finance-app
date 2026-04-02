@@ -15,6 +15,11 @@ class Product(models.Model):
         unique=True
     )
 
+    hs_code = models.CharField(
+        max_length=20,
+        blank=True
+    )
+
     note = models.CharField(
         max_length=255,
         blank=True

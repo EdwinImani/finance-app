@@ -124,6 +124,7 @@
         }
 
         const unitPriceInput = row.querySelector('input[name$="-unit_price"]');
+        const hsCodeInput = row.querySelector('input[name$="-hs_code"]');
 
         updateText(row, "description", data.description);
         updateText(row, "part_number", data.part_number);
@@ -134,6 +135,10 @@
 
         if (unitPriceInput) {
             unitPriceInput.value = data.sale_price || "0";
+        }
+
+        if (hsCodeInput && data.hs_code) {
+            hsCodeInput.value = data.hs_code;
         }
 
         updateRowTotal(row);

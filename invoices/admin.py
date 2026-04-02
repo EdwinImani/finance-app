@@ -39,6 +39,7 @@ class ProformaItemInline(admin.TabularInline):
 
     fields = (
         "product",
+        "hs_code",
         "product_description",
         "part_number",
         "stock_info",
@@ -224,6 +225,7 @@ class InvoiceAdminMixin:
                 "index": index,
                 "description": item.product.description if item.product else "-",
                 "part_number": item.product.part_number if item.product and item.product.part_number else "-",
+                "hs_code": item.hs_code or "-",
                 "quantity": item.quantity,
                 "unit_price": item.unit_price,
                 "total_amount": item.total_line(),
@@ -232,7 +234,8 @@ class InvoiceAdminMixin:
         ]
 
     def get_invoice_hs_code(self, obj):
-        return getattr(obj, "hs_code", "") or "-"
+        codes = sorted({item.hs_code for item in obj.items.all() if item.hs_code and item.hs_code != "-"})
+        return ", ".join(codes) if codes else "-"
 
     def get_invoice_title(self):
         return self.model._meta.verbose_name.replace("_", " ").title()
@@ -369,7 +372,7 @@ class ProformaInvoiceAdmin(InvoiceAdminMixin, PageSizeAdminMixin, admin.ModelAdm
                 ("invoice_date", "invoice_number"),
                 "importer",
                 "end_user",
-                ("hs_code", "our_reference"),
+                "our_reference",
             )
         }),
         ("Financial Summary", {
@@ -391,7 +394,6 @@ class ProformaInvoiceAdmin(InvoiceAdminMixin, PageSizeAdminMixin, admin.ModelAdm
         "invoice_date_display",
         "importer",
         "end_user",
-        "hs_code_display",
         "amount_display",
         "pdf_link",
     )
@@ -433,10 +435,8 @@ class ProformaInvoiceAdmin(InvoiceAdminMixin, PageSizeAdminMixin, admin.ModelAdm
     # ----------------------
 
     def hs_code_display(self, obj):
-        if obj.hs_code:
-            return obj.hs_code
-
-        return "Not specified"
+        codes = sorted({item.hs_code for item in obj.items.all() if item.hs_code and item.hs_code != "-"})
+        return ", ".join(codes) if codes else "Not specified"
 
     hs_code_display.short_description = "HS Code"
 
@@ -497,6 +497,7 @@ class CommercialItemInline(admin.TabularInline):
 
     fields = (
         "product",
+        "hs_code",
         "product_description",
         "part_number",
         "stock_info",
@@ -594,7 +595,6 @@ class CommercialInvoiceAdmin(InvoiceAdminMixin, PageSizeAdminMixin, admin.ModelA
         "invoice_date_display",
         "importer",
         "end_user",
-        "hs_code_display",
         "amount_display",
         "pdf_link",
     )
@@ -636,21 +636,14 @@ class CommercialInvoiceAdmin(InvoiceAdminMixin, PageSizeAdminMixin, admin.ModelA
     # ----------------------
 
     def hs_code_display(self, obj):
-
-        item = obj.items.first()
-
-        if item and item.hs_code:
-            return item.hs_code
-
-        return "Not specified"
+        codes = sorted({item.hs_code for item in obj.items.all() if item.hs_code and item.hs_code != "-"})
+        return ", ".join(codes) if codes else "Not specified"
 
     hs_code_display.short_description = "HS Code"
 
     def get_invoice_hs_code(self, obj):
-        item = obj.items.first()
-        if item and item.hs_code:
-            return item.hs_code
-        return "-"
+        codes = sorted({item.hs_code for item in obj.items.all() if item.hs_code and item.hs_code != "-"})
+        return ", ".join(codes) if codes else "-"
 
     # ----------------------
     # NUMBER

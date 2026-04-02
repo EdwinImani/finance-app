@@ -61,8 +61,8 @@ def company_branding(request):
             Q(part_number__isnull=True) | Q(part_number="")
         ).count(),
         "proformas_missing_hs_code": ProformaInvoice.objects.filter(
-            Q(hs_code__isnull=True) | Q(hs_code="")
-        ).count(),
+            Q(items__hs_code__isnull=True) | Q(items__hs_code="") | Q(items__hs_code="-")
+        ).distinct().count(),
         "products_low_stock": Product.objects.filter(unit_qty__lte=5).count(),
     }
 

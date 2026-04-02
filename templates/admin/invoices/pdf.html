@@ -6,20 +6,17 @@
     <style>
         @page {
             size: A4;
-            margin: 9mm 8mm;
+            margin: 6mm 6mm;
         }
 
         body {
             font-family: Arial, sans-serif;
-            font-size: 8pt;
-            line-height: 1.15;
+            font-size: 7pt;
+            line-height: 1.08;
             color: #1f2933;
             margin: 0;
-        }
-
-        .page {
-            border-top: 3px solid #c93a3a;
-            padding-top: 4px;
+            padding-bottom: 16mm;
+            background: #ffffff;
         }
 
         .page {
@@ -37,272 +34,245 @@
         }
 
         .alert {
-            margin-bottom: 12px;
-            padding: 10px 12px;
+            margin-bottom: 10px;
+            padding: 8px 10px;
             border: 1px solid #d8b44c;
             background: #fbf3d0;
             color: #6b4d00;
         }
 
-        .alert small {
-            display: block;
-            margin-top: 4px;
-            color: #705d28;
-            word-break: break-word;
-        }
-
-        .hero {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 5px;
-            border-bottom: 1px solid #c93a3a;
-        }
-
-        .hero td {
-            vertical-align: top;
-            padding-bottom: 4px;
-        }
-
-        .brand {
-            font-size: 13pt;
-            font-weight: 700;
-            color: #b53131;
-            margin-bottom: 1px;
-        }
-
-        .invoice-type {
-            color: #20364d;
-            font-size: 12pt;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.6px;
-        }
-
-        .logo {
-            max-width: 72px;
-            max-height: 48px;
-            display: block;
-            margin-left: auto;
-        }
-
-        .panel {
-            border: 1px solid #bcc8d6;
-            margin-bottom: 4px;
-            background: #ffffff;
-        }
-
-        .panel-body {
-            padding: 6px 7px;
-        }
-
-        .panel-section {
-            margin-top: 4px;
-        }
-
-        .section-title {
-            font-size: 6.5pt;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: #b53131;
-            margin: 0 0 3px;
-        }
-
-        .meta-table,
-        .party-table,
-        .notes-table,
+        .header-table,
+        .top-info-table,
+        .box-table,
+        .items-table,
+        .bottom-table,
         .summary-table {
             width: 100%;
             border-collapse: collapse;
         }
 
-        .meta-table td,
-        .party-table td,
-        .notes-table td {
-            padding: 3px 0;
+        .brand-row td {
+            vertical-align: middle;
+            padding-bottom: 2px;
+        }
+
+        .brand {
+            font-size: 12.5pt;
+            font-weight: 700;
+            color: #c20f0f;
+        }
+
+        .logo {
+            max-width: 56px;
+            max-height: 34px;
+            display: block;
+            margin-left: auto;
+        }
+
+        .title-bar td {
+            padding: 0;
+        }
+
+        .title-main {
+            background: #cc1010;
+            color: #ffffff;
+            font-size: 9pt;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            padding: 4px 8px;
+        }
+
+        .title-side {
+            width: 48px;
+            background: #111111;
+        }
+
+        .box-table {
+            margin-top: 2px;
+        }
+
+        .box-table td {
+            width: 50%;
             vertical-align: top;
         }
 
-        .meta-table {
-            border: 1px solid #bcc8d6;
-        }
-
-        .meta-table td {
-            padding: 3px 5px;
-            border: 1px solid #d7dee6;
-        }
-
-        .meta-label {
-            width: 94px;
-            color: #a33a3a;
-            font-weight: 700;
-        }
-
-        .meta-value {
-            color: #20364d;
-            font-weight: 700;
-        }
-
-        .party-table td {
-            width: 50%;
+        .box-left {
             padding-right: 4px;
         }
 
-        .party-table td:last-child,
-        .notes-table td:last-child {
-            padding-right: 0;
+        .box-right {
+            padding-left: 4px;
         }
 
-        .party-card {
-            border: 1px solid #bcc8d6;
-            padding: 6px 7px;
-            min-height: 72px;
-            background: #fbfcfe;
+        .party-box {
+            padding: 0;
+            min-height: 58px;
         }
 
-        .party-role {
+        .party-title-line {
             font-size: 6.5pt;
             font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: #a33a3a;
-            margin-bottom: 2px;
+            color: #1f2933;
+            margin-bottom: 1px;
         }
 
         .party-name {
-            font-size: 8.5pt;
             font-weight: 700;
-            color: #20364d;
-            margin-bottom: 2px;
+            color: #1c2c3b;
+            display: inline;
         }
 
-        .info-line {
+        .party-info {
             margin-bottom: 0;
         }
 
-        .notes-table td {
-            width: 50%;
-            padding-right: 4px;
-        }
-
-        .note-card {
-            border: 1px solid #bcc8d6;
-            padding: 6px 7px;
-            min-height: 58px;
-            background: #fbfcfe;
-        }
-
-        .items-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 4px;
-            border: 1px solid #bcc8d6;
-        }
-
-        .items-table thead th {
-            background: #f8e9e9;
-            color: #8f2f2f;
-            text-transform: uppercase;
-            letter-spacing: 0.4px;
-            font-size: 6pt;
+        .party-info-label {
             font-weight: 700;
-            padding: 3px 4px;
-            text-align: left;
-            border: 1px solid #d6b0b0;
+            color: #1f2933;
         }
 
-        .items-table tbody td {
-            padding: 2px 4px;
-            border: 1px solid #d7dee6;
+        .reference-lines {
+            margin-top: 2px;
+        }
+
+        .reference-line {
+            padding: 1px 0;
+            font-size: 6.5pt;
+            color: #1f2933;
+        }
+
+        .reference-label {
+            font-weight: 700;
+        }
+
+        .top-info-table {
+            margin-top: 4px;
+            margin-bottom: 4px;
+            table-layout: fixed;
+        }
+
+        .top-info-table td {
+            width: 33.33%;
+            vertical-align: top;
+            font-size: 6.5pt;
+            line-height: 1.15;
+        }
+
+        .top-info-left {
+            text-align: left;
+            padding-right: 8px;
+        }
+
+        .top-info-center {
+            text-align: center;
+            padding: 0 8px;
+        }
+
+        .top-info-right {
+            text-align: right;
+            padding-left: 8px;
+        }
+
+        .top-info-line {
+            margin-bottom: 1px;
+        }
+
+        .bottom-table {
+            margin-top: 2px;
+        }
+
+        .bottom-table td {
             vertical-align: top;
         }
 
-        .items-part-number {
-            font-size: 6.8pt;
+        .bottom-left {
+            width: 56%;
+            padding-right: 6px;
+        }
+
+        .bottom-right {
+            width: 44%;
+        }
+
+        .text-box {
+            border: 1px solid #d7d7d7;
+            background: #ffffff;
+            padding: 3px 5px;
+            min-height: 40px;
+        }
+
+        .text-box-title {
+            font-size: 6pt;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #b21a1a;
+            margin-bottom: 1px;
+        }
+
+        .items-table {
+            margin-top: 2px;
+            border: 1px solid #d7d7d7;
+        }
+
+        .items-table thead th {
+            background: #cc1010;
+            color: #ffffff;
+            font-size: 5.8pt;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 3px 3px;
+            text-align: left;
+            border: 1px solid #b40d0d;
+        }
+
+        .items-table tbody td {
+            padding: 2px 3px;
+            border: 1px solid #ebebeb;
+            vertical-align: top;
         }
 
         .items-table tbody tr:nth-child(even) td {
-            background: #f8fafc;
-        }
-
-        .item-col,
-        .qty-col {
-            text-align: center;
+            background: #f8f8f8;
         }
 
         .is-right {
             text-align: right;
         }
 
+        .is-center {
+            text-align: center;
+        }
+
         .summary-wrap {
-            width: 100%;
-            margin-top: 4px;
-            border-collapse: collapse;
-        }
-
-        .summary-wrap td {
-            vertical-align: top;
-        }
-
-        .summary-spacer {
-            width: 58%;
-        }
-
-        .summary-card {
-            width: 42%;
+            margin-top: 1px;
             margin-left: auto;
-            border: 1px solid #d2a1a1;
-            background: #ffffff;
+            width: 42%;
         }
 
         .summary-table td {
-            padding: 3px 5px;
-            border-bottom: 1px solid #d7dee6;
-        }
-
-        .summary-table tr:last-child td {
-            border-bottom: 0;
+            padding: 1px 4px;
+            border-bottom: 1px solid #d8d8d8;
         }
 
         .summary-label {
-            color: #8f2f2f;
             font-weight: 700;
+            color: #444444;
         }
 
         .summary-value {
             text-align: right;
-            color: #20364d;
+            color: #1f2f40;
             width: 68px;
         }
 
         .summary-total td {
-            background: #f3dede;
-            color: #8f2f2f;
-            font-size: 8.5pt;
+            border-top: 1px solid #cc1010;
+            border-bottom: 1px solid #cc1010;
             font-weight: 700;
+            color: #111111;
         }
 
-        .footer-note {
-            margin-top: 5px;
-            padding-top: 4px;
-            border-top: 1px solid #bcc8d6;
-            font-size: 6.5pt;
-            color: #4f6174;
-        }
-
-        .doc-title {
-            font-size: 10.5pt;
-            font-weight: 700;
-            color: #8f2f2f;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .doc-subtitle {
-            margin-top: 1px;
-            font-size: 6.5pt;
-            color: #627386;
-        }
     </style>
 </head>
 <body>
@@ -316,8 +286,8 @@
         </div>
         {% endif %}
 
-        <table class="hero">
-            <tr>
+        <table class="header-table">
+            <tr class="brand-row">
                 <td>
                     <div class="brand">{{ company.company_name|default:"Company" }}</div>
                 </td>
@@ -327,86 +297,86 @@
                     {% endif %}
                 </td>
             </tr>
+            <tr class="title-bar">
+                <td class="title-main">{{ invoice_title }}</td>
+                <td class="title-side"></td>
+            </tr>
         </table>
 
-        <div class="panel">
-            <div class="panel-body">
-                <div class="doc-title">{{ invoice_title }}</div>
-                <div class="doc-subtitle">Prepared for export and printing on A4 paper</div>
+        <table class="top-info-table">
+            <tr>
+                <td class="top-info-left">
+                    <div class="top-info-line"><strong>{{ company.bank|default:"-" }}</strong></div>
+                    <div class="top-info-line">IBAN: {{ company.iban|default:"-" }}</div>
+                    <div class="top-info-line">Bank ID Code : {{ company.bic|default:"-" }}</div>
+                </td>
+                <td class="top-info-center">
+                    <div class="top-info-line"><strong>{{ company.company_name|default:"Company" }}</strong></div>
+                    {% if company.address %}
+                    <div class="top-info-line">{{ company.address|linebreaksbr }}</div>
+                    {% elif company.company_address %}
+                    <div class="top-info-line">{{ company.company_address }}</div>
+                    {% else %}
+                    <div class="top-info-line">-</div>
+                    {% endif %}
+                </td>
+                <td class="top-info-right">
+                    <div class="top-info-line">Tel: {{ company.company_phone|default:"-" }}</div>
+                    <div class="top-info-line">Fax: {{ company.company_fax|default:"-" }}</div>
+                    <div class="top-info-line">Email: {{ company.company_email|default:"-" }}</div>
+                </td>
+            </tr>
+        </table>
 
-                <div class="panel-section">
-                    <div class="section-title">Document Information</div>
-                    <table class="meta-table">
-                        <tr>
-                            <td class="meta-label">Invoice Number</td>
-                            <td class="meta-value">{{ invoice.invoice_number }}</td>
-                        </tr>
-                        <tr>
-                            <td class="meta-label">Invoice Date</td>
-                            <td>{{ invoice.invoice_date|date:"d.m.Y" }}</td>
-                        </tr>
-                        <tr>
-                            <td class="meta-label">HS Code</td>
-                            <td>{{ hs_code }}</td>
-                        </tr>
-                        {% if invoice.our_reference %}
-                        <tr>
-                            <td class="meta-label">Our Reference</td>
-                            <td>{{ invoice.our_reference }}</td>
-                        </tr>
-                        {% endif %}
-                        {% if invoice.our_order_no %}
-                        <tr>
-                            <td class="meta-label">Our Order No</td>
-                            <td>{{ invoice.our_order_no }}</td>
-                        </tr>
-                        {% endif %}
-                    </table>
-                </div>
+        <div class="reference-lines">
+            <div class="reference-line">
+                <span class="reference-label">Invoice Number:</span>
+                {{ invoice.invoice_number }}
+            </div>
+            <div class="reference-line">
+                <span class="reference-label">Invoice Date:</span>
+                {{ invoice.invoice_date|date:"d.m.Y" }}
             </div>
         </div>
 
-        <table class="party-table">
+        <table class="box-table">
             <tr>
-                <td>
-                    <div class="party-card">
-                        <div class="party-role">Importer</div>
-                        <div class="party-name">{{ importer.name }}</div>
+                <td class="box-left">
+                    <div class="party-box">
+                        <div class="party-title-line">Importer: <span class="party-name">{{ importer.name }}</span></div>
                         {% for address in importer.addresses %}
-                        <div class="info-line">{{ address }}</div>
+                        <div class="party-info">{{ address }}</div>
                         {% endfor %}
                         {% for phone in importer.phones %}
-                        <div class="info-line">Phone: {{ phone }}</div>
+                        <div class="party-info"><span class="party-info-label">Phone:</span>{{ phone }}</div>
                         {% endfor %}
-                        {% if importer.email %}<div class="info-line">Email: {{ importer.email }}</div>{% endif %}
-                        {% if importer.website %}<div class="info-line">Website: {{ importer.website }}</div>{% endif %}
-                        {% if importer.fax %}<div class="info-line">Fax: {{ importer.fax }}</div>{% endif %}
+                        {% if importer.email %}<div class="party-info"><span class="party-info-label">Email:</span>{{ importer.email }}</div>{% endif %}
+                        {% if importer.website %}<div class="party-info"><span class="party-info-label">Website:</span>{{ importer.website }}</div>{% endif %}
+                        {% if importer.fax %}<div class="party-info"><span class="party-info-label">Fax:</span>{{ importer.fax }}</div>{% endif %}
                     </div>
                 </td>
-                <td>
-                    <div class="party-card">
-                        <div class="party-role">End User</div>
-                        <div class="party-name">{{ end_user.name }}</div>
+                <td class="box-right">
+                    <div class="party-box">
+                        <div class="party-title-line">End User: <span class="party-name">{{ end_user.name }}</span></div>
                         {% for address in end_user.addresses %}
-                        <div class="info-line">{{ address }}</div>
+                        <div class="party-info">{{ address }}</div>
                         {% endfor %}
                         {% for phone in end_user.phones %}
-                        <div class="info-line">Phone: {{ phone }}</div>
+                        <div class="party-info"><span class="party-info-label">Phone:</span>{{ phone }}</div>
                         {% endfor %}
-                        {% if end_user.email %}<div class="info-line">Email: {{ end_user.email }}</div>{% endif %}
-                        {% if end_user.website %}<div class="info-line">Website: {{ end_user.website }}</div>{% endif %}
-                        {% if end_user.fax %}<div class="info-line">Fax: {{ end_user.fax }}</div>{% endif %}
+                        {% if end_user.email %}<div class="party-info"><span class="party-info-label">Email:</span>{{ end_user.email }}</div>{% endif %}
+                        {% if end_user.website %}<div class="party-info"><span class="party-info-label">Website:</span>{{ end_user.website }}</div>{% endif %}
+                        {% if end_user.fax %}<div class="party-info"><span class="party-info-label">Fax:</span>{{ end_user.fax }}</div>{% endif %}
                     </div>
                 </td>
             </tr>
         </table>
 
-        {% if company.invoice_note or company.terms_conditions or company.delivery_time or is_proforma and company.proforma_validity %}
-        <table class="notes-table" style="margin-top: 14px;">
+        <table class="bottom-table">
             <tr>
-                <td>
-                    <div class="note-card">
-                        <div class="section-title">Note</div>
+                <td class="bottom-left">
+                    <div class="text-box">
+                        <div class="text-box-title">Remarks</div>
                         {% if company.invoice_note %}
                         <div>{{ company.invoice_note|linebreaksbr }}</div>
                         {% else %}
@@ -414,42 +384,46 @@
                         {% endif %}
                     </div>
                 </td>
-                <td>
-                    <div class="note-card">
-                        <div class="section-title">Terms</div>
+                <td class="bottom-right">
+                    <div class="text-box">
+                        <div class="text-box-title">Terms</div>
                         {% if company.terms_conditions %}
                         <div>{{ company.terms_conditions }}</div>
                         {% endif %}
                         {% if company.delivery_time %}
-                        <div style="margin-top: 8px;"><strong>Delivery Time:</strong> {{ company.delivery_time }}</div>
+                        <div style="margin-top: 6px;"><strong>Delivery Time:</strong> {{ company.delivery_time }}</div>
                         {% endif %}
                         {% if is_proforma and company.proforma_validity %}
-                        <div style="margin-top: 8px;"><strong>Validity:</strong> {{ company.proforma_validity }} days</div>
+                        <div style="margin-top: 6px;"><strong>Validity:</strong> {{ company.proforma_validity }} days</div>
+                        {% endif %}
+                        {% if not company.terms_conditions and not company.delivery_time and not is_proforma %}
+                        <div>-</div>
                         {% endif %}
                     </div>
                 </td>
             </tr>
         </table>
-        {% endif %}
 
         <table class="items-table">
             <thead>
                 <tr>
-                    <th style="width: 34px;">#</th>
-                    <th style="width: 52%;">Description</th>
-                    <th style="width: 16%;">Part Number</th>
-                    <th class="is-right" style="width: 7%;">Qty</th>
-                    <th class="is-right" style="width: 12%;">Unit Price</th>
-                    <th class="is-right" style="width: 13%;">Total</th>
+                    <th style="width: 6%;">Item</th>
+                    <th style="width: 34%;">Description Of Items</th>
+                    <th style="width: 15%;">Part Number</th>
+                    <th style="width: 13%;">HS Code</th>
+                    <th class="is-center" style="width: 8%;">Qty</th>
+                    <th class="is-right" style="width: 12%;">Price</th>
+                    <th class="is-right" style="width: 12%;">Total Amount</th>
                 </tr>
             </thead>
             <tbody>
                 {% for item in items %}
                 <tr>
-                    <td class="item-col">{{ item.index }}</td>
+                    <td class="is-center">{{ item.index }}</td>
                     <td>{{ item.description }}</td>
-                    <td class="items-part-number">{{ item.part_number }}</td>
-                    <td class="qty-col">{{ item.quantity }}</td>
+                    <td>{{ item.part_number }}</td>
+                    <td>{{ item.hs_code }}</td>
+                    <td class="is-center">{{ item.quantity }}</td>
                     <td class="is-right">{{ item.unit_price|floatformat:2 }}</td>
                     <td class="is-right">{{ item.total_amount|floatformat:2 }}</td>
                 </tr>
@@ -457,41 +431,30 @@
             </tbody>
         </table>
 
-        <table class="summary-wrap">
-            <tr>
-                <td class="summary-spacer"></td>
-                <td>
-                    <div class="summary-card">
-                        <table class="summary-table">
-                            <tr>
-                                <td class="summary-label">Gross Value</td>
-                                <td class="summary-value">{{ subtotal|floatformat:2 }}</td>
-                            </tr>
-                            <tr>
-                                <td class="summary-label">Freight</td>
-                                <td class="summary-value">{{ invoice.freight|floatformat:2 }}</td>
-                            </tr>
-                            <tr>
-                                <td class="summary-label">VAT Amount</td>
-                                <td class="summary-value">{{ vat_amount|floatformat:2 }}</td>
-                            </tr>
-                            <tr>
-                                <td class="summary-label">Discount</td>
-                                <td class="summary-value">{{ invoice.discount|floatformat:2 }}</td>
-                            </tr>
-                            <tr class="summary-total">
-                                <td class="summary-label">Total Amount</td>
-                                <td class="summary-value">{{ total_amount|floatformat:2 }}</td>
-                            </tr>
-                        </table>
-                    </div>
-                </td>
-            </tr>
-        </table>
-
-        {% if company.footer_invoice %}
-        <div class="footer-note">{{ company.footer_invoice }}</div>
-        {% endif %}
+        <div class="summary-wrap">
+            <table class="summary-table">
+                <tr>
+                    <td class="summary-label">Gross Value</td>
+                    <td class="summary-value">{{ subtotal|floatformat:2 }}</td>
+                </tr>
+                <tr>
+                    <td class="summary-label">Freight</td>
+                    <td class="summary-value">{{ invoice.freight|floatformat:2 }}</td>
+                </tr>
+                <tr>
+                    <td class="summary-label">VAT Amount</td>
+                    <td class="summary-value">{{ vat_amount|floatformat:2 }}</td>
+                </tr>
+                <tr>
+                    <td class="summary-label">Discount</td>
+                    <td class="summary-value">{{ invoice.discount|floatformat:2 }}</td>
+                </tr>
+                <tr class="summary-total">
+                    <td class="summary-label">Total Amount</td>
+                    <td class="summary-value">{{ total_amount|floatformat:2 }}</td>
+                </tr>
+            </table>
+        </div>
     </div>
 </body>
 </html>

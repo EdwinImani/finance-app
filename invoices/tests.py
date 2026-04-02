@@ -6,6 +6,7 @@ from company.models import CompanySetting
 from partners.models import Partner
 from products.models import Product
 
+from .forms import CommercialInvoiceForm, ProformaInvoiceForm
 from .models import CommercialInvoice, CommercialInvoiceItem, ProformaInvoice, ProformaInvoiceItem
 
 
@@ -22,6 +23,7 @@ class ProformaConversionTests(TestCase):
         )
         self.product = Product.objects.create(
             description="Produit Test",
+            hs_code="8544.42",
             unit_qty=10,
             sale_price=Decimal("25.00"),
         )
@@ -61,14 +63,12 @@ class ProformaConversionTests(TestCase):
         self.assertEqual(CommercialInvoice.objects.count(), 1)
         self.assertEqual(self.product.unit_qty, 6)
 
-    def test_convert_to_commercial_keeps_proforma_hs_code(self):
-        proforma = ProformaInvoice.objects.create(
-            importer=self.importer,
-            hs_code="8544.42",
-        )
+    def test_convert_to_commercial_keeps_item_hs_code(self):
+        proforma = ProformaInvoice.objects.create(importer=self.importer)
         ProformaInvoiceItem.objects.create(
             invoice=proforma,
             product=self.product,
+            hs_code="8544.42",
             quantity=1,
             unit_price=Decimal("25.00"),
         )
@@ -77,6 +77,18 @@ class ProformaConversionTests(TestCase):
 
         self.assertEqual(commercial.items.count(), 1)
         self.assertEqual(commercial.items.first().hs_code, "8544.42")
+
+    def test_proforma_item_uses_product_hs_code_by_default(self):
+        proforma = ProformaInvoice.objects.create(importer=self.importer)
+
+        item = ProformaInvoiceItem.objects.create(
+            invoice=proforma,
+            product=self.product,
+            quantity=1,
+            unit_price=Decimal("25.00"),
+        )
+
+        self.assertEqual(item.hs_code, "8544.42")
 
     def test_total_amount_uses_company_setting_vat(self):
         proforma = ProformaInvoice.objects.create(
@@ -113,6 +125,29 @@ class ProformaConversionTests(TestCase):
         self.assertEqual(commercial.vat_percent, Decimal("7.50"))
 
 
+class InvoiceFormVatDefaultTests(TestCase):
+
+    def test_proforma_form_uses_company_vat_as_initial_value(self):
+        CompanySetting.objects.create(
+            company_name="Societe TVA",
+            vat_amount=Decimal("19.60"),
+        )
+
+        form = ProformaInvoiceForm()
+
+        self.assertEqual(form.fields["vat_percent"].initial, Decimal("19.60"))
+
+    def test_commercial_form_uses_company_vat_as_initial_value(self):
+        CompanySetting.objects.create(
+            company_name="Societe TVA",
+            vat_amount=Decimal("8.50"),
+        )
+
+        form = CommercialInvoiceForm()
+
+        self.assertEqual(form.fields["vat_percent"].initial, Decimal("8.50"))
+
+
 class CommercialInvoiceStockTests(TestCase):
 
     def setUp(self):
@@ -126,18 +161,20 @@ class CommercialInvoiceStockTests(TestCase):
         )
         self.product = Product.objects.create(
             description="Produit Stock",
+            hs_code="9027.80",
             unit_qty=20,
             sale_price=Decimal("15.00"),
         )
         self.other_product = Product.objects.create(
             description="Produit Secondaire",
+            hs_code="8414.59",
             unit_qty=12,
             sale_price=Decimal("18.00"),
         )
         self.invoice = CommercialInvoice.objects.create(importer=self.importer)
 
     def test_create_item_decreases_product_stock(self):
-        CommercialInvoiceItem.objects.create(
+        item = CommercialInvoiceItem.objects.create(
             invoice=self.invoice,
             product=self.product,
             quantity=4,
@@ -147,6 +184,7 @@ class CommercialInvoiceStockTests(TestCase):
         self.product.refresh_from_db()
 
         self.assertEqual(self.product.unit_qty, 16)
+        self.assertEqual(item.hs_code, "9027.80")
 
     def test_update_item_quantity_updates_product_stock(self):
         item = CommercialInvoiceItem.objects.create(
