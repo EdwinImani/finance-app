@@ -4,7 +4,7 @@ from decimal import Decimal
 from django.db.models import Q
 
 from company.models import CompanySetting
-from invoices.models import CommercialInvoice, ProformaInvoice
+from invoices.models import CommercialInvoice, ProformaInvoice, ProformaInvoiceItem
 from products.models import Product
 
 
@@ -56,13 +56,19 @@ def company_branding(request):
     sales_qs = CommercialInvoice.objects.filter(invoice_date__year=selected_year)
     sales_dates = list(sales_qs.values_list("invoice_date", flat=True))
     sales_dates = [d for d in sales_dates if d]
+    proformas_missing_hs_code = (
+        ProformaInvoiceItem.objects.filter(
+            Q(hs_code__isnull=True) | Q(hs_code="") | Q(hs_code="-")
+        )
+        .values_list("invoice_id", flat=True)
+        .distinct()
+        .count()
+    )
     dashboard_alerts = {
         "products_missing_part_number": Product.objects.filter(
             Q(part_number__isnull=True) | Q(part_number="")
         ).count(),
-        "proformas_missing_hs_code": ProformaInvoice.objects.filter(
-            Q(items__hs_code__isnull=True) | Q(items__hs_code="") | Q(items__hs_code="-")
-        ).distinct().count(),
+        "proformas_missing_hs_code": proformas_missing_hs_code,
         "products_low_stock": Product.objects.filter(unit_qty__lte=5).count(),
     }
 
