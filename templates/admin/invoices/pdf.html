@@ -52,8 +52,8 @@
         }
 
         .brand-row td {
-            vertical-align: middle;
-            padding-bottom: 2px;
+            vertical-align: top;
+            padding-bottom: 6px;
         }
 
         .brand {
@@ -62,30 +62,20 @@
             color: #c20f0f;
         }
 
+        .invoice-type {
+            margin-top: 8px;
+            font-size: 8.5pt;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            color: #1f2933;
+        }
+
         .logo {
             max-width: 56px;
             max-height: 34px;
             display: block;
             margin-left: auto;
-        }
-
-        .title-bar td {
-            padding: 0;
-        }
-
-        .title-main {
-            background: #cc1010;
-            color: #ffffff;
-            font-size: 9pt;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.4px;
-            padding: 4px 8px;
-        }
-
-        .title-side {
-            width: 48px;
-            background: #111111;
         }
 
         .box-table {
@@ -133,13 +123,16 @@
         }
 
         .reference-lines {
-            margin-top: 2px;
+            margin-top: 0;
+            margin-bottom: 2px;
         }
 
         .reference-line {
-            padding: 1px 0;
+            padding: 0;
+            margin: 0;
             font-size: 6.5pt;
             color: #1f2933;
+            line-height: 1.05;
         }
 
         .reference-label {
@@ -290,6 +283,7 @@
             <tr class="brand-row">
                 <td>
                     <div class="brand">{{ company.company_name|default:"Company" }}</div>
+                    <div class="invoice-type">{{ invoice_title }}</div>
                 </td>
                 <td style="text-align: right;">
                     {% if company_logo_url %}
@@ -297,11 +291,16 @@
                     {% endif %}
                 </td>
             </tr>
-            <tr class="title-bar">
-                <td class="title-main">{{ invoice_title }}</td>
-                <td class="title-side"></td>
-            </tr>
         </table>
+
+        <div class="reference-lines">
+            <div class="reference-line">
+                <span class="reference-label">Invoice Number:</span> {{ invoice.invoice_number }}
+            </div>
+            <div class="reference-line">
+                <span class="reference-label">Invoice Date:</span> {{ invoice.invoice_date|date:"d/m/Y" }}
+            </div>
+        </div>
 
         <table class="top-info-table">
             <tr>
@@ -327,17 +326,6 @@
                 </td>
             </tr>
         </table>
-
-        <div class="reference-lines">
-            <div class="reference-line">
-                <span class="reference-label">Invoice Number:</span>
-                {{ invoice.invoice_number }}
-            </div>
-            <div class="reference-line">
-                <span class="reference-label">Invoice Date:</span>
-                {{ invoice.invoice_date|date:"d.m.Y" }}
-            </div>
-        </div>
 
         <table class="box-table">
             <tr>

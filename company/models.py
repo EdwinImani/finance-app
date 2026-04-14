@@ -4,12 +4,12 @@ from django.db import models
 class CompanySetting(models.Model):
 
     CURRENCY_CHOICES = [
-        ("EUR", "Euro"),
-        ("USD", "USD"),
-        ("CNY", "Yuan"),
-        ("MAD", "Dirham"),
-        ("LBP", "Lear"),
-        ("IRR", "Rls"),
+        ("EUR", "EUR - Euro"),
+        ("USD", "USD - US Dollar"),
+        ("CNY", "CNY - Chinese Yuan"),
+        ("MAD", "MAD - Moroccan Dirham"),
+        ("LBP", "LBP - Lebanese Pound"),
+        ("IRR", "IRR - Iranian Rial"),
     ]
 
     company_logo = models.ImageField(

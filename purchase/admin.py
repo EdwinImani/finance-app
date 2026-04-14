@@ -6,16 +6,18 @@ from urllib.parse import unquote, urlparse
 from django.conf import settings
 from django.contrib import admin
 from django import forms
+from django.forms.formsets import all_valid
 from django.db.models import DecimalField, ExpressionWrapper, F, Sum, Value
 from django.db.models.functions import Coalesce, TruncMonth
-from django.http import HttpResponse
-from django.shortcuts import render
+from django.http import HttpResponse, JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import path
 from django.urls import reverse
 from django.utils import timezone
 from financeapp.admin_mixins import PageSizeAdminMixin
 from financeapp.pdf_rendering import get_pdf_fallback_reason, should_try_weasyprint
+from invoices.pdf_builder import build_purchase_report_pdf
 
 from company.models import CompanySetting
 from partners.models import Partner
@@ -102,7 +104,9 @@ class PurchaseOrderAdmin(PageSizeAdminMixin, admin.ModelAdmin):
         ("Order Overview", {
             "fields": (
                 "purchase_number",
-                ("purchase_date", "seller", "requester"),
+                "purchase_date",
+                "seller",
+                "requester",
                 ("sent_by", "shipment"),
             )
         }),
@@ -143,7 +147,41 @@ class PurchaseOrderAdmin(PageSizeAdminMixin, admin.ModelAdmin):
         js = (
             "admin/js/product_autofill.js",
             "admin/js/purchase_partner_type.js",
+            "admin/js/invoice_autosave.js",
         )
+
+    def get_default_purchase_date(self):
+        company = CompanySetting.objects.first()
+        today = timezone.now().date()
+        if not company or not company.year:
+            return today
+        try:
+            return today.replace(year=company.year)
+        except ValueError:
+            return today.replace(year=company.year, day=28)
+
+    def get_default_vat_percent(self):
+        company = CompanySetting.objects.first()
+        return company.vat_amount if company else Decimal("0.00")
+
+    def create_draft_purchase_order(self):
+        return PurchaseOrder.objects.create(
+            purchase_date=self.get_default_purchase_date(),
+            vat_percent=self.get_default_vat_percent(),
+        )
+
+    def render_change_form(self, request, context, add=False, change=False, form_url="", obj=None):
+        context["invoice_autosave_url"] = self.get_purchase_autosave_url(obj) if obj and obj.pk else ""
+        return super().render_change_form(request, context, add, change, form_url, obj)
+
+    def add_view(self, request, form_url="", extra_context=None):
+        if request.method == "GET" and not request.GET.get("_popup"):
+            draft = self.create_draft_purchase_order()
+            return redirect(reverse("admin:purchase_purchaseorder_change", args=[draft.pk]))
+        return super().add_view(request, form_url, extra_context)
+
+    def get_purchase_autosave_url(self, obj):
+        return reverse("admin:purchase_purchaseorder_autosave", args=[obj.pk])
 
     def get_company_year(self):
         company = CompanySetting.objects.first()
@@ -169,7 +207,7 @@ class PurchaseOrderAdmin(PageSizeAdminMixin, admin.ModelAdmin):
 
     def purchase_date_display(self, obj):
         if obj.purchase_date:
-            return obj.purchase_date.strftime("%Y-%m-%d")
+            return obj.purchase_date.strftime("%d/%m/%Y")
         return "-"
 
     purchase_date_display.short_description = "Date"
@@ -199,6 +237,11 @@ class PurchaseOrderAdmin(PageSizeAdminMixin, admin.ModelAdmin):
         urls = super().get_urls()
         custom_urls = [
             path(
+                "<int:object_id>/autosave/",
+                self.admin_site.admin_view(self.autosave),
+                name="purchase_purchaseorder_autosave",
+            ),
+            path(
                 "report/",
                 self.admin_site.admin_view(self.purchase_report),
                 name="purchase_report",
@@ -210,6 +253,42 @@ class PurchaseOrderAdmin(PageSizeAdminMixin, admin.ModelAdmin):
             ),
         ]
         return custom_urls + urls
+
+    def autosave(self, request, object_id):
+        if request.method != "POST":
+            return JsonResponse({"ok": False, "error": "POST required."}, status=405)
+
+        obj = get_object_or_404(PurchaseOrder, pk=object_id)
+        form_class = self.get_form(request, obj, change=True)
+        form = form_class(request.POST, request.FILES, instance=obj)
+        formsets, inline_instances = self._create_formsets(request, form.instance, change=True)
+
+        if form.is_valid() and all_valid(formsets):
+            new_object = self.save_form(request, form, change=True)
+            self.save_model(request, new_object, form, change=True)
+            form.save_m2m()
+            self.save_related(request, form, formsets, change=True)
+            return JsonResponse(
+                {
+                    "ok": True,
+                    "saved_at": timezone.localtime().strftime("%d/%m/%Y %H:%M:%S"),
+                    "purchase_number": new_object.purchase_number or "",
+                }
+            )
+
+        errors = {"form": form.errors}
+        inline_errors = []
+        for inline, formset in zip(inline_instances, formsets):
+            if formset.non_form_errors() or any(child.errors for child in formset.forms):
+                inline_errors.append(
+                    {
+                        "inline": inline.__class__.__name__,
+                        "non_form_errors": list(formset.non_form_errors()),
+                        "errors": [child.errors for child in formset.forms if child.errors],
+                    }
+                )
+        errors["inlines"] = inline_errors
+        return JsonResponse({"ok": False, "errors": errors}, status=400)
 
     def get_purchase_report_pdf_url(self, request):
         query_string = request.GET.urlencode()
@@ -437,36 +516,27 @@ class PurchaseOrderAdmin(PageSizeAdminMixin, admin.ModelAdmin):
 
     def purchase_report_pdf(self, request):
         context = self._build_report_context(request)
-        context["render_as_html"] = False
-        context["pdf_error"] = ""
-
-        html_string = render_to_string("admin/purchase/report_pdf.html", context, request=request)
         try:
-            if not should_try_weasyprint():
-                raise OSError(get_pdf_fallback_reason())
-
-            pdf_bytes = self._build_pdf_with_weasyprint(
-                html_string=html_string,
-                base_url=request.build_absolute_uri("/"),
+            pdf_bytes = build_purchase_report_pdf(
+                company=context.get("company"),
+                currency=context.get("company").currency if context.get("company") else "EUR",
+                purchase_orders=context.get("purchase_orders", []),
+                chart_labels=context.get("chart_labels", []),
+                chart_totals=context.get("chart_totals", []),
+                total_qty=context.get("total_qty", 0),
+                total_gross=context.get("total_gross", Decimal("0.00")),
+                total_vat=context.get("total_vat", Decimal("0.00")),
+                total_freight=context.get("total_freight", Decimal("0.00")),
+                total_amount=context.get("total_amount", Decimal("0.00")),
+                from_date=context.get("from_date"),
+                to_date=context.get("to_date"),
             )
-        except (ImportError, OSError):
-            try:
-                pdf_bytes = self._build_pdf_with_xhtml2pdf(html_string)
-            except Exception as exc:
-                context["render_as_html"] = True
-                context["pdf_error"] = (
-                    "PDF generation is unavailable because both installed renderers failed. "
-                    "This printable HTML fallback is shown instead."
-                )
-                context["pdf_error_details"] = str(exc)
-                fallback_html = render_to_string("admin/purchase/report_pdf.html", context, request=request)
-                return HttpResponse(fallback_html)
         except Exception as exc:
-            context["render_as_html"] = True
-            context["pdf_error"] = "PDF generation failed unexpectedly. This printable HTML fallback is shown instead."
-            context["pdf_error_details"] = str(exc)
-            fallback_html = render_to_string("admin/purchase/report_pdf.html", context, request=request)
-            return HttpResponse(fallback_html)
+            return HttpResponse(
+                f"PDF generation failed: {exc}",
+                content_type="text/plain; charset=utf-8",
+                status=500,
+            )
 
         response = HttpResponse(pdf_bytes, content_type="application/pdf")
         response["Content-Disposition"] = 'inline; filename="purchase-orders-report.pdf"'

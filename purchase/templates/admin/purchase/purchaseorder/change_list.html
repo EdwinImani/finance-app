@@ -4,20 +4,21 @@
 {{ block.super }}
 <style>
     :root {
-        --po-bg: #f4f7fb;
-        --po-panel: #ffffff;
-        --po-border: #d8e0ea;
-        --po-text: #213547;
-        --po-muted: #607387;
-        --po-accent: #2e6f9e;
-        --po-shadow: 0 12px 30px rgba(31, 51, 73, 0.08);
+        --po-bg: #f7f1ef;
+        --po-panel: rgba(255, 255, 255, 0.92);
+        --po-border: rgba(162, 32, 42, 0.10);
+        --po-text: #23384d;
+        --po-muted: #708090;
+        --po-accent: #a2202a;
+        --po-shadow: 0 18px 42px rgba(91, 27, 35, 0.10);
         --po-radius: 18px;
     }
 
     #content {
         background:
-            radial-gradient(circle at top left, rgba(46, 111, 158, 0.12), transparent 30%),
-            linear-gradient(180deg, #f8fbfe 0%, var(--po-bg) 100%);
+            radial-gradient(circle at top right, rgba(220, 90, 100, 0.12), transparent 28%),
+            radial-gradient(circle at top left, rgba(162, 32, 42, 0.10), transparent 24%),
+            linear-gradient(180deg, #fdf9f8 0%, var(--po-bg) 100%);
     }
 
     .change-list #content-main {
@@ -67,7 +68,7 @@
     }
 
     .change-list #toolbar {
-        background: #f8fbfe;
+        background: #fffaf9;
         border: 1px solid var(--po-border);
         border-radius: 14px;
         padding: 14px 16px;
@@ -87,7 +88,7 @@
     }
 
     .change-list .page-size-toolbar form {
-        background: #f8fbfe;
+        background: #fffaf9;
         border: 1px solid var(--po-border);
         border-radius: 999px;
         padding: 8px 12px;
@@ -103,7 +104,7 @@
     }
 
     .change-list .actions {
-        background: #f8fbfe;
+        background: #fffaf9;
         border: 1px solid var(--po-border);
         border-radius: 14px;
         padding: 10px 14px;
@@ -119,8 +120,8 @@
     }
 
     .change-list #result_list thead th {
-        background: #eef5fb;
-        color: #294358;
+        background: #fbefef;
+        color: #8c1d26;
         text-transform: uppercase;
         letter-spacing: 0.04em;
         font-size: 11px;
@@ -129,11 +130,11 @@
     }
 
     .change-list #result_list tbody tr:nth-child(even) {
-        background: #fbfdff;
+        background: #fffefb;
     }
 
     .change-list #result_list tbody tr:hover {
-        background: #f1f7fc;
+        background: #f6f4ed;
     }
 
     .change-list #result_list tbody th,
@@ -144,27 +145,27 @@
     }
 
     .change-list #result_list tbody th a {
-        color: #224460;
+        color: #7f1f28;
         font-weight: 700;
     }
 
     .change-list .paginator {
         margin-top: 14px;
-        background: #f8fbfe;
+        background: #fffaf9;
         border: 1px solid var(--po-border);
         border-radius: 14px;
         padding: 12px 14px;
     }
 
     .change-list #changelist-filter {
-        background: linear-gradient(180deg, #ffffff 0%, #f8fbfe 100%);
+        background: linear-gradient(180deg, #ffffff 0%, #fff7f5 100%);
         border-left: 1px solid var(--po-border);
         padding: 18px 16px;
     }
 
     .change-list #changelist-filter h2,
     .change-list #changelist-filter h3 {
-        color: #183247;
+        color: #8c1d26;
     }
 
     .purchase-list-hero {
@@ -180,7 +181,7 @@
         font-size: 32px;
         line-height: 1.1;
         letter-spacing: -0.03em;
-        color: #183247;
+        color: var(--po-text);
     }
 
     .purchase-list-hero p {
@@ -195,7 +196,7 @@
         border: 1px solid var(--po-border);
         border-radius: 999px;
         padding: 10px 14px;
-        color: #183247;
+        color: var(--po-text);
         font-weight: 700;
         white-space: nowrap;
     }

@@ -576,7 +576,7 @@
                     {% endif %}
                 </div>
                 <div class="finance-brand-name">{{ company_brand_name|default:site_header|default:_("Finance Admin") }}</div>
-                <div class="finance-brand-chip">{% now "Y-m-d" %}</div>
+                <div class="finance-brand-chip">{% now "d/m/Y" %}</div>
             </div>
 
             <div class="finance-sidebar-stack">
@@ -618,11 +618,11 @@
                         <div class="finance-overview-row">
                             <div class="finance-overview-item">
                                 <strong>{% translate "From date" %}</strong>
-                                <span>{{ dashboard_period_start|date:"Y-m-d" }}</span>
+                                <span>{{ dashboard_period_start|date:"d/m/Y" }}</span>
                             </div>
                             <div class="finance-overview-item">
                                 <strong>{% translate "To date" %}</strong>
-                                <span>{{ dashboard_period_end|date:"Y-m-d" }}</span>
+                                <span>{{ dashboard_period_end|date:"d/m/Y" }}</span>
                             </div>
                         </div>
                         <div class="finance-overview-row">

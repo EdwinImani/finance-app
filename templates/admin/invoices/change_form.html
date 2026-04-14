@@ -2,6 +2,13 @@
 
 {% block extrahead %}
 {{ block.super }}
+{% if invoice_autosave_url %}
+<script>
+    window.invoiceAutosaveConfig = {
+        url: "{{ invoice_autosave_url|escapejs }}"
+    };
+</script>
+{% endif %}
 <style>
     :root {
         --invoice-bg: #f7f1ef;
@@ -57,6 +64,21 @@
         color: var(--invoice-text);
         font-weight: 700;
         white-space: nowrap;
+    }
+
+    .invoice-autosave-status {
+        margin-top: 8px;
+        color: var(--invoice-muted);
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .invoice-autosave-status.is-saving {
+        color: #8c1d26;
+    }
+
+    .invoice-autosave-status.is-error {
+        color: #bf3c3c;
     }
 
     .change-form .module,
@@ -260,12 +282,21 @@
         {% else %}
             New invoice
         {% endif %}
+        {% if invoice_autosave_url %}
+        <div class="invoice-autosave-status" data-invoice-autosave-status>Autosave active</div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}
 
 {% block object-tools-items %}
-{% if invoice_pdf_url %}
+{% if invoice_pdf_links %}
+{% for pdf_link in invoice_pdf_links %}
+<li>
+    <a href="{{ pdf_link.url }}" target="_blank">{{ pdf_link.label }}</a>
+</li>
+{% endfor %}
+{% elif invoice_pdf_url %}
 <li>
     <a href="{{ invoice_pdf_url }}" target="_blank">Create PDF</a>
 </li>

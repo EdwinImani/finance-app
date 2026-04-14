@@ -3,22 +3,23 @@
 {% block content %}
 <style>
     :root {
-        --report-bg: #f4f7fb;
-        --report-panel: #ffffff;
-        --report-border: #d8e0ea;
-        --report-text: #213547;
-        --report-muted: #607387;
-        --report-accent: #2e6f9e;
-        --report-accent-soft: #e9f3fb;
-        --report-rose: rgba(237, 151, 160, 0.88);
-        --report-shadow: 0 12px 32px rgba(31, 51, 73, 0.08);
+        --report-bg: #f7f1ef;
+        --report-panel: rgba(255, 255, 255, 0.92);
+        --report-border: rgba(162, 32, 42, 0.10);
+        --report-text: #23384d;
+        --report-muted: #708090;
+        --report-accent: #a2202a;
+        --report-accent-soft: #fff4f2;
+        --report-rose: rgba(162, 32, 42, 0.12);
+        --report-shadow: 0 18px 42px rgba(91, 27, 35, 0.10);
         --report-radius: 18px;
     }
 
     #content {
         background:
-            radial-gradient(circle at top left, rgba(46, 111, 158, 0.12), transparent 28%),
-            linear-gradient(180deg, #f8fbfe 0%, var(--report-bg) 100%);
+            radial-gradient(circle at top right, rgba(220, 90, 100, 0.12), transparent 28%),
+            radial-gradient(circle at top left, rgba(162, 32, 42, 0.10), transparent 24%),
+            linear-gradient(180deg, #fdf9f8 0%, var(--report-bg) 100%);
     }
 
     .commercial-report-shell {
@@ -52,7 +53,7 @@
         font-size: 32px;
         line-height: 1.1;
         letter-spacing: -0.03em;
-        color: #183247;
+        color: #8c1d26;
     }
 
     .commercial-hero p,
@@ -82,21 +83,23 @@
     }
 
     .commercial-btn-primary {
-        background: var(--report-accent);
+        background: linear-gradient(135deg, #b92b36 0%, #911d26 100%);
         color: #fff;
-        box-shadow: 0 10px 20px rgba(46, 111, 158, 0.2);
+        border-color: #911d26;
+        box-shadow: 0 10px 18px rgba(145, 29, 38, 0.16);
     }
 
     .commercial-btn-secondary {
-        background: #fff;
-        color: var(--report-text);
+        background: #fff7f5;
+        color: var(--report-accent);
         border-color: var(--report-border);
     }
 
     .commercial-panel,
     .commercial-table-card,
     .commercial-side-card,
-    .commercial-kpi {
+    .commercial-kpi,
+    .commercial-report-footer {
         background: var(--report-panel);
         border: 1px solid var(--report-border);
         border-radius: var(--report-radius);
@@ -112,7 +115,7 @@
     .commercial-table-head h3,
     .commercial-side-card h3 {
         margin: 0;
-        color: #183247;
+        color: #8c1d26;
     }
 
     .commercial-panel-title {
@@ -126,6 +129,7 @@
 
     .commercial-filter-grid,
     .commercial-selection-grid,
+    .commercial-report-overview,
     .commercial-kpis,
     .commercial-results-grid,
     .commercial-metric-list {
@@ -154,14 +158,35 @@
     .commercial-page-size input {
         width: 100%;
         max-width: 320px;
-        padding: 11px 13px;
-        font-size: 18px;
-        font-weight: 600;
-        color: #183247;
+        padding: 10px 12px;
+        font-size: 16px;
+        font-weight: 700;
+        color: #1f2f3d;
         border-radius: 12px;
-        border: 1px solid var(--report-border);
-        background: #fbfdff;
+        border: 1px solid rgba(162, 32, 42, 0.18);
+        background: #fffdfa;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
         box-sizing: border-box;
+    }
+
+    .commercial-field select {
+        min-height: 46px;
+        line-height: 1.35;
+        padding-top: 9px;
+        padding-bottom: 9px;
+        padding-right: 36px;
+        appearance: auto;
+        vertical-align: middle;
+    }
+
+    .commercial-field input::placeholder {
+        color: #6b7280;
+        opacity: 1;
+    }
+
+    .commercial-field select option {
+        color: #1f2f3d;
+        background: #fff;
     }
 
     .commercial-inline-action,
@@ -175,7 +200,7 @@
     }
 
     .commercial-current-choice span {
-        color: #183247;
+        color: #8c1d26;
     }
 
     .commercial-selection-grid {
@@ -183,8 +208,44 @@
         margin-top: 22px;
     }
 
+    .commercial-report-overview {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        margin-bottom: 18px;
+    }
+
+    .commercial-overview-card {
+        background: linear-gradient(180deg, #fffefb 0%, #fff4f2 100%);
+        border: 1px solid var(--report-border);
+        border-radius: 16px;
+        box-shadow: var(--report-shadow);
+        padding: 16px 18px;
+    }
+
+    .commercial-overview-label {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--report-muted);
+    }
+
+    .commercial-overview-value {
+        font-size: 22px;
+        font-weight: 700;
+        color: #8c1d26;
+        word-break: break-word;
+    }
+
+    .commercial-overview-note {
+        margin-top: 6px;
+        font-size: 12px;
+        color: var(--report-muted);
+    }
+
     .commercial-selection-card {
-        background: #f8fbfe;
+        background: #fff8f6;
         border: 1px solid var(--report-border);
         border-radius: 14px;
         padding: 14px 16px;
@@ -194,15 +255,15 @@
     .commercial-selection-card strong {
         display: block;
         margin-bottom: 10px;
-        color: #183247;
+        color: #8c1d26;
         font-size: 14px;
     }
 
     .commercial-selection-card ul {
         margin: 0;
         padding-left: 18px;
-        color: #183247;
-        font-size: 17px;
+        color: var(--report-text);
+        font-size: 16px;
         font-weight: 600;
         line-height: 1.6;
     }
@@ -211,34 +272,34 @@
     .commercial-page-size button,
     .commercial-pagination button {
         border: 1px solid var(--report-border);
-        background: #fff;
+        background: #fff7f5;
         border-radius: 999px;
         padding: 8px 12px;
         cursor: pointer;
         font-weight: 600;
-        color: #183247;
+        color: var(--report-accent);
     }
 
     .commercial-kpis {
-        grid-template-columns: repeat(6, minmax(0, 1fr));
+        grid-template-columns: repeat(3, minmax(0, 1fr));
         margin-bottom: 18px;
     }
 
     .commercial-kpi {
         padding: 16px;
-        background: linear-gradient(180deg, #ffffff 0%, #f7fbff 100%);
+        background: linear-gradient(180deg, #fffefb 0%, #fff4f2 100%);
     }
 
     .commercial-kpi-value {
         font-size: 24px;
         font-weight: 700;
-        color: #183247;
+        color: #8c1d26;
         word-break: break-word;
     }
 
     .commercial-chart-card {
-        background: linear-gradient(180deg, #fafdff 0%, var(--report-accent-soft) 100%);
-        border: 1px solid #cfe0f0;
+        background: linear-gradient(180deg, #fffefb 0%, var(--report-accent-soft) 100%);
+        border: 1px solid var(--report-border);
         border-radius: 18px;
         padding: 18px;
     }
@@ -266,7 +327,7 @@
 
     .commercial-table-head {
         border-bottom: 1px solid var(--report-border);
-        background: #fbfdff;
+        background: linear-gradient(180deg, rgba(255, 248, 247, 1) 0%, rgba(249, 236, 237, 0.92) 100%);
     }
 
     .commercial-table-head p {
@@ -294,8 +355,8 @@
         position: sticky;
         top: 0;
         z-index: 2;
-        background: #eef5fb;
-        color: #294358;
+        background: #fbefef;
+        color: #8c1d26;
         text-transform: uppercase;
         letter-spacing: 0.04em;
         font-size: 11px;
@@ -304,16 +365,16 @@
     }
 
     .commercial-table-scroll tbody tr:nth-child(even) {
-        background: #fbfdff;
+        background: #fffefb;
     }
 
     .commercial-table-scroll tbody tr:hover {
-        background: #f1f7fc;
+        background: #f6f4ed;
     }
 
     .commercial-table-scroll tbody td {
         padding: 12px 14px;
-        border-bottom: 1px solid #edf2f7;
+        border-bottom: 1px solid #f1dfdf;
     }
 
     .commercial-table-scroll tbody td.is-right {
@@ -322,7 +383,7 @@
 
     .commercial-table-scroll tbody td.is-strong {
         font-weight: 700;
-        color: #183247;
+        color: #8c1d26;
     }
 
     .commercial-empty {
@@ -333,7 +394,7 @@
         justify-content: flex-end;
         padding: 14px 18px 18px;
         border-top: 1px solid var(--report-border);
-        background: #fbfdff;
+        background: #fff8f6;
     }
 
     .commercial-pagination button.is-active {
@@ -344,8 +405,33 @@
 
     .commercial-side-card {
         padding: 18px;
-        background: linear-gradient(180deg, #ffffff 0%, #f9fbfd 100%);
+        background: linear-gradient(180deg, #fffefb 0%, #fff5f4 100%);
         box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    }
+
+    .commercial-chart-card.no-print {
+        margin-top: 18px;
+    }
+
+    .commercial-report-footer {
+        margin-top: 20px;
+        padding: 14px 18px;
+        background: linear-gradient(180deg, #fffefb 0%, #fff5f4 100%);
+    }
+
+    .commercial-report-footer-grid {
+        display: grid;
+        grid-template-columns: 0.3fr 0.4fr 0.3fr;
+        gap: 16px;
+        align-items: start;
+    }
+
+    .commercial-report-footer-block {
+        font-size: 12px;
+        line-height: 1.45;
+        font-weight: 700;
+        color: #1f2f3d;
+        word-break: break-word;
     }
 
     .commercial-metric-row {
@@ -353,7 +439,7 @@
         justify-content: space-between;
         gap: 16px;
         padding: 10px 0;
-        border-bottom: 1px solid #edf2f7;
+        border-bottom: 1px solid #f1dfdf;
     }
 
     .commercial-metric-row:last-child {
@@ -361,10 +447,11 @@
     }
 
     .commercial-metric-row strong {
-        color: #183247;
+        color: #8c1d26;
     }
 
     @media (max-width: 1100px) {
+        .commercial-report-overview,
         .commercial-kpis {
             grid-template-columns: repeat(2, minmax(0, 1fr));
         }
@@ -379,6 +466,7 @@
         .commercial-panel-header,
         .commercial-filter-grid,
         .commercial-selection-grid,
+        .commercial-report-overview,
         .commercial-kpis {
             grid-template-columns: 1fr;
             flex-direction: column;
@@ -410,15 +498,89 @@
         .commercial-chart-card,
         .commercial-table-card,
         .commercial-side-card,
-        .commercial-kpi {
+        .commercial-kpi,
+        .commercial-overview-card,
+        .commercial-report-footer {
             border: 0;
             box-shadow: none;
             background: #fff;
         }
 
+        .commercial-report-overview {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .commercial-overview-card,
+        .commercial-kpi {
+            padding: 10px 0;
+        }
+
+        .commercial-overview-value {
+            font-size: 16px;
+        }
+
+        .commercial-kpi-value {
+            font-size: 18px;
+        }
+
+        .commercial-kpis {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px 16px;
+            margin-bottom: 10px;
+        }
+
+        .commercial-side-card,
+        .commercial-chart-card,
+        .commercial-summary-line {
+            display: none;
+        }
+
+        .commercial-table-card {
+            margin-top: 8px;
+        }
+
+        .commercial-table-head {
+            padding: 8px 0 10px;
+            background: #fff;
+        }
+
+        .commercial-table-head p {
+            display: none;
+        }
+
+        .commercial-table-scroll table {
+            min-width: 0;
+            font-size: 11px;
+        }
+
+        .commercial-table-scroll thead th,
+        .commercial-table-scroll tbody td {
+            padding: 7px 6px;
+        }
+
+        .commercial-results-grid {
+            grid-template-columns: 1fr;
+            margin-top: 0;
+        }
+
         .commercial-table-scroll {
             max-height: none;
             overflow: visible;
+        }
+
+        .commercial-report-footer {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            margin: 0;
+            padding: 8mm 12mm 6mm;
+        }
+
+        .commercial-panel:last-of-type {
+            margin-bottom: 28mm;
         }
     }
 </style>
@@ -430,7 +592,7 @@
             <p>Track monthly billing, review filtered invoices quickly, and export a clean PDF summary when needed.</p>
         </div>
         <div class="commercial-action-row no-print">
-            <button type="button" class="commercial-btn commercial-btn-secondary" onclick="window.print()">Export PDF</button>
+            <a href="{{ export_pdf_url }}" class="commercial-btn commercial-btn-secondary" target="_blank">Create PDF</a>
         </div>
     </div>
 
@@ -515,6 +677,29 @@
         </form>
     </div>
 
+    <div class="commercial-report-overview">
+        <div class="commercial-overview-card">
+            <span class="commercial-overview-label">Period</span>
+            <div class="commercial-overview-value">{{ from_date|default:"-" }} to {{ to_date|default:"-" }}</div>
+            <div class="commercial-overview-note">Date range used for this report.</div>
+        </div>
+        <div class="commercial-overview-card">
+            <span class="commercial-overview-label">Invoices</span>
+            <div class="commercial-overview-value">{{ invoices|length }}</div>
+            <div class="commercial-overview-note">Commercial invoices in the filtered result.</div>
+        </div>
+        <div class="commercial-overview-card">
+            <span class="commercial-overview-label">Selections</span>
+            <div class="commercial-overview-value">{{ selected_importers|length }} importers / {{ selected_products|length }} products</div>
+            <div class="commercial-overview-note">Active importer and product filters.</div>
+        </div>
+        <div class="commercial-overview-card">
+            <span class="commercial-overview-label">Total Amount</span>
+            <div class="commercial-overview-value">{{ total_amount }}</div>
+            <div class="commercial-overview-note">Grand total for the current selection.</div>
+        </div>
+    </div>
+
     <div class="commercial-kpis">
         <div class="commercial-kpi">
             <span class="commercial-kpi-label">Total Quantity</span>
@@ -549,7 +734,7 @@
             <div><strong>Invoices:</strong> {{ invoices|length }}</div>
         </div>
 
-        <div class="commercial-chart-card">
+        <div class="commercial-chart-card no-print">
             <div class="commercial-panel-header" style="margin-bottom: 14px;">
                 <div>
                     <h2 class="commercial-panel-title">Monthly Commercial Chart</h2>
@@ -597,7 +782,7 @@
                             <tbody id="commercial-invoices-tbody">
                                 {% for invoice in invoices %}
                                     <tr>
-                                        <td>{{ invoice.invoice_date|date:"Y-m-d" }}</td>
+                                        <td>{{ invoice.invoice_date|date:"d/m/Y" }}</td>
                                         <td style="font-weight: 600; color: #224460;">{{ invoice.invoice_number }}</td>
                                         <td>{{ invoice.importer|default:"-" }}</td>
                                         <td>{{ invoice.end_user|default:"-" }}</td>
@@ -649,6 +834,28 @@
             </div>
         </div>
     </div>
+
+    {% if report_footer_left or report_footer_center or report_footer_right %}
+    <div class="commercial-report-footer">
+        <div class="commercial-report-footer-grid">
+            <div class="commercial-report-footer-block">
+                {% for line in report_footer_left %}
+                    {% if line %}<div>{{ line }}</div>{% endif %}
+                {% endfor %}
+            </div>
+            <div class="commercial-report-footer-block" style="text-align:center;">
+                {% for line in report_footer_center %}
+                    {% if line %}<div>{{ line }}</div>{% endif %}
+                {% endfor %}
+            </div>
+            <div class="commercial-report-footer-block" style="text-align:right;">
+                {% for line in report_footer_right %}
+                    {% if line %}<div>{{ line }}</div>{% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

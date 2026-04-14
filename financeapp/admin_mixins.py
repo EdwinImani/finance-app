@@ -14,27 +14,49 @@ class PageSizeAdminMixin:
     page_size_options = (10, 15, 20, 25, 50, 100)
     max_list_per_page = 500
     changelist_template = "admin/change_list_with_page_size.html"
+    page_size_session_key = "admin_list_per_page_default"
 
     def _default_list_per_page(self):
         return getattr(self, "list_per_page", 100)
 
-    def get_list_per_page(self, request):
-        value = request.GET.get("per_page")
-
-        if not value:
-            return self._default_list_per_page()
-
+    def _normalize_list_per_page(self, value):
         try:
             per_page = int(value)
         except (TypeError, ValueError):
-            return self._default_list_per_page()
+            return None
 
         if per_page < 1:
-            return self._default_list_per_page()
+            return None
 
         return min(per_page, self.max_list_per_page)
 
+    def _get_session_list_per_page(self, request):
+        if not hasattr(request, "session"):
+            return None
+
+        return self._normalize_list_per_page(
+            request.session.get(self.page_size_session_key)
+        )
+
+    def get_list_per_page(self, request):
+        per_page = self._normalize_list_per_page(request.GET.get("per_page"))
+
+        if per_page is not None:
+            return per_page
+
+        session_per_page = self._get_session_list_per_page(request)
+
+        if session_per_page is not None:
+            return session_per_page
+
+        return self._default_list_per_page()
+
     def changelist_view(self, request, extra_context=None):
+        per_page = self._normalize_list_per_page(request.GET.get("per_page"))
+
+        if per_page is not None and hasattr(request, "session"):
+            request.session[self.page_size_session_key] = per_page
+
         current_per_page = self.get_list_per_page(request)
         options = []
 

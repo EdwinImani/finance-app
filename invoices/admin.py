@@ -1,30 +1,27 @@
 from decimal import Decimal
-from io import BytesIO
-from pathlib import Path
-from urllib.parse import unquote, urlparse
 
-from django.conf import settings
 from django import forms
 from django.contrib import admin
-from django.db.models import DecimalField, ExpressionWrapper, F, Sum, Value
+from django.db.models import Count, DecimalField, ExpressionWrapper, F, Sum, Value
 from django.db.models.functions import Coalesce, TruncMonth
-from django.http import HttpResponse
-from django.shortcuts import get_object_or_404, render
+from django.http import HttpResponse, JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import path
 from django.urls import reverse
+from django.urls import NoReverseMatch
 from django.utils.html import format_html
 from django.utils import timezone
-from django.template.loader import render_to_string
 from financeapp.admin_mixins import PageSizeAdminMixin
-from financeapp.pdf_rendering import get_pdf_fallback_reason, should_try_weasyprint
 from company.models import CompanySetting
 from partners.models import Partner
 from products.models import Product
+from .pdf_builder import build_commercial_report_pdf, build_invoice_pdf
 from .models import (
     ProformaInvoice,
     CommercialInvoice,
     ProformaInvoiceItem,
-    CommercialInvoiceItem
+    CommercialInvoiceItem,
+    CommercialInvoicePacking,
 )
 
 
@@ -39,6 +36,7 @@ class ProformaItemInline(admin.TabularInline):
 
     fields = (
         "product",
+        "item_date",
         "hs_code",
         "product_description",
         "part_number",
@@ -137,11 +135,31 @@ class InvoiceAdminMixin:
     )
 
     class Media:
-        js = ("admin/js/invoice_product_info.js",)
+        js = ("admin/js/invoice_product_info.js", "admin/js/invoice_autosave.js")
 
     def get_company_year(self):
         company = CompanySetting.objects.first()
         return company.year if company and company.year else None
+
+    def get_default_invoice_date(self):
+        company = CompanySetting.objects.first()
+        today = timezone.now().date()
+        if not company or not company.year:
+            return today
+        try:
+            return today.replace(year=company.year)
+        except ValueError:
+            return today.replace(year=company.year, day=28)
+
+    def get_default_vat_percent(self):
+        company = CompanySetting.objects.first()
+        return company.vat_amount if company else Decimal("0.00")
+
+    def create_draft_invoice(self):
+        return self.model.objects.create(
+            invoice_date=self.get_default_invoice_date(),
+            vat_percent=self.get_default_vat_percent(),
+        )
 
     def has_explicit_year_filter(self, request, field_name):
         return any(key.startswith(field_name) for key in request.GET.keys())
@@ -197,7 +215,26 @@ class InvoiceAdminMixin:
     def render_change_form(self, request, context, *args, **kwargs):
         original = context.get("original")
         context["invoice_pdf_url"] = self.get_invoice_pdf_url(original) if original and original.pk else ""
+        context["invoice_pdf_links"] = self.get_invoice_pdf_links(original) if original and original.pk else []
+        context["invoice_autosave_url"] = self.get_invoice_autosave_url(original) if original and original.pk else ""
         return super().render_change_form(request, context, *args, **kwargs)
+
+    def changelist_view(self, request, extra_context=None):
+        extra_context = extra_context or {}
+        try:
+            extra_context["draft_add_url"] = self.get_invoice_draft_add_url()
+        except NoReverseMatch:
+            extra_context["draft_add_url"] = ""
+        return super().changelist_view(request, extra_context=extra_context)
+
+    def add_view(self, request, form_url="", extra_context=None):
+        if request.method == "GET" and not request.GET.get("_popup"):
+            draft = self.create_draft_invoice()
+            return redirect(reverse(
+                f"admin:{self.model._meta.app_label}_{self.model._meta.model_name}_change",
+                args=[draft.pk],
+            ))
+        return super().add_view(request, form_url, extra_context)
 
     def build_partner_context(self, partner):
         if not partner:
@@ -224,6 +261,9 @@ class InvoiceAdminMixin:
             {
                 "index": index,
                 "description": item.product.description if item.product else "-",
+                "item_date": (
+                    getattr(item, "item_date", None) or getattr(obj, "invoice_date", None)
+                ).strftime("%d/%m/%Y") if (getattr(item, "item_date", None) or getattr(obj, "invoice_date", None)) else "-",
                 "part_number": item.product.part_number if item.product and item.product.part_number else "-",
                 "hs_code": item.hs_code or "-",
                 "quantity": item.quantity,
@@ -246,6 +286,34 @@ class InvoiceAdminMixin:
     def get_invoice_pdf_url(self, obj):
         return reverse(f"admin:{self.model._meta.app_label}_{self.model._meta.model_name}_pdf", args=[obj.pk])
 
+    def get_invoice_pdf_links(self, obj):
+        return [
+            {
+                "label": "Create PDF",
+                "url": self.get_invoice_pdf_url(obj),
+            }
+        ]
+
+    def get_invoice_autosave_url(self, obj):
+        return reverse(f"admin:{self.model._meta.app_label}_{self.model._meta.model_name}_autosave", args=[obj.pk])
+
+    def get_invoice_draft_add_url(self):
+        return reverse(
+            f"admin:{self.model._meta.app_label}_{self.model._meta.model_name}_draft_add"
+        )
+
+    def create_draft_view(self, request):
+        if request.method != "GET":
+            return JsonResponse({"ok": False, "error": "GET required."}, status=405)
+
+        draft = self.create_draft_invoice()
+        return redirect(
+            reverse(
+                f"admin:{self.model._meta.app_label}_{self.model._meta.model_name}_change",
+                args=[draft.pk],
+            )
+        )
+
     def get_invoice_pdf_context(self, request, obj):
         company = CompanySetting.objects.first()
         return {
@@ -262,60 +330,37 @@ class InvoiceAdminMixin:
             "subtotal": obj.subtotal(),
             "vat_amount": obj.vat_amount(),
             "total_amount": obj.total_amount(),
-            "render_as_html": False,
-            "pdf_error": "",
+            "packing_entries": self.get_invoice_packing_entries_for_pdf(obj),
         }
 
-    def _build_pdf_with_weasyprint(self, html_string, base_url):
-        from weasyprint import HTML
+    def get_invoice_packing_entries_for_pdf(self, obj):
+        if not hasattr(obj, "packing_entries"):
+            return []
 
-        return HTML(
-            string=html_string,
-            base_url=base_url,
-        ).write_pdf()
+        return [
+            {
+                "index": index,
+                "no_packing": entry.no_packing or "-",
+                "gross_weight": entry.gross_weight,
+                "net_weight": entry.net_weight,
+                "dimension_length": entry.dimension_length,
+                "dimension_width": entry.dimension_width,
+                "dimension_height": entry.dimension_height,
+            }
+            for index, entry in enumerate(obj.packing_entries.all(), start=1)
+        ]
 
-    def _pdf_link_callback(self, uri, rel):
-        parsed = urlparse(uri)
-        path = unquote(parsed.path or uri)
+    def get_pdf_document_title(self, obj, document_type="default"):
+        return self.get_invoice_title()
 
-        if path.startswith(settings.MEDIA_URL):
-            return str(Path(settings.MEDIA_ROOT) / path.removeprefix(settings.MEDIA_URL))
+    def get_pdf_filename(self, obj, document_type="default"):
+        return self.get_invoice_pdf_filename(obj)
 
-        if path.startswith(settings.STATIC_URL):
-            static_roots = []
-            static_root = getattr(settings, "STATIC_ROOT", None)
-            if static_root:
-                static_roots.append(Path(static_root))
-            static_roots.extend(Path(root) for root in getattr(settings, "STATICFILES_DIRS", []))
-
-            relative_path = path.removeprefix(settings.STATIC_URL)
-            for root in static_roots:
-                candidate = root / relative_path
-                if candidate.exists():
-                    return str(candidate)
-
-        if parsed.scheme == "file":
-            return parsed.path
-
-        return uri
-
-    def _build_pdf_with_xhtml2pdf(self, html_string):
-        from xhtml2pdf import pisa
-
-        result = BytesIO()
-        pdf = pisa.CreatePDF(
-            src=html_string,
-            dest=result,
-            link_callback=self._pdf_link_callback,
-        )
-        if pdf.err:
-            raise RuntimeError("xhtml2pdf could not render the invoice document.")
-        return result.getvalue()
-
-    def export_pdf(self, request, object_id):
+    def export_pdf(self, request, object_id, document_type="default"):
         obj = get_object_or_404(
             self.model.objects.select_related("importer", "end_user").prefetch_related(
                 "items__product",
+                "packing_entries",
                 "importer__addresses",
                 "importer__phones",
                 "end_user__addresses",
@@ -325,37 +370,42 @@ class InvoiceAdminMixin:
         )
 
         context = self.get_invoice_pdf_context(request, obj)
-        html_string = render_to_string("admin/invoices/pdf.html", context)
+        context["document_type"] = document_type
+        context["invoice_title"] = self.get_pdf_document_title(obj, document_type=document_type)
         try:
-            if not should_try_weasyprint():
-                raise OSError(get_pdf_fallback_reason())
-
-            pdf_bytes = self._build_pdf_with_weasyprint(
-                html_string=html_string,
-                base_url=request.build_absolute_uri("/"),
-            )
-        except (ImportError, OSError):
-            try:
-                pdf_bytes = self._build_pdf_with_xhtml2pdf(html_string)
-            except Exception as exc:
-                context["render_as_html"] = True
-                context["pdf_error"] = (
-                    "PDF generation is unavailable because both installed renderers failed. "
-                    "This printable HTML fallback is shown instead."
-                )
-                context["pdf_error_details"] = str(exc)
-                fallback_html = render_to_string("admin/invoices/pdf.html", context)
-                return HttpResponse(fallback_html)
+            pdf_bytes = build_invoice_pdf(**context)
         except Exception as exc:
-            context["render_as_html"] = True
-            context["pdf_error"] = "PDF generation failed unexpectedly. This printable HTML fallback is shown instead."
-            context["pdf_error_details"] = str(exc)
-            fallback_html = render_to_string("admin/invoices/pdf.html", context)
-            return HttpResponse(fallback_html)
+            return HttpResponse(
+                f"PDF generation failed: {exc}",
+                content_type="text/plain; charset=utf-8",
+                status=500,
+            )
 
         response = HttpResponse(pdf_bytes, content_type="application/pdf")
-        response["Content-Disposition"] = f'inline; filename="{self.get_invoice_pdf_filename(obj)}"'
+        response["Content-Disposition"] = f'inline; filename="{self.get_pdf_filename(obj, document_type=document_type)}"'
         return response
+
+    def autosave(self, request, object_id):
+        if request.method != "POST":
+            return JsonResponse({"ok": False, "error": "POST required."}, status=405)
+
+        obj = get_object_or_404(self.model, pk=object_id)
+        form_class = self.get_form(request, obj, change=True)
+        form = form_class(request.POST, request.FILES, instance=obj)
+
+        if form.is_valid():
+            new_object = self.save_form(request, form, change=True)
+            self.save_model(request, new_object, form, change=True)
+            form.save_m2m()
+            return JsonResponse(
+                {
+                    "ok": True,
+                    "saved_at": timezone.localtime().strftime("%d/%m/%Y %H:%M:%S"),
+                    "invoice_number": new_object.invoice_number or "",
+                }
+            )
+
+        return JsonResponse({"ok": False, "errors": {"form": form.errors}}, status=400)
 
 
 # ----------------------
@@ -373,6 +423,7 @@ class ProformaInvoiceAdmin(InvoiceAdminMixin, PageSizeAdminMixin, admin.ModelAdm
                 "importer",
                 "end_user",
                 "our_reference",
+                "price_for",
             )
         }),
         ("Financial Summary", {
@@ -398,8 +449,6 @@ class ProformaInvoiceAdmin(InvoiceAdminMixin, PageSizeAdminMixin, admin.ModelAdm
         "pdf_link",
     )
 
-    ordering = ("-invoice_date",)
-
     autocomplete_fields = (
         "importer",
         "end_user",
@@ -416,6 +465,13 @@ class ProformaInvoiceAdmin(InvoiceAdminMixin, PageSizeAdminMixin, admin.ModelAdm
         "importer",
     )
 
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        queryset = queryset.annotate(items_count=Count("items", distinct=True))
+        if not request.GET.get("o"):
+            queryset = queryset.order_by("-id")
+        return queryset
+
     # ----------------------
     # DATE DISPLAY
     # ----------------------
@@ -423,7 +479,7 @@ class ProformaInvoiceAdmin(InvoiceAdminMixin, PageSizeAdminMixin, admin.ModelAdm
     def invoice_date_display(self, obj):
 
         if obj.invoice_date:
-            return obj.invoice_date.strftime("%Y-%m-%d")
+            return obj.invoice_date.strftime("%d/%m/%Y")
 
         return "-"
 
@@ -477,6 +533,16 @@ class ProformaInvoiceAdmin(InvoiceAdminMixin, PageSizeAdminMixin, admin.ModelAdm
     def get_urls(self):
         urls = super().get_urls()
         custom_urls = [
+            path(
+                "create-draft/",
+                self.admin_site.admin_view(self.create_draft_view),
+                name="invoices_proformainvoice_draft_add",
+            ),
+            path(
+                "<int:object_id>/autosave/",
+                self.admin_site.admin_view(self.autosave),
+                name="invoices_proformainvoice_autosave",
+            ),
             path(
                 "<int:object_id>/pdf/",
                 self.admin_site.admin_view(self.export_pdf),
@@ -561,6 +627,21 @@ class CommercialItemInline(admin.TabularInline):
     product_note.short_description = "Note"
 
 
+class CommercialPackingInline(admin.TabularInline):
+
+    model = CommercialInvoicePacking
+    extra = 1
+
+    fields = (
+        "no_packing",
+        "gross_weight",
+        "net_weight",
+        "dimension_length",
+        "dimension_width",
+        "dimension_height",
+    )
+
+
 # ----------------------
 # COMMERCIAL ADMIN
 # ----------------------
@@ -568,6 +649,11 @@ class CommercialItemInline(admin.TabularInline):
 @admin.register(CommercialInvoice)
 class CommercialInvoiceAdmin(InvoiceAdminMixin, PageSizeAdminMixin, admin.ModelAdmin):
     changelist_template = "admin/invoices/change_list.html"
+    commercial_document_titles = {
+        "default": "Commercial Invoice",
+        "packing_list": "Packing List",
+        "dispatching_note": "Dispatching Note",
+    }
 
     fieldsets = (
         ("Invoice Overview", {
@@ -576,6 +662,8 @@ class CommercialInvoiceAdmin(InvoiceAdminMixin, PageSizeAdminMixin, admin.ModelA
                 "importer",
                 "end_user",
                 ("our_order_no", "our_reference"),
+                "dispatching_note",
+                "packing_specification",
             )
         }),
         ("Financial Summary", {
@@ -587,7 +675,7 @@ class CommercialInvoiceAdmin(InvoiceAdminMixin, PageSizeAdminMixin, admin.ModelA
         }),
     )
 
-    inlines = [CommercialItemInline]
+    inlines = [CommercialItemInline, CommercialPackingInline]
 
     list_display = (
         "id",
@@ -598,8 +686,6 @@ class CommercialInvoiceAdmin(InvoiceAdminMixin, PageSizeAdminMixin, admin.ModelA
         "amount_display",
         "pdf_link",
     )
-
-    ordering = ("-invoice_date",)
 
     autocomplete_fields = (
         "importer",
@@ -617,6 +703,13 @@ class CommercialInvoiceAdmin(InvoiceAdminMixin, PageSizeAdminMixin, admin.ModelA
         "importer",
     )
 
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        queryset = queryset.annotate(items_count=Count("items", distinct=True))
+        if not request.GET.get("o"):
+            queryset = queryset.order_by("-id")
+        return queryset
+
     # ----------------------
     # DATE DISPLAY
     # ----------------------
@@ -624,7 +717,7 @@ class CommercialInvoiceAdmin(InvoiceAdminMixin, PageSizeAdminMixin, admin.ModelA
     def invoice_date_display(self, obj):
 
         if obj.invoice_date:
-            return obj.invoice_date.strftime("%Y-%m-%d")
+            return obj.invoice_date.strftime("%d/%m/%Y")
 
         return "-"
 
@@ -666,13 +759,62 @@ class CommercialInvoiceAdmin(InvoiceAdminMixin, PageSizeAdminMixin, admin.ModelA
 
     amount_display.short_description = "Amount"
 
+    def get_invoice_pdf_links(self, obj):
+        return [
+            {
+                "label": "Commercial Invoice PDF",
+                "url": self.get_invoice_pdf_url(obj),
+            },
+            {
+                "label": "Packing List PDF",
+                "url": reverse("admin:invoices_commercialinvoice_packing_list_pdf", args=[obj.pk]),
+            },
+            {
+                "label": "Dispatching Note PDF",
+                "url": reverse("admin:invoices_commercialinvoice_dispatching_note_pdf", args=[obj.pk]),
+            },
+        ]
+
+    def get_pdf_document_title(self, obj, document_type="default"):
+        return self.commercial_document_titles.get(document_type, self.commercial_document_titles["default"])
+
+    def get_pdf_filename(self, obj, document_type="default"):
+        base_name = (obj.invoice_number or "commercial-invoice").replace("/", "-")
+        suffix_map = {
+            "default": "commercial-invoice",
+            "packing_list": "packing-list",
+            "dispatching_note": "dispatching-note",
+        }
+        suffix = suffix_map.get(document_type, suffix_map["default"])
+        return f"{base_name}-{suffix}.pdf"
+
     def get_urls(self):
         urls = super().get_urls()
         custom_urls = [
             path(
+                "create-draft/",
+                self.admin_site.admin_view(self.create_draft_view),
+                name="invoices_commercialinvoice_draft_add",
+            ),
+            path(
+                "<int:object_id>/autosave/",
+                self.admin_site.admin_view(self.autosave),
+                name="invoices_commercialinvoice_autosave",
+            ),
+            path(
                 "<int:object_id>/pdf/",
                 self.admin_site.admin_view(self.export_pdf),
                 name="invoices_commercialinvoice_pdf",
+            ),
+            path(
+                "<int:object_id>/packing-list-pdf/",
+                self.admin_site.admin_view(self.export_packing_list_pdf),
+                name="invoices_commercialinvoice_packing_list_pdf",
+            ),
+            path(
+                "<int:object_id>/dispatching-note-pdf/",
+                self.admin_site.admin_view(self.export_dispatching_note_pdf),
+                name="invoices_commercialinvoice_dispatching_note_pdf",
             ),
             path(
                 "report/",
@@ -682,9 +824,16 @@ class CommercialInvoiceAdmin(InvoiceAdminMixin, PageSizeAdminMixin, admin.ModelA
         ]
         return custom_urls + urls
 
+    def export_packing_list_pdf(self, request, object_id):
+        return self.export_pdf(request, object_id, document_type="packing_list")
+
+    def export_dispatching_note_pdf(self, request, object_id):
+        return self.export_pdf(request, object_id, document_type="dispatching_note")
+
     def commercial_report(self, request):
         importers = Partner.objects.filter(partner_type="importer").order_by("description")
         products = Product.objects.all().order_by("description")
+        company = CompanySetting.objects.first()
 
         selected_importers = request.GET.getlist("importers")
         selected_products = request.GET.getlist("products")
@@ -750,8 +899,43 @@ class CommercialInvoiceAdmin(InvoiceAdminMixin, PageSizeAdminMixin, admin.ModelA
 
         chart_labels, chart_totals = self._build_monthly_totals(queryset)
 
+        if request.GET.get("export") == "pdf":
+            try:
+                pdf_bytes = build_commercial_report_pdf(
+                    company=company,
+                    currency=company.currency if company else "EUR",
+                    invoices=invoices,
+                    chart_labels=chart_labels,
+                    chart_totals=chart_totals,
+                    total_qty=total_qty,
+                    total_subtotal=total_subtotal,
+                    total_vat=total_vat,
+                    total_freight=total_freight,
+                    total_discount=total_discount,
+                    total_amount=total_amount,
+                    from_date=date_from,
+                    to_date=date_to,
+                )
+            except Exception as exc:
+                return HttpResponse(
+                    f"PDF generation failed: {exc}",
+                    content_type="text/plain; charset=utf-8",
+                    status=500,
+                )
+
+            response = HttpResponse(pdf_bytes, content_type="application/pdf")
+            response["Content-Disposition"] = 'inline; filename="commercial-invoices-report.pdf"'
+            return response
+
+        export_pdf_query = request.GET.copy()
+        export_pdf_query["export"] = "pdf"
+
         context = dict(
             self.admin_site.each_context(request),
+            company=company,
+            report_footer_left=self._build_report_footer_left(company),
+            report_footer_center=self._build_report_footer_center(company),
+            report_footer_right=self._build_report_footer_right(company),
             importers=importers,
             products=products,
             selected_importers=selected_importers,
@@ -762,6 +946,7 @@ class CommercialInvoiceAdmin(InvoiceAdminMixin, PageSizeAdminMixin, admin.ModelA
             invoices=invoices,
             chart_labels=chart_labels,
             chart_totals=chart_totals,
+            export_pdf_url=f"{request.path}?{export_pdf_query.urlencode()}",
             total_qty=total_qty,
             total_subtotal=total_subtotal,
             total_vat=total_vat,
@@ -773,6 +958,29 @@ class CommercialInvoiceAdmin(InvoiceAdminMixin, PageSizeAdminMixin, admin.ModelA
         )
 
         return render(request, "admin/invoices/commercial_report.html", context)
+
+    def _build_report_footer_left(self, company):
+        if not company:
+            return []
+        return [
+            f"Bank: {company.bank}" if getattr(company, "bank", "") else "",
+            f"IBAN: {company.iban}" if getattr(company, "iban", "") else "",
+            f"BIC: {company.bic}" if getattr(company, "bic", "") else "",
+        ]
+
+    def _build_report_footer_center(self, company):
+        if not company or not getattr(company, "footer_invoice", ""):
+            return []
+        return [part.strip() for part in str(company.footer_invoice).split("_") if part.strip()]
+
+    def _build_report_footer_right(self, company):
+        if not company:
+            return []
+        return [
+            f"Telephone: {company.company_phone}" if getattr(company, "company_phone", "") else "",
+            f"Fax: {company.company_fax}" if getattr(company, "company_fax", "") else "",
+            f"Email: {company.company_email}" if getattr(company, "company_email", "") else "",
+        ]
 
     def _build_monthly_totals(self, queryset):
         monthly_data = (

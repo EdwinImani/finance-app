@@ -122,9 +122,10 @@ USE_TZ = True
 
 # FORMAT DES DATES
 
-DATE_FORMAT = "Y-m-d"
-DATETIME_FORMAT = "Y-m-d H:i:s"
-DATE_INPUT_FORMATS = ["%Y-%m-%d"]
+DATE_FORMAT = "d/m/Y"
+SHORT_DATE_FORMAT = "d/m/Y"
+DATETIME_FORMAT = "d/m/Y H:i:s"
+DATE_INPUT_FORMATS = ["%d/%m/%Y", "%Y-%m-%d"]
 
 USE_L10N = False
 

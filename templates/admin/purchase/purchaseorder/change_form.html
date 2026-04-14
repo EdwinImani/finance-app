@@ -2,6 +2,13 @@
 
 {% block extrahead %}
 {{ block.super }}
+{% if invoice_autosave_url %}
+<script>
+    window.invoiceAutosaveConfig = {
+        url: "{{ invoice_autosave_url|escapejs }}"
+    };
+</script>
+{% endif %}
 <style>
     :root {
         --po-form-bg: #f7f1ef;
@@ -16,31 +23,24 @@
 
     #content {
         background:
-            radial-gradient(circle at top left, rgba(220, 90, 100, 0.12), transparent 28%),
-            radial-gradient(circle at top right, rgba(162, 32, 42, 0.10), transparent 24%),
+            radial-gradient(circle at top right, rgba(220, 90, 100, 0.12), transparent 28%),
+            radial-gradient(circle at top left, rgba(162, 32, 42, 0.10), transparent 24%),
             linear-gradient(180deg, #fdf9f8 0%, var(--po-form-bg) 100%);
     }
 
     .change-form #content-main {
-        max-width: 1380px;
+        max-width: 1640px;
         margin: 0 auto;
     }
 
-    .change-form .submit-row {
-        background: var(--po-form-panel);
-        border: 1px solid var(--po-form-border);
-        border-radius: 14px;
-        box-shadow: var(--po-form-shadow);
-    }
-
     .change-form .module,
-    .change-form .inline-group {
+    .change-form .inline-group,
+    .change-form .submit-row {
         background: var(--po-form-panel);
         border: 1px solid var(--po-form-border);
         border-radius: var(--po-form-radius);
         box-shadow: var(--po-form-shadow);
         overflow: hidden;
-        margin-bottom: 18px;
     }
 
     .change-form .module h2,
@@ -105,16 +105,23 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        width: 34px;
-        height: 34px;
+        min-height: 36px;
+        padding: 0 14px;
         border-radius: 999px;
         background: #fff7f5;
         border: 1px solid var(--po-form-border);
-        box-shadow: 0 4px 12px rgba(145, 29, 38, 0.06);
+        color: var(--po-form-accent);
+        font-weight: 700;
+        text-decoration: none;
+        box-shadow: 0 6px 14px rgba(145, 29, 38, 0.08);
     }
 
     .change-form .related-widget-wrapper a.related-widget-wrapper-link:hover {
         background: #fff0f1;
+    }
+
+    .change-form .related-widget-wrapper a.related-widget-wrapper-link.delete-related {
+        display: none;
     }
 
     .change-form .field-seller .related-widget-wrapper,
@@ -139,11 +146,24 @@
     .change-form .field-total_amount_display .readonly,
     .change-form .field-purchase_number .readonly {
         display: inline-block;
-        min-width: 140px;
+        min-width: 180px;
         background: linear-gradient(180deg, #fffefb 0%, #f7f4ed 100%);
         border: 1px solid var(--po-form-border);
         border-radius: 12px;
         padding: 10px 14px;
+    }
+
+    .change-form .field-total_amount_display .readonly {
+        background: linear-gradient(180deg, #fffefb 0%, #fff2f2 100%);
+        border-color: rgba(162, 32, 42, 0.18);
+        color: #8c1d26;
+        font-size: 18px;
+        box-shadow: inset 0 0 0 1px rgba(162, 32, 42, 0.08);
+    }
+
+    .change-form .field-vat_percent input {
+        font-weight: 700;
+        color: #8c1d26;
     }
 
     .inline-group .tabular th {
@@ -168,6 +188,33 @@
         background: #f6f4ed;
     }
 
+    .inline-group .add-row {
+        padding: 16px 18px;
+    }
+
+    .inline-group .add-row a {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 36px;
+        padding: 0 14px;
+        border-radius: 999px;
+        border: 1px solid var(--po-form-border);
+        background: #fff7f5;
+        color: var(--po-form-accent);
+        font-weight: 700;
+        text-decoration: none;
+        box-shadow: 0 6px 14px rgba(145, 29, 38, 0.08);
+    }
+
+    .inline-group .add-row a:hover {
+        background: #fff0f1;
+    }
+
+    .inline-group td.delete input[type="checkbox"] {
+        display: none;
+    }
+
     .purchase-order-hero {
         display: flex;
         justify-content: space-between;
@@ -181,7 +228,7 @@
         font-size: 32px;
         line-height: 1.1;
         letter-spacing: -0.03em;
-        color: #315767;
+        color: var(--po-form-text);
     }
 
     .purchase-order-hero p {
@@ -196,9 +243,24 @@
         border: 1px solid var(--po-form-border);
         border-radius: 999px;
         padding: 10px 14px;
-        color: #315767;
+        color: var(--po-form-text);
         font-weight: 700;
         white-space: nowrap;
+    }
+
+    .invoice-autosave-status {
+        margin-top: 8px;
+        color: var(--po-form-muted);
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .invoice-autosave-status.is-saving {
+        color: #8c1d26;
+    }
+
+    .invoice-autosave-status.is-error {
+        color: #bf3c3c;
     }
 
     @media (max-width: 900px) {
@@ -230,6 +292,9 @@
             {{ original.purchase_number }}
         {% else %}
             New order
+        {% endif %}
+        {% if invoice_autosave_url %}
+        <div class="invoice-autosave-status" data-invoice-autosave-status>Autosave active</div>
         {% endif %}
     </div>
 </div>

@@ -27,6 +27,9 @@ class PurchaseOrder(models.Model):
         related_name="purchase_orders_as_seller",
         limit_choices_to={'partner_type': 'seller'},
         on_delete=models.PROTECT
+        ,
+        null=True,
+        blank=True
     )
 
     requester = models.ForeignKey(

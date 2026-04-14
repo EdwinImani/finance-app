@@ -3,22 +3,23 @@
 {% block content %}
 <style>
     :root {
-        --report-bg: #f4f7fb;
-        --report-panel: #ffffff;
-        --report-border: #d8e0ea;
-        --report-text: #213547;
-        --report-muted: #607387;
-        --report-accent: #2e6f9e;
-        --report-accent-soft: #e9f3fb;
-        --report-rose: rgba(237, 151, 160, 0.88);
-        --report-shadow: 0 12px 32px rgba(31, 51, 73, 0.08);
+        --report-bg: #f7f1ef;
+        --report-panel: rgba(255, 255, 255, 0.92);
+        --report-border: rgba(162, 32, 42, 0.10);
+        --report-text: #23384d;
+        --report-muted: #708090;
+        --report-accent: #a2202a;
+        --report-accent-soft: #fff4f2;
+        --report-rose: rgba(162, 32, 42, 0.12);
+        --report-shadow: 0 18px 42px rgba(91, 27, 35, 0.10);
         --report-radius: 18px;
     }
 
     #content {
         background:
-            radial-gradient(circle at top left, rgba(46, 111, 158, 0.12), transparent 28%),
-            linear-gradient(180deg, #f8fbfe 0%, var(--report-bg) 100%);
+            radial-gradient(circle at top right, rgba(220, 90, 100, 0.12), transparent 28%),
+            radial-gradient(circle at top left, rgba(162, 32, 42, 0.10), transparent 24%),
+            linear-gradient(180deg, #fdf9f8 0%, var(--report-bg) 100%);
     }
 
     .purchase-report-shell {
@@ -41,7 +42,7 @@
         font-size: 32px;
         line-height: 1.1;
         letter-spacing: -0.03em;
-        color: #183247;
+        color: #8c1d26;
     }
 
     .purchase-hero p {
@@ -70,16 +71,16 @@
     }
 
     .purchase-btn-primary {
-        background: linear-gradient(135deg, #1f5f89 0%, #2f7bb0 100%);
+        background: linear-gradient(135deg, #b92b36 0%, #911d26 100%);
         color: #ffffff !important;
-        border-color: #1f5f89;
-        box-shadow: 0 12px 24px rgba(31, 95, 137, 0.28);
+        border-color: #911d26;
+        box-shadow: 0 10px 18px rgba(145, 29, 38, 0.16);
     }
 
     .purchase-btn-primary:hover {
-        background: linear-gradient(135deg, #174e71 0%, #276c99 100%);
+        background: linear-gradient(135deg, #a22630 0%, #821821 100%);
         color: #ffffff !important;
-        box-shadow: 0 14px 28px rgba(23, 78, 113, 0.34);
+        box-shadow: 0 14px 24px rgba(145, 29, 38, 0.20);
         transform: translateY(-1px);
     }
 
@@ -97,13 +98,13 @@
     }
 
     .purchase-btn-secondary {
-        background: #fff;
-        color: var(--report-text);
+        background: #fff7f5;
+        color: var(--report-accent);
         border-color: var(--report-border);
     }
 
     .purchase-btn-secondary:hover {
-        background: #f7fafc;
+        background: #fff0f1;
     }
 
     .purchase-panel {
@@ -126,7 +127,7 @@
     .purchase-panel-title {
         margin: 0;
         font-size: 21px;
-        color: #183247;
+        color: #8c1d26;
     }
 
     .purchase-panel-subtitle {
@@ -155,37 +156,32 @@
     .purchase-field select {
         width: 100%;
         max-width: 320px;
-        padding: 11px 13px;
-        font-size: 18px;
-        font-weight: 600;
-        color: #183247;
+        padding: 10px 12px;
+        font-size: 16px;
+        font-weight: 700;
+        color: #1f2f3d;
         border-radius: 12px;
-        border: 1px solid var(--report-border);
-        background: #fbfdff;
+        border: 1px solid rgba(162, 32, 42, 0.18);
+        background: #fffdfa;
         box-sizing: border-box;
         transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
     }
 
     .purchase-field select {
-        appearance: none;
-        background-image:
-            linear-gradient(45deg, transparent 50%, #587086 50%),
-            linear-gradient(135deg, #587086 50%, transparent 50%),
-            linear-gradient(180deg, #fbfdff 0%, #f3f8fd 100%);
-        background-position:
-            calc(100% - 18px) calc(50% - 3px),
-            calc(100% - 12px) calc(50% - 3px),
-            0 0;
-        background-size: 6px 6px, 6px 6px, 100% 100%;
-        background-repeat: no-repeat;
+        min-height: 46px;
+        line-height: 1.35;
+        padding-top: 9px;
+        padding-bottom: 9px;
         padding-right: 40px;
+        appearance: auto;
+        vertical-align: middle;
     }
 
     .purchase-field input:focus,
     .purchase-field select:focus {
         outline: none;
-        border-color: #7aa9ca;
-        box-shadow: 0 0 0 4px rgba(46, 111, 158, 0.12);
+        border-color: rgba(162, 32, 42, 0.25);
+        box-shadow: 0 0 0 4px rgba(162, 32, 42, 0.12);
         background-color: #fff;
     }
 
@@ -195,15 +191,20 @@
         font-weight: 500;
     }
 
+    .purchase-field select option {
+        color: #1f2f3d;
+        background: #fff;
+    }
+
     .purchase-field input[type="date"] {
         min-height: 54px;
         font-size: 17px;
         font-weight: 700;
-        color: #183247;
+        color: #1f2f3d;
     }
 
     .purchase-field input[type="date"]::-webkit-datetime-edit {
-        color: #183247;
+        color: #1f2f3d;
         font-size: 17px;
         font-weight: 700;
     }
@@ -212,7 +213,7 @@
     .purchase-field input[type="date"]::-webkit-datetime-edit-month-field,
     .purchase-field input[type="date"]::-webkit-datetime-edit-day-field,
     .purchase-field input[type="date"]::-webkit-datetime-edit-year-field {
-        color: #183247;
+        color: #1f2f3d;
     }
 
     .purchase-field input[type="date"]::-webkit-calendar-picker-indicator {
@@ -225,21 +226,14 @@
     }
 
     .purchase-current-choice {
-        margin-top: 10px;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
+        margin-top: 8px;
         color: var(--report-muted);
-        font-size: 13px;
-        font-weight: 700;
-        background: #f8fbfe;
-        border: 1px solid var(--report-border);
-        border-radius: 999px;
-        padding: 7px 12px;
+        font-size: 14px;
+        font-weight: 600;
     }
 
     .purchase-current-choice span {
-        color: #183247;
+        color: #8c1d26;
         font-weight: 700;
     }
 
@@ -257,7 +251,7 @@
     }
 
     .purchase-selection-card {
-        background: #f8fbfe;
+        background: #fff8f6;
         border: 1px solid var(--report-border);
         border-radius: 14px;
         padding: 14px 16px;
@@ -267,7 +261,7 @@
     .purchase-selection-card strong {
         display: block;
         margin-bottom: 10px;
-        color: #183247;
+        color: #8c1d26;
         font-size: 14px;
         font-weight: 700;
     }
@@ -275,8 +269,8 @@
     .purchase-selection-card ul {
         margin: 0;
         padding-left: 18px;
-        color: #183247;
-        font-size: 17px;
+        color: var(--report-text);
+        font-size: 16px;
         font-weight: 600;
         line-height: 1.6;
     }
@@ -287,13 +281,19 @@
 
     .purchase-selection-card button {
         border: 1px solid var(--report-border);
-        background: #fff;
+        background: #fff7f5;
         border-radius: 999px;
         padding: 4px 10px;
         font-size: 12px;
         font-weight: 600;
-        color: var(--report-text);
+        color: var(--report-accent);
         cursor: pointer;
+    }
+
+    .purchase-selection-card button:hover,
+    .purchase-page-size button:hover,
+    .purchase-btn-secondary:hover {
+        background: #fff0f1;
     }
 
     .purchase-kpis {
@@ -304,7 +304,7 @@
     }
 
     .purchase-kpi {
-        background: linear-gradient(180deg, #ffffff 0%, #f7fbff 100%);
+        background: linear-gradient(180deg, #fffefb 0%, #fff4f2 100%);
         border: 1px solid var(--report-border);
         border-radius: 16px;
         padding: 16px;
@@ -323,7 +323,7 @@
     .purchase-kpi-value {
         font-size: 24px;
         font-weight: 700;
-        color: #183247;
+        color: #8c1d26;
         word-break: break-word;
     }
 
@@ -338,8 +338,8 @@
     }
 
     .purchase-chart-card {
-        background: linear-gradient(180deg, #fafdff 0%, var(--report-accent-soft) 100%);
-        border: 1px solid #cfe0f0;
+        background: linear-gradient(180deg, #fffefb 0%, var(--report-accent-soft) 100%);
+        border: 1px solid var(--report-border);
         border-radius: 18px;
         padding: 18px;
     }
@@ -372,13 +372,13 @@
         gap: 12px;
         padding: 16px 18px;
         border-bottom: 1px solid var(--report-border);
-        background: #fbfdff;
+        background: linear-gradient(180deg, rgba(255, 248, 247, 1) 0%, rgba(249, 236, 237, 0.92) 100%);
     }
 
     .purchase-table-head h3 {
         margin: 0;
         font-size: 18px;
-        color: #183247;
+        color: #8c1d26;
     }
 
     .purchase-table-head p {
@@ -411,18 +411,18 @@
         border: 1px solid var(--report-border);
         border-radius: 10px;
         background: #fff;
-        color: #183247;
+        color: #1f2f3d;
         font-weight: 600;
     }
 
     .purchase-page-size button {
         border: 1px solid var(--report-border);
-        background: #fff;
+        background: #fff7f5;
         border-radius: 999px;
         padding: 8px 12px;
         cursor: pointer;
         font-weight: 600;
-        color: #183247;
+        color: var(--report-accent);
     }
 
     .purchase-table-info {
@@ -606,7 +606,6 @@
         </div>
         <div class="purchase-action-row no-print">
             <a href="{{ purchase_report_pdf_url }}" target="_blank" class="purchase-btn purchase-btn-primary">Create PDF</a>
-            <button type="button" class="purchase-btn purchase-btn-secondary" onclick="window.print()">Print View</button>
         </div>
     </div>
 
@@ -772,7 +771,7 @@
                             <tbody id="purchase-orders-tbody">
                                 {% for po in purchase_orders %}
                                     <tr>
-                                        <td style="padding: 12px 14px; border-bottom: 1px solid #edf2f7;">{{ po.purchase_date|date:"Y-m-d" }}</td>
+                                        <td style="padding: 12px 14px; border-bottom: 1px solid #edf2f7;">{{ po.purchase_date|date:"d/m/Y" }}</td>
                                         <td style="padding: 12px 14px; border-bottom: 1px solid #edf2f7; font-weight: 600; color: #224460;">{{ po.purchase_number }}</td>
                                         <td style="padding: 12px 14px; border-bottom: 1px solid #edf2f7;">{{ po.seller }}</td>
                                         <td style="padding: 12px 14px; border-bottom: 1px solid #edf2f7; text-align: right;">{{ po.qty_total }}</td>

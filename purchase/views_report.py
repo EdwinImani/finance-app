@@ -75,7 +75,7 @@ def purchase_report_result(request):
         total_freight += freight
         total_amount += amount
 
-        chart_labels.append(order.purchase_date.strftime("%Y-%m-%d"))
+        chart_labels.append(order.purchase_date.strftime("%d/%m/%Y"))
         chart_values.append(float(amount))
 
     context = {

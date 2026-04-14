@@ -1,4 +1,5 @@
 {% extends "admin/change_list_with_page_size.html" %}
+{% load i18n %}
 
 {% block extrahead %}
 {{ block.super }}
@@ -243,5 +244,13 @@
     <a href="report/">Commercial Report</a>
 </li>
 {% endif %}
+{% if has_add_permission and draft_add_url %}
+<li>
+    <a href="{{ draft_add_url }}" class="addlink">
+        {% blocktranslate with name=cl.opts.verbose_name %}Add {{ name }}{% endblocktranslate %}
+    </a>
+</li>
+{% else %}
 {{ block.super }}
+{% endif %}
 {% endblock %}

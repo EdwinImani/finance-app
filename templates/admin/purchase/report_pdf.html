@@ -311,7 +311,7 @@
             <tbody>
                 {% for po in purchase_orders %}
                 <tr>
-                    <td>{{ po.purchase_date|date:"Y-m-d" }}</td>
+                    <td>{{ po.purchase_date|date:"d/m/Y" }}</td>
                     <td>{{ po.purchase_number }}</td>
                     <td>{{ po.seller }}</td>
                     <td class="text-right">{{ po.qty_total }}</td>

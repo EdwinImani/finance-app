@@ -6,6 +6,7 @@ from django.utils import timezone
 from decimal import Decimal
 from company.models import CompanySetting
 from datetime import timedelta
+import re
 
 
 # ----------------------
@@ -86,15 +87,18 @@ class BaseInvoice(models.Model):
 
             year = timezone.now().year
 
-            last_invoice = self.__class__.objects.filter(
+            previous_invoices = self.__class__.objects.filter(
                 invoice_number__startswith=f"FR/{year}"
-            ).order_by("-id").first()
+            ).values_list("invoice_number", flat=True)
 
-            if last_invoice:
-                last_number = int(last_invoice.invoice_number.split("/")[-1])
-                new_number = last_number + 1
-            else:
-                new_number = 1
+            last_number = 0
+            for invoice_number in previous_invoices:
+                suffix = str(invoice_number).split("/")[-1]
+                match = re.search(r"(\d+)$", suffix)
+                if match:
+                    last_number = max(last_number, int(match.group(1)))
+
+            new_number = last_number + 1
 
             self.invoice_number = f"FR/{year}/{new_number:04d}"
 
@@ -107,6 +111,7 @@ class BaseInvoice(models.Model):
 
 class ProformaInvoice(BaseInvoice):
     our_reference = models.CharField(max_length=100, blank=True)
+    price_for = models.CharField(max_length=255, blank=True)
 
     def ready_for_report(self):
 
@@ -179,6 +184,8 @@ class ProformaInvoiceItem(models.Model):
 
     hs_code = models.CharField(max_length=20, blank=True)
 
+    item_date = models.DateField(null=True, blank=True)
+
     quantity = models.IntegerField(default=0)
 
     unit_price = models.DecimalField(
@@ -193,6 +200,9 @@ class ProformaInvoiceItem(models.Model):
 
         if not self.hs_code:
             self.hs_code = "-"
+
+        if not self.item_date and self.invoice_id and self.invoice and self.invoice.invoice_date:
+            self.item_date = self.invoice.invoice_date
 
         super().save(*args, **kwargs)
 
@@ -214,6 +224,8 @@ class CommercialInvoice(BaseInvoice):
     our_order_no = models.CharField(max_length=100, blank=True)
 
     our_reference = models.CharField(max_length=100, blank=True)
+    packing_specification = models.CharField(max_length=255, blank=True)
+    dispatching_note = models.CharField(max_length=255, blank=True)
 
     def __str__(self):
 
@@ -297,3 +309,23 @@ class CommercialInvoiceItem(models.Model):
     def __str__(self):
 
         return f"{self.product} - {self.invoice}"
+
+
+class CommercialInvoicePacking(models.Model):
+
+    invoice = models.ForeignKey(
+        CommercialInvoice,
+        related_name="packing_entries",
+        on_delete=models.CASCADE
+    )
+
+    no_packing = models.CharField(max_length=255, blank=True)
+    gross_weight = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
+    net_weight = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
+    dimension_length = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
+    dimension_width = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
+    dimension_height = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
+
+    def __str__(self):
+        label = self.no_packing or "Packing"
+        return f"{label} - {self.invoice}"

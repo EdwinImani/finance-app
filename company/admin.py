@@ -112,7 +112,8 @@ class CompanySettingAdmin(admin.ModelAdmin):
     def logo_preview(self, obj):
         if not obj or not obj.company_logo:
             return format_html(
-                '<div class="company-logo-empty">No logo uploaded yet.</div>'
+                '<div class="company-logo-empty">{}</div>',
+                "No logo uploaded yet.",
             )
 
         return format_html(
@@ -128,11 +129,15 @@ class CompanySettingAdmin(admin.ModelAdmin):
         if not obj:
             return format_html(
                 '<div class="company-settings-summary">'
-                '<div class="company-summary-card"><strong>Company</strong><span>Not set yet</span></div>'
-                '<div class="company-summary-card"><strong>Currency</strong><span>-</span></div>'
-                '<div class="company-summary-card"><strong>VAT</strong><span>-</span></div>'
-                '<div class="company-summary-card"><strong>Proforma Validity</strong><span>-</span></div>'
-                "</div>"
+                '<div class="company-summary-card"><strong>Company</strong><span>{}</span></div>'
+                '<div class="company-summary-card"><strong>Currency</strong><span>{}</span></div>'
+                '<div class="company-summary-card"><strong>VAT</strong><span>{}</span></div>'
+                '<div class="company-summary-card"><strong>Proforma Validity</strong><span>{}</span></div>'
+                "</div>",
+                "Not set yet",
+                "-",
+                "-",
+                "-",
             )
 
         return format_html(
@@ -143,7 +148,7 @@ class CompanySettingAdmin(admin.ModelAdmin):
             '<div class="company-summary-card"><strong>Proforma Validity</strong><span>{} days</span></div>'
             "</div>",
             obj.company_name or "-",
-            obj.currency or "-",
+            obj.get_currency_display() if obj.currency else "-",
             obj.vat_amount if obj.vat_amount is not None else "-",
             obj.proforma_validity if obj.proforma_validity is not None else "-",
         )

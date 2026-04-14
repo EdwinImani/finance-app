@@ -21,6 +21,7 @@ class ProformaInvoiceForm(BaseInvoiceForm):
             'end_user',
             'vat_percent',
             'our_reference',
+            'price_for',
             'freight',
             'discount',
         ]
@@ -36,6 +37,8 @@ class CommercialInvoiceForm(BaseInvoiceForm):
             'vat_percent',
             'our_order_no',
             'our_reference',
+            'dispatching_note',
+            'packing_specification',
             'freight',
             'discount',
         ]
