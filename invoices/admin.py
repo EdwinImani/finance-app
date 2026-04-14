@@ -357,17 +357,17 @@ class InvoiceAdminMixin:
         return self.get_invoice_pdf_filename(obj)
 
     def export_pdf(self, request, object_id, document_type="default"):
-        obj = get_object_or_404(
-            self.model.objects.select_related("importer", "end_user").prefetch_related(
-                "items__product",
-                "packing_entries",
-                "importer__addresses",
-                "importer__phones",
-                "end_user__addresses",
-                "end_user__phones",
-            ),
-            pk=object_id,
+        queryset = self.model.objects.select_related("importer", "end_user").prefetch_related(
+            "items__product",
+            "importer__addresses",
+            "importer__phones",
+            "end_user__addresses",
+            "end_user__phones",
         )
+        if hasattr(self.model, "packing_entries"):
+            queryset = queryset.prefetch_related("packing_entries")
+
+        obj = get_object_or_404(queryset, pk=object_id)
 
         context = self.get_invoice_pdf_context(request, obj)
         context["document_type"] = document_type
