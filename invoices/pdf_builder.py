@@ -255,6 +255,65 @@ def build_purchase_report_pdf(
     return buffer.getvalue()
 
 
+def build_purchase_order_pdf(*, purchase_order, company, items, seller, requester, currency, requester_is_explicit=False):
+    if REPORTLAB_IMPORT_ERROR is not None:
+        raise RuntimeError("ReportLab is not installed in the active Python environment.") from REPORTLAB_IMPORT_ERROR
+
+    document_title = "COMMAND / ORDER"
+    buffer = BytesIO()
+    document = SimpleDocTemplate(
+        buffer,
+        pagesize=A4,
+        leftMargin=12 * mm,
+        rightMargin=14 * mm,
+        topMargin=42 * mm,
+        bottomMargin=42 * mm,
+        title=purchase_order.purchase_number or document_title,
+    )
+
+    styles = _build_styles()
+    story = [
+        Spacer(1, 0),
+        *_build_purchase_company_address(company, styles),
+        Paragraph(f"<b>Purchase Number:</b> {_escape(purchase_order.purchase_number or '-')}", styles["body"]),
+        Paragraph(
+            f"<b>Purchase Date:</b> {purchase_order.purchase_date.strftime('%d/%m/%Y') if purchase_order.purchase_date else '-'}",
+            styles["body_compact"],
+        ),
+        Spacer(1, 3 * mm),
+    ]
+    story.extend(_build_purchase_order_context_blocks(seller, requester, purchase_order, company, styles, requester_is_explicit))
+    story.append(Spacer(1, 6 * mm))
+
+    item_pages = _split_items_for_pages(items, first_page_max=11, other_pages_max=19)
+    page_totals = _compute_purchase_order_page_totals(purchase_order=purchase_order, item_pages=item_pages)
+    for page_index, page_items in enumerate(item_pages):
+        if page_index > 0:
+            story.append(PageBreak())
+            story.append(Spacer(1, 2 * mm))
+        story.append(_build_purchase_order_items_table(page_items, currency, styles))
+        story.append(Spacer(1, 2 * mm))
+        story.append(_build_purchase_order_totals_flowable(page_index, purchase_order, currency, styles, page_totals))
+    story.append(Spacer(1, 4 * mm))
+    story.append(_build_purchase_order_commercial_terms_box(purchase_order, company, styles))
+
+    def draw_page(canvas, doc):
+        _draw_report_page_frame(
+            canvas,
+            doc,
+            company=company,
+            report_title=document_title,
+            report_meta=[
+                f"<b>Purchase Number:</b> {_escape(purchase_order.purchase_number or '-')}",
+                f"<b>Purchase Date:</b> {purchase_order.purchase_date.strftime('%d/%m/%Y') if purchase_order.purchase_date else '-'}",
+            ],
+            styles=styles,
+        )
+
+    document.build(story, onFirstPage=draw_page, onLaterPages=draw_page, canvasmaker=NumberedCanvas)
+    return buffer.getvalue()
+
+
 def _build_styles():
     base = getSampleStyleSheet()
     return {
@@ -276,6 +335,15 @@ def _build_styles():
             textColor=colors.HexColor("#B31217"),
             spaceAfter=0,
         ),
+        "document_type_title": ParagraphStyle(
+            "DocumentTypeTitle",
+            parent=base["Heading4"],
+            fontName="Helvetica-Bold",
+            fontSize=9,
+            leading=10.5,
+            textColor=colors.HexColor("#B31217"),
+            spaceAfter=0,
+        ),
         "label": ParagraphStyle(
             "Label",
             parent=base["BodyText"],
@@ -291,6 +359,15 @@ def _build_styles():
             fontSize=7,
             leading=8.2,
             alignment=TA_JUSTIFY,
+            textColor=colors.black,
+        ),
+        "body_left": ParagraphStyle(
+            "BodyLeft",
+            parent=base["BodyText"],
+            fontName="Helvetica",
+            fontSize=7,
+            leading=8.2,
+            alignment=TA_LEFT,
             textColor=colors.black,
         ),
         "body_compact": ParagraphStyle(
@@ -503,8 +580,150 @@ def _build_shipping_document_intro(invoice, company, styles):
     return [summary_table]
 
 
+def _build_purchase_order_details(purchase_order, company, styles):
+    order_details_box, commercial_terms_box = _build_purchase_order_detail_boxes(purchase_order, company, styles)
+    table = Table([[order_details_box, commercial_terms_box]], colWidths=[92 * mm, 92 * mm], hAlign="LEFT")
+    table.setStyle(_two_column_table_style())
+    return [table]
+
+
+def _build_purchase_order_context_blocks(seller, requester, purchase_order, company, styles, requester_is_explicit=False):
+    order_details_box, _ = _build_purchase_order_detail_boxes(purchase_order, company, styles)
+    seller_card = _partner_card("Seller", seller, styles)
+    shipment_box = _build_purchase_order_shipment_box(purchase_order, styles)
+    if requester_is_explicit:
+        requester_card = _partner_card("Requester", requester, styles)
+        note_currency_box = _build_purchase_note_currency_box(company, styles)
+        rows = [
+            [[requester_card, Spacer(1, 2 * mm), note_currency_box], order_details_box],
+            [seller_card, shipment_box],
+        ]
+    else:
+        note_currency_box = _build_purchase_note_currency_box(company, styles)
+        rows = [
+            [[order_details_box, Spacer(1, 2 * mm), note_currency_box], Spacer(1, 0)],
+            [seller_card, shipment_box],
+        ]
+
+    table = Table(
+        rows,
+        colWidths=[92 * mm, 92 * mm],
+        hAlign="LEFT",
+    )
+    table.setStyle(
+        TableStyle(
+            [
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ("LEFTPADDING", (0, 0), (-1, -1), 0),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+                ("TOPPADDING", (0, 0), (-1, -1), 0),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 2 * mm),
+            ]
+        )
+    )
+    return [table]
+
+
+def _build_purchase_note_currency_box(company, styles):
+    note = getattr(company, "note", "") or "-"
+    currency = getattr(company, "currency", "") or "-"
+    return [
+        Paragraph(_format_preserving_layout(note), styles["body"]),
+        Paragraph(f"<b>Currency:</b> {_escape(currency)}", styles["body"]),
+    ]
+
+
+def _build_purchase_order_commercial_terms_box(purchase_order, company, styles):
+    president = getattr(company, "president", "") or "-"
+    purchase_date = purchase_order.purchase_date.strftime("%d/%m/%Y") if purchase_order.purchase_date else "-"
+    terms_lines = []
+    if getattr(company, "footer_order", ""):
+        terms_lines.append(_format_preserving_layout(company.footer_order))
+    if not terms_lines:
+        terms_lines = ["-"]
+
+    signature_lines = [
+        f"<b>President:</b> {_format_preserving_layout(president)}",
+        f"<b>Date:</b> {purchase_date}",
+    ]
+    table = Table(
+        [[
+            Paragraph("<br/>".join(terms_lines), styles.get("body_left", styles["body"])),
+            [Spacer(1, 10 * mm), Paragraph("<br/>".join(signature_lines), styles["body_right"])],
+        ]],
+        colWidths=[118 * mm, 66 * mm],
+        hAlign="LEFT",
+    )
+    table.setStyle(_two_column_table_style())
+    return table
+
+
+def _build_purchase_order_shipment_box(purchase_order, styles):
+    sales_condition = getattr(purchase_order, "sales_condition", "") or ""
+    payment_condition = getattr(purchase_order, "payment_condition", "") or ""
+    delivery_terms = getattr(purchase_order, "delivery_terms", "") or ""
+    lines = [
+        f"<b>SHIPMENT / EXPEDITION:</b> {_format_preserving_layout(getattr(purchase_order, 'shipment', '') or '-')}",
+        f"<b>SEND BY / ENVOYER PAR:</b> {_format_preserving_layout(getattr(purchase_order, 'sent_by', '') or '-')}",
+    ]
+    if sales_condition:
+        lines.append(f"<b>CONDITIONS DE PRIC/<br/>SALES CONDITIONS:</b> {_format_preserving_layout(sales_condition)}")
+    if payment_condition:
+        lines.append(f"<b>Payment Condition:</b> {_format_preserving_layout(payment_condition)}")
+    if delivery_terms:
+        lines.append(f"<b>Delivery Terms:</b> {_format_preserving_layout(delivery_terms)}")
+    return [
+        Paragraph("<br/>".join(lines), styles.get("body_left", styles["body"])),
+    ]
+
+
+def _build_purchase_order_detail_boxes(purchase_order, company, styles):
+    left_lines = []
+    if getattr(company, "company_name", ""):
+        left_lines.append(f"<b>{_format_preserving_layout(company.company_name)}</b>")
+    if getattr(company, "siren", ""):
+        left_lines.append(f"<b>SIREN:</b> {_format_preserving_layout(company.siren)}")
+    if getattr(company, "company_email", ""):
+        left_lines.append(f"<b>Email:</b> {_format_preserving_layout(company.company_email)}")
+    if getattr(company, "company_phone", ""):
+        left_lines.append(f"<b>Telephone:</b> {_format_preserving_layout(company.company_phone)}")
+    if getattr(company, "company_fax", ""):
+        left_lines.append(f"<b>Fax:</b> {_format_preserving_layout(company.company_fax)}")
+    if not left_lines:
+        left_lines = ["-"]
+
+    left_box = _info_box("", "<br/>".join(left_lines), styles)
+    right_box = _build_purchase_order_commercial_terms_box(purchase_order, company, styles)
+    return left_box, right_box
+
+
+def _two_column_table_style():
+    return TableStyle(
+        [
+            ("VALIGN", (0, 0), (-1, -1), "TOP"),
+            ("LEFTPADDING", (0, 0), (-1, -1), 0),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+            ("TOPPADDING", (0, 0), (-1, -1), 0),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
+        ]
+    )
+
+
+def _build_purchase_company_address(company, styles):
+    company_address = getattr(company, "address", "") or getattr(company, "company_address", "")
+    if not company_address:
+        return []
+
+    return [
+        Paragraph(_format_preserving_layout(company_address), styles["body"]),
+        Spacer(1, 2 * mm),
+    ]
+
+
 def _partner_card(title, partner, styles):
-    lines = [Paragraph(title, styles["section_title"]), Spacer(1, 1 * mm)]
+    lines = []
+    if title:
+        lines.extend([Paragraph(title, styles["section_title"]), Spacer(1, 1 * mm)])
 
     name = partner.get("name") or "-"
     info_lines = [f"<b>{_escape(name)}</b>"]
@@ -541,7 +760,7 @@ def _info_box(title, text, styles):
     content = [
         Paragraph(title, styles["section_title"]),
         Spacer(1, 1 * mm),
-        Paragraph(text if text == "-" else text, styles["body"]),
+        Paragraph(text if text == "-" else text, styles.get("body_left", styles["body"])),
     ]
     box = Table([[content]], colWidths=[89 * mm])
     box.setStyle(
@@ -876,20 +1095,38 @@ def _build_footer_left_text(invoice, company):
     return "<br/>".join(_escape(part) for part in footer_parts)
 
 
-def _build_footer_center_text(invoice, company):
+def _build_footer_center_text(invoice, company, hide_contact_details=False):
     footer_invoice = getattr(company, "footer_invoice", "") or ""
     parts = [part.strip() for part in str(footer_invoice).split("_") if part.strip()]
-    return "<br/>".join(_escape(part) for part in parts)
+    if not hide_contact_details:
+        return "<br/>".join(_escape(part) for part in parts)
+
+    hidden_parts = _clean_lines(
+        getattr(company, "address", ""),
+        getattr(company, "company_address", ""),
+        getattr(company, "company_phone", ""),
+        getattr(company, "company_fax", ""),
+        getattr(company, "company_email", ""),
+    )
+    hidden_parts_lower = [part.lower() for part in hidden_parts]
+    filtered_parts = [
+        part
+        for part in parts
+        if not any(hidden_part and hidden_part in part.lower() for hidden_part in hidden_parts_lower)
+    ]
+    return "<br/>".join(_escape(part) for part in filtered_parts)
 
 
-def _build_footer_right_text(invoice, company):
+def _build_footer_right_text(invoice, company, hide_contact_details=False):
+    if hide_contact_details:
+        return ""
+
     footer_parts = _clean_lines(
         f"Telephone: {company.company_phone}" if getattr(company, "company_phone", "") else "",
         f"Fax: {company.company_fax}" if getattr(company, "company_fax", "") else "",
         f"Email: {company.company_email}" if getattr(company, "company_email", "") else "",
     )
     return "<br/>".join(_escape(part) for part in footer_parts)
-
 
 def _is_commercial_invoice(invoice):
     return invoice.__class__.__name__ == "CommercialInvoice"
@@ -911,7 +1148,7 @@ def _draw_page_frame(canvas, document, *, company, invoice, invoice_title, curre
     canvas.restoreState()
 
 
-def _draw_report_page_frame(canvas, document, *, company, report_title, styles):
+def _draw_report_page_frame(canvas, document, *, company, report_title, styles, report_meta=None):
     canvas.saveState()
     left_x = document.leftMargin
     top_y = document.pagesize[1] - 12 * mm
@@ -920,9 +1157,15 @@ def _draw_report_page_frame(canvas, document, *, company, report_title, styles):
     company_name.wrapOn(canvas, 110 * mm, 10 * mm)
     company_name.drawOn(canvas, left_x, top_y - 10 * mm)
 
-    report_type = Paragraph(_escape((report_title or "").upper()), styles["section_title"])
-    report_type.wrapOn(canvas, 90 * mm, 6 * mm)
+    title_style = styles["document_type_title"] if report_title == "COMMAND / ORDER" else styles["section_title"]
+    report_type = Paragraph(_escape((report_title or "").upper()), title_style)
+    report_type.wrapOn(canvas, 90 * mm, 8 * mm)
     report_type.drawOn(canvas, left_x, top_y - 18 * mm)
+
+    if report_meta and canvas.getPageNumber() > 1:
+        meta = Paragraph("<br/>".join(report_meta), styles["body_small"])
+        meta.wrapOn(canvas, 90 * mm, 12 * mm)
+        meta.drawOn(canvas, left_x, top_y - 31 * mm)
 
     logo_path = getattr(getattr(company, "company_logo", None), "path", "")
     if logo_path and Path(logo_path).exists():
@@ -932,7 +1175,14 @@ def _draw_report_page_frame(canvas, document, *, company, report_title, styles):
         logo_y = top_y - 14 * mm
         canvas.drawImage(logo_path, logo_x, logo_y, width=logo_width, height=logo_height, preserveAspectRatio=True, mask="auto")
 
-    _draw_page_footer(canvas, document, None, company, styles)
+    _draw_page_footer(
+        canvas,
+        document,
+        None,
+        company,
+        styles,
+        hide_contact_details=(report_title == "COMMAND / ORDER"),
+    )
     canvas.restoreState()
 
 
@@ -969,10 +1219,10 @@ def _draw_page_header(canvas, document, company, invoice, invoice_title, styles)
         canvas.drawImage(logo_path, logo_x, logo_y, width=logo_width, height=logo_height, preserveAspectRatio=True, mask="auto")
 
 
-def _draw_page_footer(canvas, document, invoice, company, styles):
+def _draw_page_footer(canvas, document, invoice, company, styles, hide_contact_details=False):
     footer_left = _build_footer_left_text(invoice, company)
-    footer_center = _build_footer_center_text(invoice, company)
-    footer_right = _build_footer_right_text(invoice, company)
+    footer_center = _build_footer_center_text(invoice, company, hide_contact_details=hide_contact_details)
+    footer_right = _build_footer_right_text(invoice, company, hide_contact_details=hide_contact_details)
     if not any([footer_left, footer_center, footer_right]):
         return
 
@@ -1369,6 +1619,218 @@ def _build_purchase_report_table(*, purchase_orders, currency, styles):
         )
     )
     return table
+
+
+def _build_purchase_order_items_table(items, currency, styles):
+    rows = [[
+        Paragraph("Item", styles["table_head"]),
+        Paragraph("Description", styles["table_head"]),
+        Paragraph("Part Number", styles["table_head"]),
+        Paragraph("Quantity", styles["table_head"]),
+        Paragraph("Unit Price Without VAT", styles["table_head"]),
+        Paragraph("Total Without VAT", styles["table_head"]),
+        Paragraph("VAT", styles["table_head"]),
+    ]]
+
+    for item in items:
+        vat_amount = (Decimal(item["total_amount"]) * Decimal(item.get("vat_percent", 0) or 0)) / Decimal("100")
+        rows.append(
+            [
+                Paragraph(str(item["index"]), styles["table_cell"]),
+                Paragraph(_escape(item["description"]), styles["table_cell"]),
+                Paragraph(_escape(item["part_number"]), styles["table_cell"]),
+                Paragraph(_format_plain_decimal(item["quantity"]), styles["table_cell_right"]),
+                Paragraph(_format_money(item["unit_price"], currency), styles["table_cell_right"]),
+                Paragraph(_format_money(item["total_amount"], currency), styles["table_cell_right"]),
+                Paragraph(_format_plain_decimal(vat_amount), styles["table_cell_right"]),
+            ]
+        )
+
+    if len(rows) == 1:
+        rows.append([Paragraph("-", styles["table_cell"])] * 7)
+
+    table = Table(
+        rows,
+        colWidths=[12 * mm, 55 * mm, 32 * mm, 20 * mm, 30 * mm, 27 * mm, 14 * mm],
+        repeatRows=1,
+    )
+    table.setStyle(
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#A61B1B")),
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                ("GRID", (0, 0), (-1, -1), 0.4, colors.HexColor("#E5B8B8")),
+                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#FFF5F5")]),
+                ("LEFTPADDING", (0, 0), (-1, -1), 4),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+                ("TOPPADDING", (0, 0), (-1, -1), 5),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+            ]
+        )
+    )
+    return table
+
+
+def _compute_purchase_order_page_totals(*, purchase_order, item_pages):
+    if not item_pages:
+        return []
+
+    results = []
+    cumulative_gross = Decimal("0.00")
+    vat_percent = getattr(purchase_order, "vat_percent", Decimal("0.00")) or Decimal("0.00")
+    all_pages_gross = sum(
+        (sum((Decimal(item["total_amount"]) for item in page_items), Decimal("0.00")) for page_items in item_pages),
+        Decimal("0.00"),
+    )
+    all_pages_total = all_pages_gross + (all_pages_gross * Decimal(vat_percent)) / Decimal("100") + Decimal(getattr(purchase_order, "freight", 0) or 0)
+    page_gross_values = []
+
+    for page_items in item_pages:
+        page_total = sum((Decimal(item["total_amount"]) for item in page_items), Decimal("0.00"))
+        page_gross_values.append(page_total)
+        cumulative_gross += page_total
+        vat_amount = (cumulative_gross * Decimal(vat_percent)) / Decimal("100")
+        total_amount = cumulative_gross + vat_amount + Decimal(getattr(purchase_order, "freight", 0) or 0)
+        results.append(
+            {
+                "page_gross_values": list(page_gross_values),
+                "all_pages_gross": all_pages_gross,
+                "all_pages_total": all_pages_total,
+                "gross_value": cumulative_gross,
+                "vat_amount": vat_amount,
+                "total_amount": total_amount,
+            }
+        )
+    return results
+
+
+def _build_purchase_order_totals_flowable(page_index, purchase_order, currency, styles, page_totals):
+    if not page_totals:
+        return Spacer(1, 0)
+
+    summary = page_totals[page_index]
+    is_last_page = page_index == len(page_totals) - 1
+    detail_table = _build_purchase_order_page_gross_values_table(summary["page_gross_values"], currency, styles)
+    if is_last_page:
+        totals_table = _build_purchase_order_payment_table(
+            gross_value=summary["all_pages_gross"],
+            vat_amount=(summary["all_pages_gross"] * Decimal(getattr(purchase_order, "vat_percent", 0) or 0)) / Decimal("100"),
+            total_amount=summary["all_pages_total"],
+            currency=currency,
+            styles=styles,
+        )
+        if len(page_totals) == 1:
+            return totals_table
+        wrapper = Table([[[detail_table, Spacer(1, 2 * mm), totals_table]]], colWidths=[190 * mm], hAlign="LEFT")
+        wrapper.setStyle(
+            TableStyle(
+                [
+                    ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                    ("LEFTPADDING", (0, 0), (-1, -1), 0),
+                    ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+                    ("TOPPADDING", (0, 0), (-1, -1), 0),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
+                ]
+            )
+        )
+        return wrapper
+    return detail_table
+
+
+def _build_purchase_order_page_gross_values_table(page_gross_values, currency, styles):
+    rows = []
+    for index, value in enumerate(page_gross_values, start=1):
+        rows.append(
+            [
+                Paragraph(_escape(f"Page {index} Gross Value"), styles["label"]),
+                "",
+                "",
+                "",
+                "",
+                Paragraph(_format_money(value, currency), styles["body_right"]),
+                "",
+            ]
+        )
+
+    table = Table(
+        rows,
+        colWidths=[12 * mm, 55 * mm, 32 * mm, 20 * mm, 30 * mm, 27 * mm, 14 * mm],
+        hAlign="LEFT",
+    )
+    style_commands = [
+        ("ALIGN", (0, 0), (4, -1), "RIGHT"),
+        ("LINEABOVE", (0, 0), (-1, 0), 0.6, colors.HexColor("#D8A1A1")),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
+        ("TOPPADDING", (0, 0), (-1, -1), 3),
+        ("LEFTPADDING", (0, 0), (-1, -1), 4),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+    ]
+    style_commands.extend(("SPAN", (0, row_index), (4, row_index)) for row_index in range(len(rows)))
+    table.setStyle(
+        TableStyle(style_commands)
+    )
+    return table
+
+
+def _build_purchase_order_payment_table(*, gross_value, vat_amount, total_amount, currency, styles):
+    rows = [[
+        Paragraph("<b>Total Payment</b>", styles["body_right"]),
+        "",
+        "",
+        "",
+        "",
+        Paragraph(f"<b>{_format_money(gross_value, currency)}</b>", styles["body_right"]),
+        Paragraph(f"<b>{_format_plain_decimal(vat_amount)}</b>", styles["body_right"]),
+    ]]
+    table = Table(
+        rows,
+        colWidths=[12 * mm, 55 * mm, 32 * mm, 20 * mm, 30 * mm, 27 * mm, 14 * mm],
+        hAlign="LEFT",
+    )
+    table.setStyle(
+        TableStyle(
+            [
+                ("SPAN", (0, 0), (4, 0)),
+                ("ALIGN", (0, 0), (4, 0), "LEFT"),
+                ("LINEABOVE", (0, 0), (-1, 0), 0.4, colors.HexColor("#D6D6D6")),
+                ("LEFTPADDING", (0, 0), (-1, -1), 3),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 3),
+                ("TOPPADDING", (0, 0), (-1, -1), 4),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+            ]
+        )
+    )
+    return table
+
+
+def _build_purchase_order_signature_block(purchase_order, company, styles):
+    footer_lines = []
+    footer_order = getattr(company, "footer_order", "") or ""
+    for line in str(footer_order).splitlines():
+        clean = line.strip()
+        if clean:
+            footer_lines.append(Paragraph(_escape(clean), styles["body_small"]))
+    if not footer_lines:
+        footer_lines = [Spacer(1, 0)]
+
+    president = getattr(company, "president", "") or "-"
+    signature = Paragraph(
+        f"{_escape(president)}<br/>President<br/>Date: {purchase_order.purchase_date.strftime('%d-%b-%Y') if purchase_order.purchase_date else '-'}",
+        styles["body_right"],
+    )
+    table = Table([[footer_lines, [signature]]], colWidths=[118 * mm, 66 * mm], hAlign="LEFT")
+    table.setStyle(
+        TableStyle(
+            [
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ("LEFTPADDING", (0, 0), (-1, -1), 0),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+                ("TOPPADDING", (0, 0), (-1, -1), 0),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
+            ]
+        )
+    )
+    return [table]
 
 
 

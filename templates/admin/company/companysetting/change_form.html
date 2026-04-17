@@ -209,6 +209,15 @@ document.addEventListener("DOMContentLoaded", function () {
         padding: 10px 12px;
     }
 
+    .change-form .form-row.field-currency select,
+    .change-form .form-row:has(#id_currency) select {
+        min-height: 44px;
+        line-height: 1.4;
+        padding: 10px 38px 10px 14px;
+        font-size: 15px;
+        box-sizing: border-box;
+    }
+
     .change-form input[type="file"] {
         border: 0;
         padding: 0;
@@ -306,6 +315,52 @@ document.addEventListener("DOMContentLoaded", function () {
         font-weight: 700;
     }
 
+    .company-login-security {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        background: linear-gradient(135deg, #fff 0%, #fff1f2 100%);
+        border: 1px solid rgba(162, 32, 42, 0.16);
+        border-radius: 16px;
+        padding: 18px 20px;
+        margin: 6px 0;
+    }
+
+    .company-login-security strong {
+        display: block;
+        color: #8c1d26;
+        font-size: 16px;
+        margin-bottom: 6px;
+    }
+
+    .company-login-security span {
+        color: var(--company-muted);
+        font-weight: 600;
+    }
+
+    .company-password-button,
+    .company-password-button:link,
+    .company-password-button:visited {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 38px;
+        padding: 0 18px;
+        border-radius: 999px;
+        background: linear-gradient(180deg, #b92b36 0%, #911d26 100%);
+        color: #fff;
+        font-weight: 800;
+        text-decoration: none;
+        box-shadow: 0 12px 20px rgba(145, 29, 38, 0.18);
+        white-space: nowrap;
+    }
+
+    .company-password-button:hover {
+        background: linear-gradient(180deg, #c4333f 0%, #9a1f29 100%);
+        color: #fff;
+    }
+
     .company-logo-preview-wrap,
     .company-logo-empty {
         padding: 8px 0 4px;
@@ -335,6 +390,11 @@ document.addEventListener("DOMContentLoaded", function () {
     @media (max-width: 640px) {
         .company-settings-summary {
             grid-template-columns: 1fr;
+        }
+
+        .company-login-security {
+            align-items: stretch;
+            flex-direction: column;
         }
     }
 </style>

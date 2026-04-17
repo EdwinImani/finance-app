@@ -2,16 +2,12 @@ from django.shortcuts import render, redirect
 from .forms import ProformaInvoiceForm, CommercialInvoiceForm
 
 
-def choose_invoice_type(request):
-    return render(request, 'invoices/choose_invoice_type.html')
-
-
 def create_proforma_invoice(request):
     if request.method == 'POST':
         form = ProformaInvoiceForm(request.POST)
         if form.is_valid():
             invoice = form.save()
-            return redirect('choose_invoice_type')
+            return redirect('admin:index')
     else:
         form = ProformaInvoiceForm()
 
@@ -25,7 +21,7 @@ def create_commercial_invoice(request):
         form = CommercialInvoiceForm(request.POST)
         if form.is_valid():
             invoice = form.save()
-            return redirect('choose_invoice_type')
+            return redirect('admin:index')
     else:
         form = CommercialInvoiceForm()
 

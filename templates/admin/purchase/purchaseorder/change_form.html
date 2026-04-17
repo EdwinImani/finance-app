@@ -100,6 +100,26 @@
         height: 44px !important;
     }
 
+    .select2-container--admin-autocomplete .select2-results__option,
+    .select2-container--default .select2-results__option {
+        min-height: 36px;
+        padding: 9px 14px;
+        font-size: 14px;
+        line-height: 1.35;
+        color: #23384d;
+    }
+
+    .select2-container--admin-autocomplete .select2-results__option--highlighted,
+    .select2-container--default .select2-results__option--highlighted {
+        background: #a2202a !important;
+        color: #fff !important;
+    }
+
+    .select2-container--admin-autocomplete .select2-results__options,
+    .select2-container--default .select2-results__options {
+        max-height: 320px;
+    }
+
     .change-form .related-widget-wrapper a.related-widget-wrapper-link {
         margin: 0 !important;
         display: inline-flex;
@@ -128,6 +148,24 @@
     .change-form .field-requester .related-widget-wrapper,
     .inline-group .field-product .related-widget-wrapper {
         width: 100%;
+    }
+
+    .change-form .field-seller select,
+    .change-form .field-requester select,
+    .change-form #id_seller,
+    .change-form #id_requester {
+        font-size: 16px !important;
+        line-height: 1.5 !important;
+        min-height: 54px;
+    }
+
+    .change-form .field-seller select option,
+    .change-form .field-requester select option,
+    .change-form #id_seller option,
+    .change-form #id_requester option {
+        font-size: 16px !important;
+        line-height: 1.6 !important;
+        padding: 10px 12px !important;
     }
 
     .inline-group .field-product .related-widget-wrapper select,
@@ -298,4 +336,13 @@
         {% endif %}
     </div>
 </div>
+{% endblock %}
+
+{% block object-tools-items %}
+{% if purchase_pdf_url %}
+<li>
+    <a href="{{ purchase_pdf_url }}" target="_blank">Create PDF</a>
+</li>
+{% endif %}
+{{ block.super }}
 {% endblock %}

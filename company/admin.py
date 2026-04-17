@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.shortcuts import redirect
+from django.urls import reverse
 from django.utils.html import format_html
 from .models import CompanySetting
 
@@ -25,6 +26,7 @@ class CompanySettingAdmin(admin.ModelAdmin):
     readonly_fields = (
         "logo_preview",
         "settings_summary",
+        "login_password_panel",
     )
 
     # ----------------------
@@ -56,6 +58,7 @@ class CompanySettingAdmin(admin.ModelAdmin):
         ("Overview", {
             "fields": (
                 "settings_summary",
+                "login_password_panel",
             )
         }),
 
@@ -65,6 +68,7 @@ class CompanySettingAdmin(admin.ModelAdmin):
                 "logo_preview",
                 "year",
                 "company_name",
+                "president",
                 "company_email",
                 ("company_phone", "company_fax"),
             )
@@ -154,3 +158,19 @@ class CompanySettingAdmin(admin.ModelAdmin):
         )
 
     settings_summary.short_description = "Summary"
+
+    def login_password_panel(self, obj):
+        password_url = reverse("admin:password_change")
+
+        return format_html(
+            '<div class="company-login-security">'
+            '<div>'
+            '<strong>Login password</strong>'
+            '<span>Change the password used to connect to this admin account.</span>'
+            '</div>'
+            '<a class="company-password-button" href="{}">Change password</a>'
+            '</div>',
+            password_url,
+        )
+
+    login_password_panel.short_description = "Security"

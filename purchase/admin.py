@@ -17,7 +17,7 @@ from django.urls import reverse
 from django.utils import timezone
 from financeapp.admin_mixins import PageSizeAdminMixin
 from financeapp.pdf_rendering import get_pdf_fallback_reason, should_try_weasyprint
-from invoices.pdf_builder import build_purchase_report_pdf
+from invoices.pdf_builder import build_purchase_order_pdf, build_purchase_report_pdf
 
 from company.models import CompanySetting
 from partners.models import Partner
@@ -141,6 +141,11 @@ class PurchaseOrderAdmin(PageSizeAdminMixin, admin.ModelAdmin):
         "sent_by",
     )
 
+    autocomplete_fields = (
+        "seller",
+        "requester",
+    )
+
     inlines = [PurchaseOrderItemInline]
 
     class Media:
@@ -172,6 +177,7 @@ class PurchaseOrderAdmin(PageSizeAdminMixin, admin.ModelAdmin):
 
     def render_change_form(self, request, context, add=False, change=False, form_url="", obj=None):
         context["invoice_autosave_url"] = self.get_purchase_autosave_url(obj) if obj and obj.pk else ""
+        context["purchase_pdf_url"] = self.get_purchase_pdf_url(obj) if obj and obj.pk else ""
         return super().render_change_form(request, context, add, change, form_url, obj)
 
     def add_view(self, request, form_url="", extra_context=None):
@@ -182,6 +188,9 @@ class PurchaseOrderAdmin(PageSizeAdminMixin, admin.ModelAdmin):
 
     def get_purchase_autosave_url(self, obj):
         return reverse("admin:purchase_purchaseorder_autosave", args=[obj.pk])
+
+    def get_purchase_pdf_url(self, obj):
+        return reverse("admin:purchase_purchaseorder_pdf", args=[obj.pk])
 
     def get_company_year(self):
         company = CompanySetting.objects.first()
@@ -242,6 +251,11 @@ class PurchaseOrderAdmin(PageSizeAdminMixin, admin.ModelAdmin):
                 name="purchase_purchaseorder_autosave",
             ),
             path(
+                "<int:object_id>/pdf/",
+                self.admin_site.admin_view(self.export_purchase_pdf),
+                name="purchase_purchaseorder_pdf",
+            ),
+            path(
                 "report/",
                 self.admin_site.admin_view(self.purchase_report),
                 name="purchase_report",
@@ -289,6 +303,94 @@ class PurchaseOrderAdmin(PageSizeAdminMixin, admin.ModelAdmin):
                 )
         errors["inlines"] = inline_errors
         return JsonResponse({"ok": False, "errors": errors}, status=400)
+
+    def build_partner_context(self, partner):
+        if not partner:
+            return {
+                "name": "-",
+                "addresses": [],
+                "phones": [],
+                "email": "",
+                "website": "",
+                "fax": "",
+            }
+
+        return {
+            "name": partner.description,
+            "addresses": [address.address for address in partner.addresses.all()],
+            "phones": [phone.phone_number for phone in partner.phones.all() if phone.phone_number],
+            "email": partner.email,
+            "website": partner.website,
+            "fax": partner.fax,
+        }
+
+    def build_company_partner_context(self, company):
+        if not company:
+            return self.build_partner_context(None)
+
+        addresses = []
+        if company.company_address:
+            addresses.append(company.company_address)
+        if company.address and company.address not in addresses:
+            addresses.append(company.address)
+
+        phones = [company.company_phone] if company.company_phone else []
+
+        return {
+            "name": company.company_name or "-",
+            "addresses": addresses,
+            "phones": phones,
+            "email": company.company_email,
+            "website": "",
+            "fax": company.company_fax,
+        }
+
+    def get_purchase_items_for_pdf(self, obj):
+        return [
+            {
+                "index": index,
+                "description": item.description or (item.product.description if item.product else "-"),
+                "part_number": item.part_number or (item.product.part_number if item.product and item.product.part_number else "-"),
+                "quantity": item.quantity,
+                "unit_price": item.unit_price,
+                "total_amount": item.total_line(),
+                "vat_percent": obj.vat_percent,
+            }
+            for index, item in enumerate(obj.items.select_related("product"), start=1)
+        ]
+
+    def export_purchase_pdf(self, request, object_id):
+        obj = get_object_or_404(
+            PurchaseOrder.objects.select_related("seller", "requester").prefetch_related(
+                "items__product",
+                "seller__addresses",
+                "seller__phones",
+                "requester__addresses",
+                "requester__phones",
+            ),
+            pk=object_id,
+        )
+        company = CompanySetting.objects.first()
+        try:
+            pdf_bytes = build_purchase_order_pdf(
+                purchase_order=obj,
+                company=company,
+                items=self.get_purchase_items_for_pdf(obj),
+                seller=self.build_partner_context(obj.seller),
+                requester=self.build_partner_context(obj.requester) if obj.requester else self.build_company_partner_context(company),
+                requester_is_explicit=bool(obj.requester),
+                currency=company.currency if company else "EUR",
+            )
+        except Exception as exc:
+            return HttpResponse(
+                f"PDF generation failed: {exc}",
+                content_type="text/plain; charset=utf-8",
+                status=500,
+            )
+
+        response = HttpResponse(pdf_bytes, content_type="application/pdf")
+        response["Content-Disposition"] = f'inline; filename="{obj.purchase_number or "purchase-order"}.pdf"'
+        return response
 
     def get_purchase_report_pdf_url(self, request):
         query_string = request.GET.urlencode()

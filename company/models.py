@@ -21,6 +21,7 @@ class CompanySetting(models.Model):
     year = models.IntegerField(default=2026)
 
     company_name = models.CharField(max_length=255)
+    president = models.CharField(max_length=255, blank=True)
 
     company_phone = models.CharField(max_length=100, blank=True)
     company_fax = models.CharField(max_length=100, blank=True)

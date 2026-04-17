@@ -85,7 +85,8 @@
     .change-form .inline-group,
     .change-form .submit-row {
         background: var(--invoice-panel);
-        border: 1px solid var(--invoice-border);
+        border: 1px solid var(--invoice-border) !important;
+        border-top-color: #a2202a !important;
         border-radius: var(--invoice-radius);
         box-shadow: var(--invoice-shadow);
         overflow: hidden;
@@ -95,9 +96,17 @@
     .change-form .inline-group h2,
     .change-form .module caption {
         background: linear-gradient(180deg, rgba(255, 248, 247, 1) 0%, rgba(249, 236, 237, 0.92) 100%);
-        color: #8c1d26;
+        color: #8c1d26 !important;
+        border-top: 2px solid #a2202a !important;
+        border-bottom: 1px solid rgba(162, 32, 42, 0.28) !important;
         padding: 16px 20px;
         letter-spacing: 0.03em;
+    }
+
+    .change-form fieldset.module,
+    .change-form .module.aligned,
+    .change-form .inline-group {
+        border-color: rgba(162, 32, 42, 0.18) !important;
     }
 
     .change-form .form-row {
@@ -162,6 +171,23 @@
     .change-form .related-widget-wrapper .select2-container {
         min-width: 320px;
         width: min(100%, 520px) !important;
+    }
+
+    .select2-container--admin-autocomplete .select2-results__option,
+    .select2-container--default .select2-results__option {
+        color: var(--invoice-text);
+    }
+
+    .select2-container--admin-autocomplete .select2-results__option--highlighted,
+    .select2-container--default .select2-results__option--highlighted {
+        background: var(--invoice-accent) !important;
+        color: #fff !important;
+    }
+
+    .select2-container--admin-autocomplete .select2-results__option[aria-selected="true"],
+    .select2-container--default .select2-results__option[aria-selected="true"] {
+        background: rgba(162, 32, 42, 0.12);
+        color: #8c1d26;
     }
 
     .inline-group .field-product .related-widget-wrapper {

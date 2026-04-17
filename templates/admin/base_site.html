@@ -36,6 +36,12 @@
         min-height: 100vh;
     }
 
+    @media (min-width: 1200px) {
+        body {
+            zoom: 2;
+        }
+    }
+
     body::before {
         content: "";
         position: fixed;
@@ -245,6 +251,26 @@
     .inline-group h2 {
         background: linear-gradient(180deg, rgba(162, 32, 42, 0.05) 0%, rgba(162, 32, 42, 0.02) 100%);
         color: #8c1d26;
+        border-top: 2px solid var(--global-admin-accent) !important;
+        border-bottom: 1px solid rgba(162, 32, 42, 0.28) !important;
+    }
+
+    .module,
+    .inline-group,
+    fieldset.module,
+    #content-main .module,
+    #content-related .module,
+    .submit-row,
+    .paginator,
+    #toolbar,
+    .actions {
+        border-color: rgba(162, 32, 42, 0.18) !important;
+    }
+
+    .module,
+    .inline-group,
+    fieldset.module {
+        border-top-color: var(--global-admin-accent) !important;
     }
 
     .object-tools a,
@@ -264,6 +290,112 @@
         background: rgba(255, 255, 255, 0.72);
         backdrop-filter: blur(8px);
         -webkit-backdrop-filter: blur(8px);
+    }
+
+    .actions select,
+    .actions select[name="action"] {
+        min-height: 42px;
+        font-size: 16px !important;
+        line-height: 1.5 !important;
+        padding: 8px 12px;
+    }
+
+    .actions select option,
+    .actions select[name="action"] option {
+        font-size: 16px !important;
+        line-height: 1.6 !important;
+        padding: 10px 12px !important;
+    }
+
+    body.change-list #changelist-form .actions select[name="action"],
+    body.change-list #changelist-form .actions select {
+        font-size: 24px !important;
+        line-height: 1.6 !important;
+        min-height: 68px !important;
+        padding: 14px 18px !important;
+    }
+
+    body.change-list #changelist-form .actions select[name="action"] option,
+    body.change-list #changelist-form .actions select option {
+        font-size: 24px !important;
+        line-height: 1.8 !important;
+        padding: 16px 18px !important;
+    }
+
+    .admin-action-picker {
+        position: relative;
+        display: inline-block;
+        min-width: 430px;
+        max-width: 100%;
+        vertical-align: middle;
+    }
+
+    .admin-action-picker select {
+        position: absolute !important;
+        inset: 0;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .admin-action-picker-button {
+        width: 100%;
+        min-height: 46px;
+        padding: 9px 46px 9px 16px;
+        border: 2px solid #717171;
+        border-radius: 6px;
+        background: #fff;
+        color: #1f2a37;
+        font-size: 16px;
+        line-height: 1.35;
+        text-align: left;
+        box-shadow: none;
+        cursor: pointer;
+        position: relative;
+    }
+
+    .admin-action-picker-button::after {
+        content: "";
+        position: absolute;
+        right: 18px;
+        top: 50%;
+        width: 14px;
+        height: 14px;
+        border-right: 5px solid #1f2a37;
+        border-bottom: 5px solid #1f2a37;
+        transform: translateY(-65%) rotate(45deg);
+    }
+
+    .admin-action-picker-menu {
+        position: absolute;
+        top: calc(100% + 2px);
+        left: 0;
+        right: 0;
+        z-index: 10000;
+        display: none;
+        max-height: 300px;
+        overflow-y: auto;
+        border: 1px solid #717171;
+        background: #fff;
+        box-shadow: 0 12px 28px rgba(31, 42, 55, 0.16);
+    }
+
+    .admin-action-picker.is-open .admin-action-picker-menu {
+        display: block;
+    }
+
+    .admin-action-picker-option {
+        min-height: 38px;
+        padding: 9px 14px;
+        color: #1f2a37;
+        font-size: 15px;
+        line-height: 1.35;
+        cursor: pointer;
+    }
+
+    .admin-action-picker-option:hover,
+    .admin-action-picker-option.is-selected {
+        background: #1f66cc;
+        color: #fff;
     }
 
     #result_list {
@@ -291,6 +423,7 @@
     #content {
         position: relative;
         z-index: 1;
+        padding-top: 22px;
     }
 
     #content-related .module,
@@ -417,7 +550,131 @@
     .inline-related {
         background: rgba(255, 255, 255, 0.72);
     }
+
+    .admin-header-actions {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-left: 16px;
+        vertical-align: middle;
+    }
+
+    .admin-header-actions a,
+    .admin-header-actions button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        box-sizing: border-box;
+        height: 34px;
+        min-height: 30px;
+        padding: 0 12px;
+        border-radius: 999px !important;
+        border: 1px solid rgba(162, 32, 42, 0.14);
+        background: #fff7f5;
+        color: #8c1d26 !important;
+        font-size: 12px;
+        font-weight: 800;
+        line-height: 1;
+        text-decoration: none;
+        box-shadow: 0 6px 14px rgba(145, 29, 38, 0.08);
+        cursor: pointer;
+        margin: 0;
+        vertical-align: middle;
+    }
+
+    .admin-header-actions a:hover,
+    .admin-header-actions button:hover {
+        background: #fff0f1;
+    }
+
+    .admin-header-actions form {
+        display: inline-flex;
+        align-items: center;
+        margin: 0;
+        padding: 0;
+    }
 </style>
+{% endblock %}
+
+{% block extrahead %}
+{{ block.super }}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    document.querySelectorAll('#changelist-form .actions select[name="action"]').forEach(function(select) {
+        if (select.dataset.actionPickerReady === "1") {
+            return;
+        }
+        select.dataset.actionPickerReady = "1";
+        select.style.fontSize = "24px";
+        select.style.lineHeight = "1.6";
+        select.style.minHeight = "68px";
+        select.querySelectorAll("option").forEach(function(option) {
+            option.style.fontSize = "24px";
+            option.style.lineHeight = "1.8";
+        });
+
+        const picker = document.createElement("span");
+        picker.className = "admin-action-picker";
+
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "admin-action-picker-button";
+
+        const menu = document.createElement("div");
+        menu.className = "admin-action-picker-menu";
+
+        function selectedLabel() {
+            const selected = select.options[select.selectedIndex];
+            return selected ? selected.text : "";
+        }
+
+        function refreshButton() {
+            button.textContent = selectedLabel();
+        }
+
+        Array.from(select.options).forEach(function(option) {
+            const item = document.createElement("div");
+            item.className = "admin-action-picker-option";
+            item.textContent = option.text;
+            item.dataset.value = option.value;
+            if (option.selected) {
+                item.classList.add("is-selected");
+            }
+            item.addEventListener("click", function() {
+                select.value = option.value;
+                menu.querySelectorAll(".admin-action-picker-option").forEach(function(node) {
+                    node.classList.toggle("is-selected", node === item);
+                });
+                refreshButton();
+                picker.classList.remove("is-open");
+                select.dispatchEvent(new Event("change", { bubbles: true }));
+            });
+            menu.appendChild(item);
+        });
+
+        button.addEventListener("click", function() {
+            document.querySelectorAll(".admin-action-picker.is-open").forEach(function(openPicker) {
+                if (openPicker !== picker) {
+                    openPicker.classList.remove("is-open");
+                }
+            });
+            picker.classList.toggle("is-open");
+        });
+
+        document.addEventListener("click", function(event) {
+            if (!picker.contains(event.target)) {
+                picker.classList.remove("is-open");
+            }
+        });
+
+        select.parentNode.insertBefore(picker, select);
+        picker.appendChild(select);
+        picker.appendChild(button);
+        picker.appendChild(menu);
+        refreshButton();
+    });
+});
+</script>
 {% endblock %}
 
 {% block branding %}
@@ -430,6 +687,15 @@
   <a href="{% url 'admin:index' %}">
     {{ company_brand_name|default:site_header|default:_('Django administration') }}
   </a>
+  {% if user.is_authenticated %}
+  <span class="admin-header-actions">
+    <a href="{% url 'admin:index' %}">Welcome page</a>
+    <form method="post" action="{% url 'admin:logout' %}">
+      {% csrf_token %}
+      <button type="submit">Déconnexion</button>
+    </form>
+  </span>
+  {% endif %}
 </div>
 {% if user.is_anonymous %}
   {% include "admin/color_theme_toggle.html" %}

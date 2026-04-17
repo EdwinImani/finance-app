@@ -16,13 +16,13 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import include, path
-from django.views.generic import RedirectView, TemplateView
+from django.views.generic import RedirectView
 
 from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
-    path('', RedirectView.as_view(pattern_name='choose_invoice_type', permanent=False)),
+    path('', RedirectView.as_view(pattern_name='admin:index', permanent=False)),
     path('admin/', admin.site.urls),
     path('purchase/', include('purchase.urls')),
     path('invoices/', include('invoices.urls')),
