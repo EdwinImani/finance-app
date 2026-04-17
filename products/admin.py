@@ -31,6 +31,28 @@ class PartNumberFilter(admin.SimpleListFilter):
 
 
 # ----------------------
+# LOW STOCK FILTER
+# ----------------------
+
+class LowStockFilter(admin.SimpleListFilter):
+
+    title = "Stock"
+    parameter_name = "stock_status"
+
+    def lookups(self, request, model_admin):
+        return (
+            ("low", "Low stock"),
+        )
+
+    def queryset(self, request, queryset):
+
+        if self.value() == "low":
+            return queryset.filter(unit_qty__lte=5)
+
+        return queryset
+
+
+# ----------------------
 # PRODUCT ADMIN
 # ----------------------
 
@@ -58,7 +80,7 @@ class ProductAdmin(PageSizeAdminMixin, admin.ModelAdmin):
 
     ordering = ("description",)
 
-    list_filter = (PartNumberFilter,)
+    list_filter = (LowStockFilter, PartNumberFilter)
 
     # ----------------------
     # PART NUMBER DISPLAY
