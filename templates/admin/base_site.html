@@ -27,6 +27,17 @@
         --global-sidebar-accent: #3dd6c6;
     }
 
+    html {
+        font-size: 16px;
+        overflow-y: auto;
+    }
+
+    @media (min-width: 1200px) {
+        html {
+            font-size: 18px;
+        }
+    }
+
     body {
         background:
             radial-gradient(circle at 14% 20%, rgba(220, 90, 100, 0.12), transparent 24%),
@@ -34,12 +45,7 @@
             linear-gradient(180deg, #fdf9f8 0%, #f7f1ef 100%);
         color: var(--global-admin-text);
         min-height: 100vh;
-    }
-
-    @media (min-width: 1200px) {
-        body {
-            zoom: 2;
-        }
+        overflow-y: auto;
     }
 
     body::before {
@@ -506,6 +512,23 @@
     .calendarbox h2,
     .clockbox h2 {
         color: #8c1d26;
+    }
+
+    .select2-container--admin-autocomplete,
+    .select2-container--open {
+        z-index: 10000;
+    }
+
+    .select2-container--admin-autocomplete .select2-dropdown,
+    .select2-container--default .select2-dropdown {
+        border-color: rgba(162, 32, 42, 0.22);
+        box-shadow: 0 16px 34px rgba(31, 42, 55, 0.16);
+    }
+
+    .select2-container--admin-autocomplete .select2-results__options,
+    .select2-container--default .select2-results__options {
+        max-height: 320px;
+        overflow-y: auto !important;
     }
 
     .aligned label,

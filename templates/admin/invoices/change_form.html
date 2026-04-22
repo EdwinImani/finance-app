@@ -9,6 +9,80 @@
     };
 </script>
 {% endif %}
+<script>
+    (function() {
+        let activeAutocomplete = null;
+
+        function bodyZoom() {
+            const zoom = window.getComputedStyle(document.body).zoom;
+            const parsedZoom = parseFloat(zoom);
+            return Number.isFinite(parsedZoom) && parsedZoom > 0 ? parsedZoom : 1;
+        }
+
+        function openDropdownContainer() {
+            const dropdown = document.querySelector(".select2-container--open .select2-dropdown");
+            return dropdown ? dropdown.parentElement : null;
+        }
+
+        function positionOpenAutocomplete(select) {
+            const $ = window.django && django.jQuery;
+            if (!$) {
+                return;
+            }
+
+            const select2 = $(select).data("select2");
+            if (!select2 || !select2.$container || !select2.$container.length) {
+                return;
+            }
+
+            const container = openDropdownContainer();
+            if (!container) {
+                return;
+            }
+
+            const zoom = bodyZoom();
+            const rect = select2.$container[0].getBoundingClientRect();
+
+            container.style.left = `${(rect.left + window.scrollX) / zoom}px`;
+            container.style.top = `${(rect.bottom + window.scrollY) / zoom}px`;
+            container.style.width = `${rect.width / zoom}px`;
+            container.style.zIndex = "10000";
+        }
+
+        function refreshOpenAutocomplete() {
+            if (activeAutocomplete) {
+                positionOpenAutocomplete(activeAutocomplete);
+            }
+        }
+
+        function installAutocompletePositionFix() {
+            const $ = window.django && django.jQuery;
+            if (!$) {
+                window.setTimeout(installAutocompletePositionFix, 25);
+                return;
+            }
+
+            $(document).on("select2:open", "select.admin-autocomplete", function() {
+                const select = this;
+                activeAutocomplete = select;
+                window.requestAnimationFrame(function() {
+                    positionOpenAutocomplete(select);
+                });
+            });
+
+            $(document).on("select2:close", "select.admin-autocomplete", function() {
+                if (activeAutocomplete === this) {
+                    activeAutocomplete = null;
+                }
+            });
+
+            window.addEventListener("scroll", refreshOpenAutocomplete, true);
+            window.addEventListener("resize", refreshOpenAutocomplete);
+        }
+
+        installAutocompletePositionFix();
+    })();
+</script>
 <style>
     :root {
         --invoice-bg: #f7f1ef;
