@@ -85,21 +85,21 @@
 </script>
 <style>
     :root {
-        --invoice-bg: #f7f1ef;
+        --invoice-bg: #fff4e6;
         --invoice-panel: rgba(255, 255, 255, 0.92);
-        --invoice-border: rgba(162, 32, 42, 0.10);
+        --invoice-border: rgba(217, 119, 6, 0.18);
         --invoice-text: #23384d;
         --invoice-muted: #708090;
-        --invoice-accent: #a2202a;
-        --invoice-shadow: 0 18px 42px rgba(91, 27, 35, 0.10);
+        --invoice-accent: #d97706;
+        --invoice-shadow: 0 18px 42px rgba(120, 53, 15, 0.14);
         --invoice-radius: 18px;
     }
 
     #content {
         background:
-            radial-gradient(circle at top right, rgba(220, 90, 100, 0.12), transparent 28%),
-            radial-gradient(circle at top left, rgba(162, 32, 42, 0.10), transparent 24%),
-            linear-gradient(180deg, #fdf9f8 0%, var(--invoice-bg) 100%);
+            radial-gradient(circle at top right, rgba(251, 146, 60, 0.12), transparent 28%),
+            radial-gradient(circle at top left, rgba(217, 119, 6, 0.18), transparent 24%),
+            linear-gradient(180deg, #fffaf4 0%, var(--invoice-bg) 100%);
     }
 
     .change-form #content-main {
@@ -113,6 +113,13 @@
         align-items: flex-start;
         gap: 18px;
         margin-bottom: 16px;
+        padding: 22px 24px;
+        border: 1px solid rgba(217, 119, 6, 0.20);
+        border-radius: 22px;
+        background:
+            radial-gradient(circle at 86% 18%, rgba(251, 146, 60, 0.22), transparent 26%),
+            linear-gradient(135deg, #fffbeb 0%, #fff7ed 48%, #ffedd5 100%);
+        box-shadow: 0 18px 42px rgba(120, 53, 15, 0.12);
     }
 
     .invoice-hero h1 {
@@ -120,7 +127,7 @@
         font-size: 32px;
         line-height: 1.1;
         letter-spacing: -0.03em;
-        color: var(--invoice-text);
+        color: #9a3412;
     }
 
     .invoice-hero p {
@@ -131,13 +138,14 @@
     }
 
     .invoice-badge {
-        background: #fff;
+        background: linear-gradient(135deg, #f59e0b 0%, #b45309 100%);
         border: 1px solid var(--invoice-border);
         border-radius: 999px;
         padding: 10px 14px;
-        color: var(--invoice-text);
+        color: #fff;
         font-weight: 700;
         white-space: nowrap;
+        box-shadow: 0 10px 18px rgba(180, 83, 9, 0.16);
     }
 
     .invoice-autosave-status {
@@ -148,19 +156,20 @@
     }
 
     .invoice-autosave-status.is-saving {
-        color: #8c1d26;
+        color: #9a3412;
     }
 
     .invoice-autosave-status.is-error {
-        color: #bf3c3c;
+        color: #9a3412;
     }
 
     .change-form .module,
     .change-form .inline-group,
     .change-form .submit-row {
-        background: var(--invoice-panel);
+        background:
+            linear-gradient(180deg, rgba(255, 250, 244, 0.96) 0%, rgba(255, 255, 255, 0.92) 100%);
         border: 1px solid var(--invoice-border) !important;
-        border-top-color: #a2202a !important;
+        border-top-color: #d97706 !important;
         border-radius: var(--invoice-radius);
         box-shadow: var(--invoice-shadow);
         overflow: hidden;
@@ -169,10 +178,10 @@
     .change-form .module h2,
     .change-form .inline-group h2,
     .change-form .module caption {
-        background: linear-gradient(180deg, rgba(255, 248, 247, 1) 0%, rgba(249, 236, 237, 0.92) 100%);
-        color: #8c1d26 !important;
-        border-top: 2px solid #a2202a !important;
-        border-bottom: 1px solid rgba(162, 32, 42, 0.28) !important;
+        background: linear-gradient(180deg, #fffaf4 0%, #ffedd5 100%);
+        color: #9a3412 !important;
+        border-top: 2px solid #d97706 !important;
+        border-bottom: 1px solid rgba(217, 119, 6, 0.28) !important;
         padding: 16px 20px;
         letter-spacing: 0.03em;
     }
@@ -180,7 +189,7 @@
     .change-form fieldset.module,
     .change-form .module.aligned,
     .change-form .inline-group {
-        border-color: rgba(162, 32, 42, 0.18) !important;
+        border-color: rgba(217, 119, 6, 0.18) !important;
     }
 
     .change-form .form-row {
@@ -214,23 +223,23 @@
     .change-form .field-invoice_number .readonly {
         display: inline-block;
         min-width: 180px;
-        background: linear-gradient(180deg, #fffefb 0%, #f7f4ed 100%);
+        background: linear-gradient(180deg, #fffbeb 0%, #ffedd5 100%);
         border: 1px solid var(--invoice-border);
         border-radius: 12px;
         padding: 10px 14px;
     }
 
     .change-form .field-total_amount_display .readonly {
-        background: linear-gradient(180deg, #fffefb 0%, #fff2f2 100%);
-        border-color: rgba(162, 32, 42, 0.18);
-        color: #8c1d26;
+        background: linear-gradient(180deg, #fffbeb 0%, #ffedd5 100%);
+        border-color: rgba(217, 119, 6, 0.18);
+        color: #9a3412;
         font-size: 18px;
-        box-shadow: inset 0 0 0 1px rgba(162, 32, 42, 0.08);
+        box-shadow: inset 0 0 0 1px rgba(217, 119, 6, 0.08);
     }
 
     .change-form .field-vat_percent input {
         font-weight: 700;
-        color: #8c1d26;
+        color: #9a3412;
     }
 
     .change-form .related-widget-wrapper {
@@ -260,8 +269,8 @@
 
     .select2-container--admin-autocomplete .select2-results__option[aria-selected="true"],
     .select2-container--default .select2-results__option[aria-selected="true"] {
-        background: rgba(162, 32, 42, 0.12);
-        color: #8c1d26;
+        background: rgba(217, 119, 6, 0.12);
+        color: #9a3412;
     }
 
     .inline-group .field-product .related-widget-wrapper {
@@ -283,16 +292,16 @@
         padding: 0 14px;
         border-radius: 999px;
         border: 1px solid var(--invoice-border);
-        background: #fff7f5;
+        background: #fff7ed;
         color: var(--invoice-accent);
         font-weight: 700;
         text-decoration: none;
-        box-shadow: 0 6px 14px rgba(145, 29, 38, 0.08);
+        box-shadow: 0 6px 14px rgba(180, 83, 9, 0.08);
     }
 
     .change-form .related-widget-wrapper a.related-widget-wrapper-link:hover,
     .inline-group .add-row a:hover {
-        background: #fff0f1;
+        background: #ffedd5;
     }
 
     .change-form .related-widget-wrapper a.related-widget-wrapper-link.delete-related {
@@ -304,19 +313,19 @@
     }
 
     .inline-group .tabular th {
-        background: #fbefef;
-        color: #8c1d26;
+        background: #ffedd5;
+        color: #9a3412;
         text-transform: uppercase;
         letter-spacing: 0.04em;
         font-size: 11px;
     }
 
     .inline-group .tabular tr:nth-child(even) td {
-        background: #fffefb;
+        background: #fffbeb;
     }
 
     .inline-group .tabular tr:hover td {
-        background: #f6f4ed;
+        background: #fff3e0;
     }
 
     .inline-group td.delete input[type="checkbox"] {
@@ -330,21 +339,21 @@
         min-height: 34px;
         padding: 0 12px;
         border-radius: 999px;
-        border: 1px solid #f0c6c6;
-        background: #fff7f7;
-        color: #bf3c3c;
+        border: 1px solid #fdba74;
+        background: #fff7ed;
+        color: #9a3412;
         font-weight: 700;
         cursor: pointer;
         white-space: nowrap;
     }
 
     .invoice-line-delete:hover {
-        background: #ffefef;
+        background: #ffedd5;
     }
 
     .invoice-line-delete.is-marked {
-        background: #bf3c3c;
-        border-color: #bf3c3c;
+        background: #9a3412;
+        border-color: #9a3412;
         color: #fff;
     }
 

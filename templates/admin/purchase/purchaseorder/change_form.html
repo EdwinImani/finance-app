@@ -13,18 +13,18 @@
     :root {
         --po-form-bg: #f7f1ef;
         --po-form-panel: rgba(255, 255, 255, 0.92);
-        --po-form-border: rgba(162, 32, 42, 0.10);
+        --po-form-border: rgba(217, 119, 6, 0.10);
         --po-form-text: #23384d;
         --po-form-muted: #708090;
-        --po-form-accent: #a2202a;
-        --po-form-shadow: 0 18px 42px rgba(91, 27, 35, 0.10);
+        --po-form-accent: #d97706;
+        --po-form-shadow: 0 18px 42px rgba(120, 53, 15, 0.10);
         --po-form-radius: 18px;
     }
 
     #content {
         background:
-            radial-gradient(circle at top right, rgba(220, 90, 100, 0.12), transparent 28%),
-            radial-gradient(circle at top left, rgba(162, 32, 42, 0.10), transparent 24%),
+            radial-gradient(circle at top right, rgba(251, 146, 60, 0.12), transparent 28%),
+            radial-gradient(circle at top left, rgba(217, 119, 6, 0.10), transparent 24%),
             linear-gradient(180deg, #fdf9f8 0%, var(--po-form-bg) 100%);
     }
 
@@ -47,7 +47,7 @@
     .change-form .module caption,
     .change-form .inline-group h2 {
         background: linear-gradient(180deg, rgba(255, 248, 247, 1) 0%, rgba(249, 236, 237, 0.92) 100%);
-        color: #8c1d26;
+        color: #9a3412;
         padding: 16px 20px;
         font-size: 15px;
         letter-spacing: 0.03em;
@@ -111,7 +111,7 @@
 
     .select2-container--admin-autocomplete .select2-results__option--highlighted,
     .select2-container--default .select2-results__option--highlighted {
-        background: #a2202a !important;
+        background: #d97706 !important;
         color: #fff !important;
     }
 
@@ -128,12 +128,12 @@
         min-height: 36px;
         padding: 0 14px;
         border-radius: 999px;
-        background: #fff7f5;
+        background: #fff7ed;
         border: 1px solid var(--po-form-border);
         color: var(--po-form-accent);
         font-weight: 700;
         text-decoration: none;
-        box-shadow: 0 6px 14px rgba(145, 29, 38, 0.08);
+        box-shadow: 0 6px 14px rgba(180, 83, 9, 0.08);
     }
 
     .change-form .related-widget-wrapper a.related-widget-wrapper-link:hover {
@@ -145,24 +145,19 @@
     }
 
     .change-form .field-seller .related-widget-wrapper,
-    .change-form .field-requester .related-widget-wrapper,
     .inline-group .field-product .related-widget-wrapper {
         width: 100%;
     }
 
     .change-form .field-seller select,
-    .change-form .field-requester select,
-    .change-form #id_seller,
-    .change-form #id_requester {
+    .change-form #id_seller {
         font-size: 16px !important;
         line-height: 1.5 !important;
         min-height: 54px;
     }
 
     .change-form .field-seller select option,
-    .change-form .field-requester select option,
-    .change-form #id_seller option,
-    .change-form #id_requester option {
+    .change-form #id_seller option {
         font-size: 16px !important;
         line-height: 1.6 !important;
         padding: 10px 12px !important;
@@ -193,20 +188,20 @@
 
     .change-form .field-total_amount_display .readonly {
         background: linear-gradient(180deg, #fffefb 0%, #fff2f2 100%);
-        border-color: rgba(162, 32, 42, 0.18);
-        color: #8c1d26;
+        border-color: rgba(217, 119, 6, 0.18);
+        color: #9a3412;
         font-size: 18px;
-        box-shadow: inset 0 0 0 1px rgba(162, 32, 42, 0.08);
+        box-shadow: inset 0 0 0 1px rgba(217, 119, 6, 0.08);
     }
 
     .change-form .field-vat_percent input {
         font-weight: 700;
-        color: #8c1d26;
+        color: #9a3412;
     }
 
     .inline-group .tabular th {
-        background: #fbefef;
-        color: #8c1d26;
+        background: #ffedd5;
+        color: #9a3412;
         text-transform: uppercase;
         letter-spacing: 0.04em;
         font-size: 11px;
@@ -223,7 +218,7 @@
     }
 
     .inline-group .tabular tr:hover td {
-        background: #f6f4ed;
+        background: #fff3e0;
     }
 
     .inline-group .add-row {
@@ -238,11 +233,11 @@
         padding: 0 14px;
         border-radius: 999px;
         border: 1px solid var(--po-form-border);
-        background: #fff7f5;
+        background: #fff7ed;
         color: var(--po-form-accent);
         font-weight: 700;
         text-decoration: none;
-        box-shadow: 0 6px 14px rgba(145, 29, 38, 0.08);
+        box-shadow: 0 6px 14px rgba(180, 83, 9, 0.08);
     }
 
     .inline-group .add-row a:hover {
@@ -294,7 +289,7 @@
     }
 
     .invoice-autosave-status.is-saving {
-        color: #8c1d26;
+        color: #9a3412;
     }
 
     .invoice-autosave-status.is-error {

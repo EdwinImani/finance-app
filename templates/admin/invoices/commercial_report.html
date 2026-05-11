@@ -3,23 +3,23 @@
 {% block content %}
 <style>
     :root {
-        --report-bg: #f7f1ef;
+        --report-bg: #fff4e6;
         --report-panel: rgba(255, 255, 255, 0.92);
-        --report-border: rgba(162, 32, 42, 0.10);
+        --report-border: rgba(217, 119, 6, 0.18);
         --report-text: #23384d;
         --report-muted: #708090;
-        --report-accent: #a2202a;
-        --report-accent-soft: #fff4f2;
-        --report-rose: rgba(162, 32, 42, 0.12);
-        --report-shadow: 0 18px 42px rgba(91, 27, 35, 0.10);
+        --report-accent: #d97706;
+        --report-accent-soft: #fff7ed;
+        --report-orange-soft: rgba(217, 119, 6, 0.12);
+        --report-shadow: 0 18px 42px rgba(120, 53, 15, 0.14);
         --report-radius: 18px;
     }
 
     #content {
         background:
-            radial-gradient(circle at top right, rgba(220, 90, 100, 0.12), transparent 28%),
-            radial-gradient(circle at top left, rgba(162, 32, 42, 0.10), transparent 24%),
-            linear-gradient(180deg, #fdf9f8 0%, var(--report-bg) 100%);
+            radial-gradient(circle at top right, rgba(251, 146, 60, 0.12), transparent 28%),
+            radial-gradient(circle at top left, rgba(217, 119, 6, 0.18), transparent 24%),
+            linear-gradient(180deg, #fffaf4 0%, var(--report-bg) 100%);
     }
 
     .commercial-report-shell {
@@ -46,6 +46,13 @@
 
     .commercial-hero {
         margin-bottom: 18px;
+        padding: 22px 24px;
+        border: 1px solid rgba(217, 119, 6, 0.20);
+        border-radius: 22px;
+        background:
+            radial-gradient(circle at 86% 18%, rgba(251, 146, 60, 0.22), transparent 26%),
+            linear-gradient(135deg, #fffbeb 0%, #fff7ed 48%, #ffedd5 100%);
+        box-shadow: 0 18px 42px rgba(120, 53, 15, 0.12);
     }
 
     .commercial-hero h1 {
@@ -53,7 +60,7 @@
         font-size: 32px;
         line-height: 1.1;
         letter-spacing: -0.03em;
-        color: #8c1d26;
+        color: #9a3412;
     }
 
     .commercial-hero p,
@@ -83,14 +90,14 @@
     }
 
     .commercial-btn-primary {
-        background: linear-gradient(135deg, #b92b36 0%, #911d26 100%);
+        background: linear-gradient(135deg, #f59e0b 0%, #b45309 100%);
         color: #fff;
-        border-color: #911d26;
-        box-shadow: 0 10px 18px rgba(145, 29, 38, 0.16);
+        border-color: #b45309;
+        box-shadow: 0 10px 18px rgba(180, 83, 9, 0.16);
     }
 
     .commercial-btn-secondary {
-        background: #fff7f5;
+        background: #fff7ed;
         color: var(--report-accent);
         border-color: var(--report-border);
     }
@@ -100,7 +107,8 @@
     .commercial-side-card,
     .commercial-kpi,
     .commercial-report-footer {
-        background: var(--report-panel);
+        background:
+            linear-gradient(180deg, rgba(255, 250, 244, 0.96) 0%, rgba(255, 255, 255, 0.92) 100%);
         border: 1px solid var(--report-border);
         border-radius: var(--report-radius);
         box-shadow: var(--report-shadow);
@@ -115,7 +123,7 @@
     .commercial-table-head h3,
     .commercial-side-card h3 {
         margin: 0;
-        color: #8c1d26;
+        color: #9a3412;
     }
 
     .commercial-panel-title {
@@ -163,7 +171,7 @@
         font-weight: 700;
         color: #1f2f3d;
         border-radius: 12px;
-        border: 1px solid rgba(162, 32, 42, 0.18);
+        border: 1px solid rgba(217, 119, 6, 0.18);
         background: #fffdfa;
         box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
         box-sizing: border-box;
@@ -200,7 +208,7 @@
     }
 
     .commercial-current-choice span {
-        color: #8c1d26;
+        color: #9a3412;
     }
 
     .commercial-selection-grid {
@@ -214,7 +222,7 @@
     }
 
     .commercial-overview-card {
-        background: linear-gradient(180deg, #fffefb 0%, #fff4f2 100%);
+        background: linear-gradient(180deg, #fffbeb 0%, #fff7ed 100%);
         border: 1px solid var(--report-border);
         border-radius: 16px;
         box-shadow: var(--report-shadow);
@@ -234,7 +242,7 @@
     .commercial-overview-value {
         font-size: 22px;
         font-weight: 700;
-        color: #8c1d26;
+        color: #9a3412;
         word-break: break-word;
     }
 
@@ -245,7 +253,7 @@
     }
 
     .commercial-selection-card {
-        background: #fff8f6;
+        background: #fffaf4;
         border: 1px solid var(--report-border);
         border-radius: 14px;
         padding: 14px 16px;
@@ -255,7 +263,7 @@
     .commercial-selection-card strong {
         display: block;
         margin-bottom: 10px;
-        color: #8c1d26;
+        color: #9a3412;
         font-size: 14px;
     }
 
@@ -272,7 +280,7 @@
     .commercial-page-size button,
     .commercial-pagination button {
         border: 1px solid var(--report-border);
-        background: #fff7f5;
+        background: #fff7ed;
         border-radius: 999px;
         padding: 8px 12px;
         cursor: pointer;
@@ -287,18 +295,18 @@
 
     .commercial-kpi {
         padding: 16px;
-        background: linear-gradient(180deg, #fffefb 0%, #fff4f2 100%);
+        background: linear-gradient(180deg, #fffbeb 0%, #fff7ed 100%);
     }
 
     .commercial-kpi-value {
         font-size: 24px;
         font-weight: 700;
-        color: #8c1d26;
+        color: #9a3412;
         word-break: break-word;
     }
 
     .commercial-chart-card {
-        background: linear-gradient(180deg, #fffefb 0%, var(--report-accent-soft) 100%);
+        background: linear-gradient(180deg, #fffbeb 0%, var(--report-accent-soft) 100%);
         border: 1px solid var(--report-border);
         border-radius: 18px;
         padding: 18px;
@@ -327,7 +335,7 @@
 
     .commercial-table-head {
         border-bottom: 1px solid var(--report-border);
-        background: linear-gradient(180deg, rgba(255, 248, 247, 1) 0%, rgba(249, 236, 237, 0.92) 100%);
+        background: linear-gradient(180deg, #fffaf4 0%, #ffedd5 100%);
     }
 
     .commercial-table-head p {
@@ -355,8 +363,8 @@
         position: sticky;
         top: 0;
         z-index: 2;
-        background: #fbefef;
-        color: #8c1d26;
+        background: #ffedd5;
+        color: #9a3412;
         text-transform: uppercase;
         letter-spacing: 0.04em;
         font-size: 11px;
@@ -365,16 +373,16 @@
     }
 
     .commercial-table-scroll tbody tr:nth-child(even) {
-        background: #fffefb;
+        background: #fffbeb;
     }
 
     .commercial-table-scroll tbody tr:hover {
-        background: #f6f4ed;
+        background: #fff3e0;
     }
 
     .commercial-table-scroll tbody td {
         padding: 12px 14px;
-        border-bottom: 1px solid #f1dfdf;
+        border-bottom: 1px solid #fed7aa;
     }
 
     .commercial-table-scroll tbody td.is-right {
@@ -383,7 +391,7 @@
 
     .commercial-table-scroll tbody td.is-strong {
         font-weight: 700;
-        color: #8c1d26;
+        color: #9a3412;
     }
 
     .commercial-empty {
@@ -394,7 +402,7 @@
         justify-content: flex-end;
         padding: 14px 18px 18px;
         border-top: 1px solid var(--report-border);
-        background: #fff8f6;
+        background: #fffaf4;
     }
 
     .commercial-pagination button.is-active {
@@ -405,7 +413,7 @@
 
     .commercial-side-card {
         padding: 18px;
-        background: linear-gradient(180deg, #fffefb 0%, #fff5f4 100%);
+        background: linear-gradient(180deg, #fffbeb 0%, #fff7ed 100%);
         box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
     }
 
@@ -416,7 +424,7 @@
     .commercial-report-footer {
         margin-top: 20px;
         padding: 14px 18px;
-        background: linear-gradient(180deg, #fffefb 0%, #fff5f4 100%);
+        background: linear-gradient(180deg, #fffbeb 0%, #fff7ed 100%);
     }
 
     .commercial-report-footer-grid {
@@ -439,7 +447,7 @@
         justify-content: space-between;
         gap: 16px;
         padding: 10px 0;
-        border-bottom: 1px solid #f1dfdf;
+        border-bottom: 1px solid #fed7aa;
     }
 
     .commercial-metric-row:last-child {
@@ -447,7 +455,7 @@
     }
 
     .commercial-metric-row strong {
-        color: #8c1d26;
+        color: #9a3412;
     }
 
     @media (max-width: 1100px) {

@@ -10,12 +10,12 @@
         --global-admin-bg: #f7f1ef;
         --global-admin-panel: rgba(255, 255, 255, 0.82);
         --global-admin-panel-strong: rgba(255, 255, 255, 0.92);
-        --global-admin-border: rgba(162, 32, 42, 0.10);
+        --global-admin-border: rgba(217, 119, 6, 0.10);
         --global-admin-text: #1f2a37;
         --global-admin-muted: #7c8797;
-        --global-admin-accent: #a2202a;
+        --global-admin-accent: #d97706;
         --global-admin-accent-soft: #d86c73;
-        --global-admin-shadow: 0 18px 42px rgba(91, 27, 35, 0.10);
+        --global-admin-shadow: 0 18px 42px rgba(120, 53, 15, 0.10);
         --global-admin-radius: 22px;
         --global-sidebar-bg: #2b4157;
         --global-sidebar-bg-strong: #24384d;
@@ -40,8 +40,8 @@
 
     body {
         background:
-            radial-gradient(circle at 14% 20%, rgba(220, 90, 100, 0.12), transparent 24%),
-            radial-gradient(circle at 84% 18%, rgba(162, 32, 42, 0.08), transparent 22%),
+            radial-gradient(circle at 14% 20%, rgba(251, 146, 60, 0.12), transparent 24%),
+            radial-gradient(circle at 84% 18%, rgba(217, 119, 6, 0.08), transparent 22%),
             linear-gradient(180deg, #fdf9f8 0%, #f7f1ef 100%);
         color: var(--global-admin-text);
         min-height: 100vh;
@@ -53,8 +53,8 @@
         position: fixed;
         inset: 0;
         background:
-            linear-gradient(90deg, rgba(162, 32, 42, 0.03) 1px, transparent 1px),
-            linear-gradient(180deg, rgba(162, 32, 42, 0.03) 1px, transparent 1px);
+            linear-gradient(90deg, rgba(217, 119, 6, 0.03) 1px, transparent 1px),
+            linear-gradient(180deg, rgba(217, 119, 6, 0.03) 1px, transparent 1px);
         background-size: 34px 34px;
         pointer-events: none;
         opacity: 0.34;
@@ -63,10 +63,10 @@
     #header {
         background: rgba(255, 255, 255, 0.84);
         color: #fff;
-        box-shadow: 0 12px 30px rgba(91, 27, 35, 0.08);
+        box-shadow: 0 12px 30px rgba(120, 53, 15, 0.08);
         backdrop-filter: blur(12px);
         -webkit-backdrop-filter: blur(12px);
-        border-bottom: 1px solid rgba(162, 32, 42, 0.08);
+        border-bottom: 1px solid rgba(217, 119, 6, 0.08);
     }
 
     #branding a,
@@ -79,7 +79,7 @@
 
     .breadcrumbs {
         background: rgba(255, 255, 255, 0.56);
-        border-bottom: 1px solid rgba(162, 32, 42, 0.07);
+        border-bottom: 1px solid rgba(217, 119, 6, 0.07);
         color: #6f7a8a;
         backdrop-filter: blur(10px);
         -webkit-backdrop-filter: blur(10px);
@@ -246,7 +246,7 @@
     .module,
     .inline-group {
         border-radius: var(--global-admin-radius);
-        border-color: rgba(162, 32, 42, 0.08);
+        border-color: rgba(217, 119, 6, 0.08);
         box-shadow: var(--global-admin-shadow);
         overflow: hidden;
         background: var(--global-admin-panel);
@@ -257,10 +257,10 @@
     .module caption,
     .module h2,
     .inline-group h2 {
-        background: linear-gradient(180deg, rgba(162, 32, 42, 0.05) 0%, rgba(162, 32, 42, 0.02) 100%);
-        color: #8c1d26;
+        background: linear-gradient(180deg, rgba(217, 119, 6, 0.05) 0%, rgba(217, 119, 6, 0.02) 100%);
+        color: #9a3412;
         border-top: 2px solid var(--global-admin-accent) !important;
-        border-bottom: 1px solid rgba(162, 32, 42, 0.28) !important;
+        border-bottom: 1px solid rgba(217, 119, 6, 0.28) !important;
     }
 
     .module,
@@ -272,7 +272,7 @@
     .paginator,
     #toolbar,
     .actions {
-        border-color: rgba(162, 32, 42, 0.18) !important;
+        border-color: rgba(217, 119, 6, 0.18) !important;
     }
 
     .module,
@@ -294,7 +294,7 @@
     #toolbar,
     .actions {
         border-radius: 14px;
-        border-color: rgba(162, 32, 42, 0.08);
+        border-color: rgba(217, 119, 6, 0.08);
         background: rgba(255, 255, 255, 0.72);
         backdrop-filter: blur(8px);
         -webkit-backdrop-filter: blur(8px);
@@ -413,7 +413,7 @@
 
     #result_list thead th {
         background: rgba(251, 238, 239, 0.96);
-        color: #8c1d26;
+        color: #9a3412;
     }
 
     #result_list tbody tr:nth-child(even) {
@@ -476,7 +476,7 @@
     .vLargeTextField,
     .vForeignKeyRawIdAdminField {
         border-radius: 14px;
-        border: 1px solid rgba(162, 32, 42, 0.10);
+        border: 1px solid rgba(217, 119, 6, 0.10);
         background: rgba(255, 255, 255, 0.92);
         color: var(--global-admin-text);
         box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.96);
@@ -492,8 +492,8 @@
     .vDateTimeField:focus,
     .vLargeTextField:focus,
     .vForeignKeyRawIdAdminField:focus {
-        border-color: rgba(162, 32, 42, 0.34);
-        box-shadow: 0 0 0 4px rgba(162, 32, 42, 0.08);
+        border-color: rgba(217, 119, 6, 0.34);
+        box-shadow: 0 0 0 4px rgba(217, 119, 6, 0.08);
         outline: none;
     }
 
@@ -503,7 +503,7 @@
     .calendarbox,
     .clockbox {
         border-radius: 18px;
-        border-color: rgba(162, 32, 42, 0.08);
+        border-color: rgba(217, 119, 6, 0.08);
         background: rgba(255, 255, 255, 0.88);
         box-shadow: var(--global-admin-shadow);
     }
@@ -511,7 +511,7 @@
     .selector h2,
     .calendarbox h2,
     .clockbox h2 {
-        color: #8c1d26;
+        color: #9a3412;
     }
 
     .select2-container--admin-autocomplete,
@@ -521,7 +521,7 @@
 
     .select2-container--admin-autocomplete .select2-dropdown,
     .select2-container--default .select2-dropdown {
-        border-color: rgba(162, 32, 42, 0.22);
+        border-color: rgba(217, 119, 6, 0.22);
         box-shadow: 0 16px 34px rgba(31, 42, 55, 0.16);
     }
 
@@ -547,10 +547,10 @@
     .submit-row input[type="submit"],
     .button.default,
     input[type="submit"].default {
-        background: linear-gradient(180deg, #b92b36 0%, #911d26 100%);
+        background: linear-gradient(180deg, #f59e0b 0%, #b45309 100%);
         color: #fff;
         border: 0;
-        box-shadow: 0 14px 24px rgba(145, 29, 38, 0.16);
+        box-shadow: 0 14px 24px rgba(180, 83, 9, 0.16);
     }
 
     .object-tools a,
@@ -558,10 +558,10 @@
     a.button,
     input[type="button"],
     button {
-        border: 1px solid rgba(162, 32, 42, 0.10);
+        border: 1px solid rgba(217, 119, 6, 0.10);
         background: linear-gradient(180deg, rgba(255, 247, 245, 1) 0%, rgba(252, 235, 236, 0.94) 100%);
-        color: #8c1d26;
-        box-shadow: 0 8px 16px rgba(145, 29, 38, 0.08);
+        color: #9a3412;
+        box-shadow: 0 8px 16px rgba(180, 83, 9, 0.08);
     }
 
     .object-tools a:hover,
@@ -594,14 +594,14 @@
         min-height: 30px;
         padding: 0 12px;
         border-radius: 999px !important;
-        border: 1px solid rgba(162, 32, 42, 0.14);
-        background: #fff7f5;
-        color: #8c1d26 !important;
+        border: 1px solid rgba(217, 119, 6, 0.14);
+        background: #fff7ed;
+        color: #9a3412 !important;
         font-size: 12px;
         font-weight: 800;
         line-height: 1;
         text-decoration: none;
-        box-shadow: 0 6px 14px rgba(145, 29, 38, 0.08);
+        box-shadow: 0 6px 14px rgba(180, 83, 9, 0.08);
         cursor: pointer;
         margin: 0;
         vertical-align: middle;

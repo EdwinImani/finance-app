@@ -59,7 +59,7 @@
         .brand {
             font-size: 12.5pt;
             font-weight: 700;
-            color: #c20f0f;
+            color: #c2410c;
         }
 
         .invoice-type {
@@ -189,7 +189,7 @@
         }
 
         .text-box {
-            border: 1px solid #d7d7d7;
+            border: 0;
             background: #ffffff;
             padding: 3px 5px;
             min-height: 40px;
@@ -199,29 +199,29 @@
             font-size: 6pt;
             font-weight: 700;
             text-transform: uppercase;
-            color: #b21a1a;
+            color: #9a3412;
             margin-bottom: 1px;
         }
 
         .items-table {
             margin-top: 2px;
-            border: 1px solid #d7d7d7;
+            border: 0;
         }
 
         .items-table thead th {
-            background: #cc1010;
+            background: #c2410c;
             color: #ffffff;
             font-size: 5.8pt;
             font-weight: 700;
             text-transform: uppercase;
             padding: 3px 3px;
             text-align: left;
-            border: 1px solid #b40d0d;
+            border: 0;
         }
 
         .items-table tbody td {
             padding: 2px 3px;
-            border: 1px solid #ebebeb;
+            border: 0;
             vertical-align: top;
         }
 
@@ -231,6 +231,10 @@
 
         .is-right {
             text-align: right;
+        }
+
+        .is-amount {
+            text-align: left;
         }
 
         .is-center {
@@ -245,7 +249,7 @@
 
         .summary-table td {
             padding: 1px 4px;
-            border-bottom: 1px solid #d8d8d8;
+            border-bottom: 0;
         }
 
         .summary-label {
@@ -260,8 +264,8 @@
         }
 
         .summary-total td {
-            border-top: 1px solid #cc1010;
-            border-bottom: 1px solid #cc1010;
+            border-top: 0;
+            border-bottom: 0;
             font-weight: 700;
             color: #111111;
         }
@@ -399,9 +403,9 @@
                     <th style="width: 34%;">Description Of Items</th>
                     <th style="width: 15%;">Part Number</th>
                     <th style="width: 13%;">HS Code</th>
-                    <th class="is-center" style="width: 8%;">Qty</th>
-                    <th class="is-right" style="width: 12%;">Price</th>
-                    <th class="is-right" style="width: 12%;">Total Amount</th>
+                    <th class="is-amount" style="width: 8%;">Qty</th>
+                    <th class="is-amount" style="width: 12%;">Price</th>
+                    <th class="is-amount" style="width: 12%;">Total Amount</th>
                 </tr>
             </thead>
             <tbody>
@@ -411,9 +415,9 @@
                     <td>{{ item.description }}</td>
                     <td>{{ item.part_number }}</td>
                     <td>{{ item.hs_code }}</td>
-                    <td class="is-center">{{ item.quantity }}</td>
-                    <td class="is-right">{{ item.unit_price|floatformat:2 }}</td>
-                    <td class="is-right">{{ item.total_amount|floatformat:2 }}</td>
+                    <td class="is-amount">{{ item.quantity }}</td>
+                    <td class="is-amount">{{ item.unit_price|floatformat:2 }}</td>
+                    <td class="is-amount">{{ item.total_amount|floatformat:2 }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -422,7 +426,7 @@
         <div class="summary-wrap">
             <table class="summary-table">
                 <tr>
-                    <td class="summary-label">Gross Value</td>
+                    <td class="summary-label">Total Amount</td>
                     <td class="summary-value">{{ subtotal|floatformat:2 }}</td>
                 </tr>
                 <tr>
@@ -433,12 +437,14 @@
                     <td class="summary-label">VAT Amount</td>
                     <td class="summary-value">{{ vat_amount|floatformat:2 }}</td>
                 </tr>
+                {% if invoice.discount %}
                 <tr>
                     <td class="summary-label">Discount</td>
                     <td class="summary-value">{{ invoice.discount|floatformat:2 }}</td>
                 </tr>
+                {% endif %}
                 <tr class="summary-total">
-                    <td class="summary-label">Total Amount</td>
+                    <td class="summary-label">Grand Total Amount</td>
                     <td class="summary-value">{{ total_amount|floatformat:2 }}</td>
                 </tr>
             </table>

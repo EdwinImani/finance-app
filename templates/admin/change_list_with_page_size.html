@@ -1,5 +1,61 @@
 {% extends "admin/change_list.html" %}
 
+{% block extrahead %}
+{{ block.super }}
+<style>
+    .change-list #result_list tbody tr.row-clickable {
+        cursor: pointer;
+    }
+</style>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        var rows = document.querySelectorAll(".change-list #result_list tbody tr");
+
+        rows.forEach(function (row) {
+            var primaryLink = row.querySelector("th a[href], td a[href]");
+
+            if (!primaryLink) {
+                return;
+            }
+
+            row.classList.add("row-clickable");
+
+            row.addEventListener("click", function (event) {
+                if (
+                    event.target.closest("a, button, input, select, textarea, label") ||
+                    event.target.closest(".action-checkbox, .action-checkbox-column")
+                ) {
+                    return;
+                }
+
+                if (event.ctrlKey || event.metaKey) {
+                    window.open(primaryLink.href, "_blank", "noopener");
+                    return;
+                }
+
+                window.location.href = primaryLink.href;
+            });
+
+            row.addEventListener("keydown", function (event) {
+                if (event.key !== "Enter" && event.key !== " ") {
+                    return;
+                }
+
+                if (
+                    event.target.closest("a, button, input, select, textarea, label") ||
+                    event.target.closest(".action-checkbox, .action-checkbox-column")
+                ) {
+                    return;
+                }
+
+                event.preventDefault();
+                window.location.href = primaryLink.href;
+            });
+        });
+    });
+</script>
+{% endblock %}
+
 {% block search %}
 {{ block.super }}
 <div class="page-size-toolbar" style="margin: 12px 0 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">

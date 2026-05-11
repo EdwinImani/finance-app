@@ -106,7 +106,6 @@ class PurchaseOrderAdmin(PageSizeAdminMixin, admin.ModelAdmin):
                 "purchase_number",
                 "purchase_date",
                 "seller",
-                "requester",
                 ("sent_by", "shipment"),
             )
         }),
@@ -129,22 +128,17 @@ class PurchaseOrderAdmin(PageSizeAdminMixin, admin.ModelAdmin):
         "purchase_number",
         "purchase_date_display",
         "seller",
-        "requester",
         "amount_display",
     )
 
-    list_filter = ("purchase_date", "seller", "requester")
+    list_filter = ("purchase_date", "seller")
     search_fields = (
         "purchase_number",
         "seller__description",
-        "requester__description",
         "sent_by",
     )
 
-    autocomplete_fields = (
-        "seller",
-        "requester",
-    )
+    autocomplete_fields = ("seller",)
 
     inlines = [PurchaseOrderItemInline]
 
@@ -377,8 +371,15 @@ class PurchaseOrderAdmin(PageSizeAdminMixin, admin.ModelAdmin):
                 company=company,
                 items=self.get_purchase_items_for_pdf(obj),
                 seller=self.build_partner_context(obj.seller),
-                requester=self.build_partner_context(obj.requester) if obj.requester else self.build_company_partner_context(company),
-                requester_is_explicit=bool(obj.requester),
+                requester={
+                    "name": company.company_name if company and company.company_name else "-",
+                    "addresses": [],
+                    "phones": [],
+                    "email": "",
+                    "website": "",
+                    "fax": "",
+                },
+                requester_is_explicit=False,
                 currency=company.currency if company else "EUR",
             )
         except Exception as exc:

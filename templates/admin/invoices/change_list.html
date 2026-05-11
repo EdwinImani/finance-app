@@ -5,21 +5,21 @@
 {{ block.super }}
 <style>
     :root {
-        --invoice-list-bg: #f7f1ef;
+        --invoice-list-bg: #fff4e6;
         --invoice-list-panel: rgba(255, 255, 255, 0.92);
-        --invoice-list-border: rgba(162, 32, 42, 0.10);
+        --invoice-list-border: rgba(217, 119, 6, 0.18);
         --invoice-list-text: #23384d;
         --invoice-list-muted: #708090;
-        --invoice-list-accent: #a2202a;
-        --invoice-list-shadow: 0 18px 42px rgba(91, 27, 35, 0.10);
+        --invoice-list-accent: #d97706;
+        --invoice-list-shadow: 0 18px 42px rgba(120, 53, 15, 0.14);
         --invoice-list-radius: 18px;
     }
 
     #content {
         background:
-            radial-gradient(circle at top left, rgba(220, 90, 100, 0.12), transparent 28%),
-            radial-gradient(circle at top right, rgba(162, 32, 42, 0.10), transparent 24%),
-            linear-gradient(180deg, #fdf9f8 0%, var(--invoice-list-bg) 100%);
+            radial-gradient(circle at top left, rgba(251, 146, 60, 0.12), transparent 28%),
+            radial-gradient(circle at top right, rgba(217, 119, 6, 0.18), transparent 24%),
+            linear-gradient(180deg, #fffaf4 0%, var(--invoice-list-bg) 100%);
     }
 
     .change-list #content-main {
@@ -38,8 +38,8 @@
         border-radius: 999px;
         padding: 11px 18px !important;
         font-weight: 800;
-        border: 1px solid #911d26;
-        box-shadow: 0 10px 18px rgba(145, 29, 38, 0.16);
+        border: 1px solid #b45309;
+        box-shadow: 0 10px 18px rgba(180, 83, 9, 0.16);
         letter-spacing: 0.03em;
         text-transform: uppercase;
         font-size: 12px;
@@ -49,7 +49,7 @@
     }
 
     .change-list .object-tools a.addlink {
-        background: linear-gradient(135deg, #b92b36 0%, #911d26 100%) !important;
+        background: linear-gradient(135deg, #f59e0b 0%, #b45309 100%) !important;
         color: #fff !important;
     }
 
@@ -62,11 +62,12 @@
 
     .change-list .object-tools a:hover {
         transform: translateY(-1px);
-        box-shadow: 0 14px 24px rgba(145, 29, 38, 0.2);
+        box-shadow: 0 14px 24px rgba(180, 83, 9, 0.2);
     }
 
     .change-list #changelist {
-        background: var(--invoice-list-panel);
+        background:
+            linear-gradient(180deg, rgba(255, 250, 244, 0.96) 0%, rgba(255, 255, 255, 0.92) 100%);
         border: 1px solid var(--invoice-list-border);
         border-radius: var(--invoice-list-radius);
         box-shadow: var(--invoice-list-shadow);
@@ -82,7 +83,7 @@
     }
 
     .change-list #toolbar {
-        background: #fff8f6;
+        background: #fffaf4;
         border: 1px solid var(--invoice-list-border);
         border-radius: 14px;
         padding: 14px 16px;
@@ -102,7 +103,7 @@
     }
 
     .change-list .page-size-toolbar form {
-        background: #fbf9f3;
+        background: #fff7ed;
         border: 1px solid var(--invoice-list-border);
         border-radius: 999px;
         padding: 8px 12px;
@@ -118,7 +119,7 @@
     }
 
     .change-list .actions {
-        background: #fff8f8;
+        background: #fff7ed;
         border: 1px solid var(--invoice-list-border);
         border-radius: 14px;
         padding: 10px 14px;
@@ -134,8 +135,8 @@
     }
 
     .change-list #result_list thead th {
-        background: #fbefef;
-        color: #8c1d26;
+        background: #ffedd5;
+        color: #9a3412;
         text-transform: uppercase;
         letter-spacing: 0.04em;
         font-size: 11px;
@@ -144,11 +145,11 @@
     }
 
     .change-list #result_list tbody tr:nth-child(even) {
-        background: #fffefb;
+        background: #fffbeb;
     }
 
     .change-list #result_list tbody tr:hover {
-        background: #f6f4ed;
+        background: #fff3e0;
     }
 
     .change-list #result_list tbody th,
@@ -159,27 +160,27 @@
     }
 
     .change-list #result_list tbody th a {
-        color: #8c1d26;
+        color: #9a3412;
         font-weight: 700;
     }
 
     .change-list .paginator {
         margin-top: 14px;
-        background: #fbf9f3;
+        background: #fff7ed;
         border: 1px solid var(--invoice-list-border);
         border-radius: 14px;
         padding: 12px 14px;
     }
 
     .change-list #changelist-filter {
-        background: linear-gradient(180deg, #fffefb 0%, #fff5f4 100%);
+        background: linear-gradient(180deg, #fffbeb 0%, #fff7ed 100%);
         border-left: 1px solid var(--invoice-list-border);
         padding: 18px 16px;
     }
 
     .change-list #changelist-filter h2,
     .change-list #changelist-filter h3 {
-        color: #8c1d26;
+        color: #9a3412;
     }
 
     .invoice-list-hero {
@@ -188,6 +189,13 @@
         align-items: flex-start;
         gap: 18px;
         margin-bottom: 16px;
+        padding: 22px 24px;
+        border: 1px solid rgba(217, 119, 6, 0.20);
+        border-radius: 22px;
+        background:
+            radial-gradient(circle at 86% 18%, rgba(251, 146, 60, 0.22), transparent 26%),
+            linear-gradient(135deg, #fffbeb 0%, #fff7ed 48%, #ffedd5 100%);
+        box-shadow: 0 18px 42px rgba(120, 53, 15, 0.12);
     }
 
     .invoice-list-hero h1 {
@@ -195,7 +203,7 @@
         font-size: 32px;
         line-height: 1.1;
         letter-spacing: -0.03em;
-        color: #8c1d26;
+        color: #9a3412;
     }
 
     .invoice-list-hero p {
@@ -206,13 +214,14 @@
     }
 
     .invoice-list-badge {
-        background: #fff;
+        background: linear-gradient(135deg, #f59e0b 0%, #b45309 100%);
         border: 1px solid var(--invoice-list-border);
         border-radius: 999px;
         padding: 10px 14px;
-        color: #8c1d26;
+        color: #fff;
         font-weight: 700;
         white-space: nowrap;
+        box-shadow: 0 10px 18px rgba(180, 83, 9, 0.16);
     }
 
     @media (max-width: 900px) {

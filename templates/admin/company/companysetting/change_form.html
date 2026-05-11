@@ -143,21 +143,21 @@ document.addEventListener("DOMContentLoaded", function () {
 </script>
 <style>
     :root {
-        --company-bg: #f7f1ef;
+        --company-bg: #fff4e6;
         --company-panel: rgba(255, 255, 255, 0.92);
-        --company-border: rgba(162, 32, 42, 0.10);
+        --company-border: rgba(217, 119, 6, 0.16);
         --company-text: #23384d;
         --company-muted: #708090;
-        --company-accent: #a2202a;
-        --company-shadow: 0 18px 42px rgba(91, 27, 35, 0.10);
+        --company-accent: #d97706;
+        --company-shadow: 0 18px 42px rgba(120, 53, 15, 0.12);
         --company-radius: 18px;
     }
 
     #content {
         background:
-            radial-gradient(circle at top left, rgba(220, 90, 100, 0.12), transparent 28%),
-            radial-gradient(circle at top right, rgba(162, 32, 42, 0.10), transparent 24%),
-            linear-gradient(180deg, #fdf9f8 0%, var(--company-bg) 100%);
+            radial-gradient(circle at top left, rgba(251, 146, 60, 0.16), transparent 28%),
+            radial-gradient(circle at top right, rgba(217, 119, 6, 0.12), transparent 24%),
+            linear-gradient(180deg, #fffaf4 0%, var(--company-bg) 100%);
     }
 
     .change-form #content-main {
@@ -184,8 +184,8 @@ document.addEventListener("DOMContentLoaded", function () {
     .change-form .module h2,
     .change-form .module caption,
     .inline-group h2 {
-        background: linear-gradient(180deg, rgba(255, 248, 247, 1) 0%, rgba(249, 236, 237, 0.92) 100%);
-        color: #8c1d26;
+        background: linear-gradient(180deg, #fffaf4 0%, #ffedd5 100%);
+        color: #9a3412;
         padding: 16px 20px;
         font-size: 15px;
         letter-spacing: 0.03em;
@@ -228,25 +228,25 @@ document.addEventListener("DOMContentLoaded", function () {
     .company-logo-save-button {
         margin-left: 12px;
         border: 1px solid var(--company-accent);
-        background: linear-gradient(180deg, #b92b36 0%, #911d26 100%);
+        background: linear-gradient(180deg, #f59e0b 0%, #d97706 100%);
         color: #fff;
         border-radius: 999px;
         padding: 9px 14px;
         font-weight: 700;
         cursor: pointer;
-        box-shadow: 0 12px 20px rgba(145, 29, 38, 0.18);
+        box-shadow: 0 12px 20px rgba(180, 83, 9, 0.20);
     }
 
     .company-logo-save-button:hover {
-        background: linear-gradient(180deg, #c4333f 0%, #9a1f29 100%);
-        border-color: #9a1f29;
+        background: linear-gradient(180deg, #f97316 0%, #b45309 100%);
+        border-color: #b45309;
     }
 
     .company-logo-remove-button {
         margin-left: 10px;
-        border: 1px solid #d48a8f;
-        background: #fff5f6;
-        color: #8a2f39;
+        border: 1px solid #fdba74;
+        background: #fff7ed;
+        color: #9a3412;
         border-radius: 999px;
         padding: 9px 14px;
         font-weight: 700;
@@ -254,7 +254,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     .company-logo-remove-button:hover {
-        background: #ffe8ea;
+        background: #ffedd5;
     }
 
     .change-form .form-row.field-company_logo a {
@@ -294,7 +294,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     .company-summary-card {
-        background: linear-gradient(180deg, #ffffff 0%, #fff7f5 100%);
+        background: linear-gradient(180deg, #ffffff 0%, #fff7ed 100%);
         border: 1px solid var(--company-border);
         border-radius: 16px;
         padding: 16px;
@@ -320,8 +320,8 @@ document.addEventListener("DOMContentLoaded", function () {
         align-items: center;
         justify-content: space-between;
         gap: 18px;
-        background: linear-gradient(135deg, #fff 0%, #fff1f2 100%);
-        border: 1px solid rgba(162, 32, 42, 0.16);
+        background: linear-gradient(135deg, #fff 0%, #fff7ed 100%);
+        border: 1px solid rgba(217, 119, 6, 0.18);
         border-radius: 16px;
         padding: 18px 20px;
         margin: 6px 0;
@@ -329,7 +329,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     .company-login-security strong {
         display: block;
-        color: #8c1d26;
+        color: #9a3412;
         font-size: 16px;
         margin-bottom: 6px;
     }
@@ -348,16 +348,16 @@ document.addEventListener("DOMContentLoaded", function () {
         min-height: 38px;
         padding: 0 18px;
         border-radius: 999px;
-        background: linear-gradient(180deg, #b92b36 0%, #911d26 100%);
+        background: linear-gradient(180deg, #f59e0b 0%, #d97706 100%);
         color: #fff;
         font-weight: 800;
         text-decoration: none;
-        box-shadow: 0 12px 20px rgba(145, 29, 38, 0.18);
+        box-shadow: 0 12px 20px rgba(180, 83, 9, 0.20);
         white-space: nowrap;
     }
 
     .company-password-button:hover {
-        background: linear-gradient(180deg, #c4333f 0%, #9a1f29 100%);
+        background: linear-gradient(180deg, #f97316 0%, #b45309 100%);
         color: #fff;
     }
 

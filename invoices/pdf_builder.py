@@ -80,7 +80,8 @@ def build_invoice_pdf(*, invoice, company, items, importer, end_user, invoice_ti
             if page_index > 0:
                 story.append(PageBreak())
                 story.append(Spacer(1, 2 * mm))
-            story.append(_build_items_table(page_items, currency, styles))
+            amount_from_last_page = page_totals[page_index - 1]["cumulative_gross_value"] if page_index > 0 else None
+            story.append(_build_items_table(page_items, currency, styles, amount_from_last_page=amount_from_last_page))
             story.append(Spacer(1, 2 * mm))
             story.append(_build_page_totals_flowable(page_index, invoice, currency, styles, page_totals))
 
@@ -291,7 +292,8 @@ def build_purchase_order_pdf(*, purchase_order, company, items, seller, requeste
         if page_index > 0:
             story.append(PageBreak())
             story.append(Spacer(1, 2 * mm))
-        story.append(_build_purchase_order_items_table(page_items, currency, styles))
+        amount_from_last_page = page_totals[page_index - 1]["gross_value"] if page_index > 0 else None
+        story.append(_build_purchase_order_items_table(page_items, currency, styles, amount_from_last_page=amount_from_last_page))
         story.append(Spacer(1, 2 * mm))
         story.append(_build_purchase_order_totals_flowable(page_index, purchase_order, currency, styles, page_totals))
     story.append(Spacer(1, 4 * mm))
@@ -323,7 +325,7 @@ def _build_styles():
             fontName="Helvetica-Bold",
             fontSize=18,
             leading=20,
-            textColor=colors.HexColor("#8A0F16"),
+            textColor=colors.HexColor("#9A3412"),
             spaceAfter=0,
         ),
         "section_title": ParagraphStyle(
@@ -332,7 +334,7 @@ def _build_styles():
             fontName="Helvetica-Bold",
             fontSize=6.5,
             leading=7.5,
-            textColor=colors.HexColor("#B31217"),
+            textColor=colors.HexColor("#C2410C"),
             spaceAfter=0,
         ),
         "document_type_title": ParagraphStyle(
@@ -341,7 +343,7 @@ def _build_styles():
             fontName="Helvetica-Bold",
             fontSize=9,
             leading=10.5,
-            textColor=colors.HexColor("#B31217"),
+            textColor=colors.HexColor("#C2410C"),
             spaceAfter=0,
         ),
         "label": ParagraphStyle(
@@ -350,7 +352,7 @@ def _build_styles():
             fontName="Helvetica-Bold",
             fontSize=6,
             leading=7,
-            textColor=colors.HexColor("#7F1D1D"),
+            textColor=colors.HexColor("#7C2D12"),
         ),
         "body": ParagraphStyle(
             "Body",
@@ -415,7 +417,7 @@ def _build_styles():
             fontSize=6.3,
             leading=7.4,
             alignment=TA_JUSTIFY,
-            textColor=colors.HexColor("#3F1D1D"),
+            textColor=colors.HexColor("#431407"),
         ),
         "table_cell_right": ParagraphStyle(
             "TableCellRight",
@@ -424,7 +426,16 @@ def _build_styles():
             fontSize=6.3,
             leading=7.4,
             alignment=TA_RIGHT,
-            textColor=colors.HexColor("#3F1D1D"),
+            textColor=colors.HexColor("#431407"),
+        ),
+        "table_cell_amount": ParagraphStyle(
+            "TableCellAmount",
+            parent=base["BodyText"],
+            fontName="Helvetica",
+            fontSize=6.3,
+            leading=7.4,
+            alignment=TA_LEFT,
+            textColor=colors.HexColor("#431407"),
         ),
         "footer": ParagraphStyle(
             "Footer",
@@ -590,20 +601,13 @@ def _build_purchase_order_details(purchase_order, company, styles):
 def _build_purchase_order_context_blocks(seller, requester, purchase_order, company, styles, requester_is_explicit=False):
     order_details_box, _ = _build_purchase_order_detail_boxes(purchase_order, company, styles)
     seller_card = _partner_card("Seller", seller, styles)
-    shipment_box = _build_purchase_order_shipment_box(purchase_order, styles)
-    if requester_is_explicit:
-        requester_card = _partner_card("Requester", requester, styles)
-        note_currency_box = _build_purchase_note_currency_box(company, styles)
-        rows = [
-            [[requester_card, Spacer(1, 2 * mm), note_currency_box], order_details_box],
-            [seller_card, shipment_box],
-        ]
-    else:
-        note_currency_box = _build_purchase_note_currency_box(company, styles)
-        rows = [
-            [[order_details_box, Spacer(1, 2 * mm), note_currency_box], Spacer(1, 0)],
-            [seller_card, shipment_box],
-        ]
+    order_info_table = _build_purchase_order_info_table(purchase_order, requester, styles)
+    note_currency_box = _build_purchase_note_currency_box(company, styles)
+    rows = [
+        [[order_details_box, Spacer(1, 2 * mm), note_currency_box], Spacer(1, 0)],
+        [seller_card, Spacer(1, 0)],
+        [order_info_table, ""],
+    ]
 
     table = Table(
         rows,
@@ -618,6 +622,7 @@ def _build_purchase_order_context_blocks(seller, requester, purchase_order, comp
                 ("RIGHTPADDING", (0, 0), (-1, -1), 0),
                 ("TOPPADDING", (0, 0), (-1, -1), 0),
                 ("BOTTOMPADDING", (0, 0), (-1, -1), 2 * mm),
+                ("SPAN", (0, 2), (1, 2)),
             ]
         )
     )
@@ -675,6 +680,52 @@ def _build_purchase_order_shipment_box(purchase_order, styles):
     return [
         Paragraph("<br/>".join(lines), styles.get("body_left", styles["body"])),
     ]
+
+
+def _build_purchase_order_info_table(purchase_order, requester, styles):
+    requester = requester or {}
+    requester_lines = [requester.get("name") or "-"]
+    requester_lines.extend(address for address in requester.get("addresses", []) if address)
+    requester_text = "<br/>".join(_format_preserving_layout(line) for line in requester_lines)
+
+    rows = [
+        [
+            Paragraph("DATE DE<br/>COMMANDE/<br/>Order Date:", styles["label"]),
+            Paragraph("DEMANDEUR/<br/>Requester", styles["label"]),
+            Paragraph("ENVOYER PAR /<br/>SEND BY", styles["label"]),
+            Paragraph("EXPEDITION /<br/>SHIPMENT", styles["label"]),
+            Paragraph("CONDITIONS DE PRIX/<br/>SALES CONDITIONS", styles["label"]),
+        ],
+        [
+            Paragraph(
+                purchase_order.purchase_date.strftime("%d-%b-%Y") if purchase_order.purchase_date else "-",
+                styles["table_cell"],
+            ),
+            Paragraph(requester_text, styles["table_cell"]),
+            Paragraph(_format_preserving_layout(getattr(purchase_order, "sent_by", "") or "-"), styles["table_cell"]),
+            Paragraph(_format_preserving_layout(getattr(purchase_order, "shipment", "") or "-"), styles["table_cell"]),
+            Paragraph(_format_preserving_layout(getattr(purchase_order, "sales_condition", "") or "-"), styles["table_cell"]),
+        ],
+    ]
+    table = Table(
+        rows,
+        colWidths=[20 * mm, 84 * mm, 24 * mm, 25 * mm, 31 * mm],
+        hAlign="LEFT",
+    )
+    table.setStyle(
+        TableStyle(
+            [
+                ("LINEABOVE", (0, 0), (-1, 0), 0.5, colors.HexColor("#D9D9D9")),
+                ("LINEBELOW", (0, -1), (-1, -1), 0.5, colors.HexColor("#D9D9D9")),
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ("LEFTPADDING", (0, 0), (-1, -1), 4),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+                ("TOPPADDING", (0, 0), (-1, -1), 5),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+            ]
+        )
+    )
+    return table
 
 
 def _build_purchase_order_detail_boxes(purchase_order, company, styles):
@@ -744,8 +795,7 @@ def _partner_card(title, partner, styles):
     card.setStyle(
         TableStyle(
             [
-                ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#FFF5F5")),
-                ("BOX", (0, 0), (-1, -1), 0.8, colors.HexColor("#E5B8B8")),
+                ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#FFF7ED")),
                 ("LEFTPADDING", (0, 0), (-1, -1), 5 * mm),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 5 * mm),
                 ("TOPPADDING", (0, 0), (-1, -1), 2 * mm),
@@ -766,8 +816,7 @@ def _info_box(title, text, styles):
     box.setStyle(
         TableStyle(
             [
-                ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#FFF5F5")),
-                ("BOX", (0, 0), (-1, -1), 0.8, colors.HexColor("#E5B8B8")),
+                ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#FFF7ED")),
                 ("LEFTPADDING", (0, 0), (-1, -1), 5 * mm),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 5 * mm),
                 ("TOPPADDING", (0, 0), (-1, -1), 2 * mm),
@@ -828,14 +877,13 @@ def _meta_table(rows, styles, align_right=False):
                 ("TOPPADDING", (0, 0), (-1, -1), 0),
                 ("LEFTPADDING", (0, 0), (-1, -1), 0),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 0),
-                ("LINEBELOW", (0, 0), (-1, -2), 0.3, colors.HexColor("#E1E6EC")),
             ]
         )
     )
     return table
 
 
-def _build_items_table(items, currency, styles):
+def _build_items_table(items, currency, styles, amount_from_last_page=None):
     rows = [
         [
             Paragraph("Item", styles["table_head"]),
@@ -848,6 +896,19 @@ def _build_items_table(items, currency, styles):
             Paragraph("Amount", styles["table_head"]),
         ]
     ]
+    if amount_from_last_page is not None:
+        rows.append(
+            [
+                Paragraph("", styles["table_cell"]),
+                Paragraph("Amount from Last Page", styles["table_cell"]),
+                Paragraph("", styles["table_cell"]),
+                Paragraph("", styles["table_cell"]),
+                Paragraph("", styles["table_cell"]),
+                Paragraph("", styles["table_cell_amount"]),
+                Paragraph("", styles["table_cell_amount"]),
+                Paragraph(_format_money(amount_from_last_page, currency), styles["table_cell_amount"]),
+            ]
+        )
 
     for item in items:
         rows.append(
@@ -857,9 +918,9 @@ def _build_items_table(items, currency, styles):
                 Paragraph(_escape(item["item_date"]), styles["table_cell"]),
                 Paragraph(_escape(item["part_number"]), styles["table_cell"]),
                 Paragraph(_escape(item["hs_code"]), styles["table_cell"]),
-                Paragraph(str(item["quantity"]), styles["table_cell_right"]),
-                Paragraph(_format_money(item["unit_price"], currency), styles["table_cell_right"]),
-                Paragraph(_format_money(item["total_amount"], currency), styles["table_cell_right"]),
+                Paragraph(str(item["quantity"]), styles["table_cell_amount"]),
+                Paragraph(_format_money(item["unit_price"], currency), styles["table_cell_amount"]),
+                Paragraph(_format_money(item["total_amount"], currency), styles["table_cell_amount"]),
             ]
         )
 
@@ -871,9 +932,9 @@ def _build_items_table(items, currency, styles):
                 Paragraph("-", styles["table_cell"]),
                 Paragraph("-", styles["table_cell"]),
                 Paragraph("-", styles["table_cell"]),
-                Paragraph("-", styles["table_cell_right"]),
-                Paragraph("-", styles["table_cell_right"]),
-                Paragraph("-", styles["table_cell_right"]),
+                Paragraph("-", styles["table_cell_amount"]),
+                Paragraph("-", styles["table_cell_amount"]),
+                Paragraph("-", styles["table_cell_amount"]),
             ]
         )
 
@@ -885,11 +946,10 @@ def _build_items_table(items, currency, styles):
     table.setStyle(
         TableStyle(
             [
-                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#A61B1B")),
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#C2410C")),
                 ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-                ("ALIGN", (4, 1), (-1, -1), "RIGHT"),
-                ("GRID", (0, 0), (-1, -1), 0.4, colors.HexColor("#E5B8B8")),
-                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#FFF5F5")]),
+                ("ALIGN", (5, 1), (-1, -1), "LEFT"),
+                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#FFF7ED")]),
                 ("LEFTPADDING", (0, 0), (-1, -1), 4),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 4),
                 ("TOPPADDING", (0, 0), (-1, -1), 5),
@@ -938,10 +998,9 @@ def _build_shipping_items_table(items, styles):
     table.setStyle(
         TableStyle(
             [
-                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#A61B1B")),
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#C2410C")),
                 ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-                ("GRID", (0, 0), (-1, -1), 0.4, colors.HexColor("#E5B8B8")),
-                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#FFF5F5")]),
+                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#FFF7ED")]),
                 ("LEFTPADDING", (0, 0), (-1, -1), 4),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 4),
                 ("TOPPADDING", (0, 0), (-1, -1), 5),
@@ -1007,10 +1066,9 @@ def _build_packing_section(*, invoice, packing_entries, styles):
     packing_table.setStyle(
         TableStyle(
             [
-                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#A61B1B")),
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#C2410C")),
                 ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-                ("GRID", (0, 0), (-1, -1), 0.4, colors.HexColor("#E5B8B8")),
-                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#FFF5F5")]),
+                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#FFF7ED")]),
                 ("LEFTPADDING", (0, 0), (-1, -1), 4),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 4),
                 ("TOPPADDING", (0, 0), (-1, -1), 5),
@@ -1034,16 +1092,24 @@ def _build_totals_table(invoice, currency, styles):
     )
 
 
-def _build_totals_table_from_values(*, gross_value, freight, vat_amount, discount, total_amount, currency, styles, extra_rows=None):
-    rows = [
-        ["Gross Value", _format_money(gross_value, currency)],
+def _build_totals_table_from_values(*, gross_value, freight, vat_amount, discount, total_amount, currency, styles, leading_rows=None, extra_rows=None):
+    rows = []
+    if leading_rows:
+        rows.extend([[label, _format_money(value, currency)] for label, value in leading_rows])
+
+    rows.extend([
+        ["Total Amount", _format_money(gross_value, currency)],
         ["Freight", _format_money(freight, currency)],
         ["Vat Amount", _format_money(vat_amount, currency)],
-        ["Discount", _format_money(discount, currency)],
-        ["Total Amount", _format_money(total_amount, currency)],
-    ]
+    ])
+    if _has_amount(discount):
+        rows.append(["Discount", _format_money(discount, currency)])
+    rows.append(["Grand Total Amount", _format_money(total_amount, currency)])
+
     if extra_rows:
         rows.extend([[label, _format_money(value, currency)] for label, value in extra_rows])
+
+    total_row_index = len(rows) - 1
     cells = [
         [Paragraph(_escape(label), styles["label"]), Paragraph(_escape(value), styles["body_right"])]
         for label, value in rows
@@ -1052,9 +1118,7 @@ def _build_totals_table_from_values(*, gross_value, freight, vat_amount, discoun
     table.setStyle(
         TableStyle(
             [
-                ("BACKGROUND", (0, 4), (-1, 4), colors.HexColor("#FDECEC")),
-                ("LINEABOVE", (0, 0), (-1, 0), 0.6, colors.HexColor("#D8A1A1")),
-                ("LINEABOVE", (0, 4), (-1, 4), 0.8, colors.HexColor("#B31217")),
+                ("BACKGROUND", (0, total_row_index), (-1, total_row_index), colors.HexColor("#FFEDD5")),
                 ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
                 ("TOPPADDING", (0, 0), (-1, -1), 4),
                 ("LEFTPADDING", (0, 0), (-1, -1), 6),
@@ -1259,7 +1323,14 @@ def _build_page_totals_flowable(page_index, invoice, currency, styles, page_tota
 
     summary = page_totals[page_index]
     is_last_page = page_index == len(page_totals) - 1
-    detail_table = _build_page_gross_values_table(summary["page_cumulative_gross_values"], currency, styles)
+    detail_table = _build_page_gross_value_table(
+        page_number=page_index + 1,
+        total_pages=len(page_totals),
+        page_amount=summary["page_item_total"],
+        subtotal_amount=summary["cumulative_gross_value"],
+        currency=currency,
+        styles=styles,
+    )
 
     if is_last_page:
         totals_table = _build_totals_table_from_values(
@@ -1294,6 +1365,10 @@ def _build_page_totals_flowable(page_index, invoice, currency, styles, page_tota
 def _format_money(value, currency):
     amount = Decimal(value or 0).quantize(Decimal("0.01"))
     return f"{amount:,.2f} {currency}"
+
+
+def _has_amount(value):
+    return Decimal(value or 0).quantize(Decimal("0.01")) != Decimal("0.00")
 
 
 def _format_plain_decimal(value):
@@ -1375,16 +1450,17 @@ def _compute_page_totals(*, invoice, item_pages):
     return results
 
 
-def _build_page_gross_values_table(page_gross_values, currency, styles):
-    rows = [
-        [Paragraph(_escape(f"Page {index} Gross Value"), styles["label"]), Paragraph(_format_money(value, currency), styles["body_right"])]
-        for index, value in enumerate(page_gross_values, start=1)
-    ]
+def _build_page_gross_value_table(*, page_number, total_pages, page_amount, subtotal_amount, currency, styles):
+    label = _page_gross_value_label(page_number, total_pages)
+    value = page_amount if page_number == 1 else subtotal_amount
+    rows = [[
+        Paragraph(_escape(label), styles["label"]),
+        Paragraph(_format_money(value, currency), styles["body_right"]),
+    ]]
     table = Table(rows, colWidths=[35 * mm, 35 * mm], hAlign="RIGHT")
     table.setStyle(
         TableStyle(
             [
-                ("LINEABOVE", (0, 0), (-1, 0), 0.6, colors.HexColor("#D8A1A1")),
                 ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
                 ("TOPPADDING", (0, 0), (-1, -1), 3),
                 ("LEFTPADDING", (0, 0), (-1, -1), 6),
@@ -1393,6 +1469,14 @@ def _build_page_gross_values_table(page_gross_values, currency, styles):
         )
     )
     return table
+
+
+def _page_gross_value_label(page_number, total_pages):
+    if page_number == 1:
+        return f"Amount of page 1 of {total_pages}"
+    if page_number == total_pages:
+        return f"Sub total from Page 1 to {page_number}"
+    return f"Sub Total of Page 1 to {page_number}"
 
 
 def _build_report_summary_table(*, currency, total_qty, total_subtotal, total_vat, total_freight, total_discount, total_amount, styles):
@@ -1412,9 +1496,7 @@ def _build_report_summary_table(*, currency, total_qty, total_subtotal, total_va
     table.setStyle(
         TableStyle(
             [
-                ("BACKGROUND", (0, 5), (-1, 5), colors.HexColor("#FDECEC")),
-                ("LINEABOVE", (0, 0), (-1, 0), 0.6, colors.HexColor("#D8A1A1")),
-                ("LINEABOVE", (0, 5), (-1, 5), 0.8, colors.HexColor("#B31217")),
+                ("BACKGROUND", (0, 5), (-1, 5), colors.HexColor("#FFEDD5")),
                 ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
                 ("TOPPADDING", (0, 0), (-1, -1), 4),
                 ("LEFTPADDING", (0, 0), (-1, -1), 6),
@@ -1441,9 +1523,7 @@ def _build_purchase_report_summary_table(*, currency, total_qty, total_gross, to
     table.setStyle(
         TableStyle(
             [
-                ("BACKGROUND", (0, 4), (-1, 4), colors.HexColor("#FDECEC")),
-                ("LINEABOVE", (0, 0), (-1, 0), 0.6, colors.HexColor("#D8A1A1")),
-                ("LINEABOVE", (0, 4), (-1, 4), 0.8, colors.HexColor("#B31217")),
+                ("BACKGROUND", (0, 4), (-1, 4), colors.HexColor("#FFEDD5")),
                 ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
                 ("TOPPADDING", (0, 0), (-1, -1), 4),
                 ("LEFTPADDING", (0, 0), (-1, -1), 6),
@@ -1499,7 +1579,7 @@ def _build_report_histogram(*, chart_labels, chart_totals, title):
         chart.bars[(0, index)].strokeWidth = 0.8
 
     drawing.add(chart)
-    drawing.add(String(0, 70 * mm, title, fontName="Helvetica-Bold", fontSize=13, fillColor=colors.HexColor("#8A0F16")))
+    drawing.add(String(0, 70 * mm, title, fontName="Helvetica-Bold", fontSize=13, fillColor=colors.HexColor("#9A3412")))
     drawing.add(String(0, 64 * mm, "Metric: Total Amount", fontName="Helvetica-Bold", fontSize=8, fillColor=colors.HexColor("#5F6368")))
     drawing.add(String(90 * mm, 4 * mm, "Month", fontName="Helvetica", fontSize=8, fillColor=colors.HexColor("#5F6368"), textAnchor="middle"))
     return drawing
@@ -1554,10 +1634,9 @@ def _build_commercial_report_table(*, invoices, currency, styles):
     table.setStyle(
         TableStyle(
             [
-                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#A61B1B")),
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#C2410C")),
                 ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-                ("GRID", (0, 0), (-1, -1), 0.4, colors.HexColor("#E5B8B8")),
-                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#FFF5F5")]),
+                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#FFF7ED")]),
                 ("LEFTPADDING", (0, 0), (-1, -1), 4),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 4),
                 ("TOPPADDING", (0, 0), (-1, -1), 5),
@@ -1607,10 +1686,9 @@ def _build_purchase_report_table(*, purchase_orders, currency, styles):
     table.setStyle(
         TableStyle(
             [
-                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#A61B1B")),
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#C2410C")),
                 ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-                ("GRID", (0, 0), (-1, -1), 0.4, colors.HexColor("#E5B8B8")),
-                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#FFF5F5")]),
+                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#FFF7ED")]),
                 ("LEFTPADDING", (0, 0), (-1, -1), 4),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 4),
                 ("TOPPADDING", (0, 0), (-1, -1), 5),
@@ -1621,7 +1699,7 @@ def _build_purchase_report_table(*, purchase_orders, currency, styles):
     return table
 
 
-def _build_purchase_order_items_table(items, currency, styles):
+def _build_purchase_order_items_table(items, currency, styles, amount_from_last_page=None):
     rows = [[
         Paragraph("Item", styles["table_head"]),
         Paragraph("Description", styles["table_head"]),
@@ -1632,6 +1710,19 @@ def _build_purchase_order_items_table(items, currency, styles):
         Paragraph("VAT", styles["table_head"]),
     ]]
 
+    if amount_from_last_page is not None:
+        rows.append(
+            [
+                Paragraph("", styles["table_cell"]),
+                Paragraph("Amount from Last Page", styles["table_cell"]),
+                Paragraph("", styles["table_cell"]),
+                Paragraph("", styles["table_cell_amount"]),
+                Paragraph("", styles["table_cell_amount"]),
+                Paragraph(_format_money(amount_from_last_page, currency), styles["table_cell_amount"]),
+                Paragraph("", styles["table_cell_amount"]),
+            ]
+        )
+
     for item in items:
         vat_amount = (Decimal(item["total_amount"]) * Decimal(item.get("vat_percent", 0) or 0)) / Decimal("100")
         rows.append(
@@ -1639,10 +1730,10 @@ def _build_purchase_order_items_table(items, currency, styles):
                 Paragraph(str(item["index"]), styles["table_cell"]),
                 Paragraph(_escape(item["description"]), styles["table_cell"]),
                 Paragraph(_escape(item["part_number"]), styles["table_cell"]),
-                Paragraph(_format_plain_decimal(item["quantity"]), styles["table_cell_right"]),
-                Paragraph(_format_money(item["unit_price"], currency), styles["table_cell_right"]),
-                Paragraph(_format_money(item["total_amount"], currency), styles["table_cell_right"]),
-                Paragraph(_format_plain_decimal(vat_amount), styles["table_cell_right"]),
+                Paragraph(_format_plain_decimal(item["quantity"]), styles["table_cell_amount"]),
+                Paragraph(_format_money(item["unit_price"], currency), styles["table_cell_amount"]),
+                Paragraph(_format_money(item["total_amount"], currency), styles["table_cell_amount"]),
+                Paragraph(_format_plain_decimal(vat_amount), styles["table_cell_amount"]),
             ]
         )
 
@@ -1657,10 +1748,9 @@ def _build_purchase_order_items_table(items, currency, styles):
     table.setStyle(
         TableStyle(
             [
-                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#A61B1B")),
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#C2410C")),
                 ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-                ("GRID", (0, 0), (-1, -1), 0.4, colors.HexColor("#E5B8B8")),
-                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#FFF5F5")]),
+                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#FFF7ED")]),
                 ("LEFTPADDING", (0, 0), (-1, -1), 4),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 4),
                 ("TOPPADDING", (0, 0), (-1, -1), 5),
@@ -1710,7 +1800,13 @@ def _build_purchase_order_totals_flowable(page_index, purchase_order, currency, 
 
     summary = page_totals[page_index]
     is_last_page = page_index == len(page_totals) - 1
-    detail_table = _build_purchase_order_page_gross_values_table(summary["page_gross_values"], currency, styles)
+    detail_table = _build_purchase_order_page_gross_values_table(
+        page_index + 1,
+        summary["gross_value"],
+        len(page_totals),
+        currency,
+        styles,
+    )
     if is_last_page:
         totals_table = _build_purchase_order_payment_table(
             gross_value=summary["all_pages_gross"],
@@ -1737,20 +1833,23 @@ def _build_purchase_order_totals_flowable(page_index, purchase_order, currency, 
     return detail_table
 
 
-def _build_purchase_order_page_gross_values_table(page_gross_values, currency, styles):
-    rows = []
-    for index, value in enumerate(page_gross_values, start=1):
-        rows.append(
-            [
-                Paragraph(_escape(f"Page {index} Gross Value"), styles["label"]),
-                "",
-                "",
-                "",
-                "",
-                Paragraph(_format_money(value, currency), styles["body_right"]),
-                "",
-            ]
-        )
+def _build_purchase_order_page_gross_values_table(page_number, page_gross_value, total_pages, currency, styles):
+    label = (
+        f"Amount of page 1 of {total_pages}"
+        if page_number == 1
+        else f"Sub Total of Page 1 to {page_number}"
+    )
+    rows = [
+        [
+            Paragraph(_escape(label), styles["label"]),
+            "",
+            "",
+            "",
+            "",
+            Paragraph(_format_money(page_gross_value, currency), styles["body_right"]),
+            "",
+        ]
+    ]
 
     table = Table(
         rows,
@@ -1759,7 +1858,6 @@ def _build_purchase_order_page_gross_values_table(page_gross_values, currency, s
     )
     style_commands = [
         ("ALIGN", (0, 0), (4, -1), "RIGHT"),
-        ("LINEABOVE", (0, 0), (-1, 0), 0.6, colors.HexColor("#D8A1A1")),
         ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
         ("TOPPADDING", (0, 0), (-1, -1), 3),
         ("LEFTPADDING", (0, 0), (-1, -1), 4),
@@ -1792,7 +1890,6 @@ def _build_purchase_order_payment_table(*, gross_value, vat_amount, total_amount
             [
                 ("SPAN", (0, 0), (4, 0)),
                 ("ALIGN", (0, 0), (4, 0), "LEFT"),
-                ("LINEABOVE", (0, 0), (-1, 0), 0.4, colors.HexColor("#D6D6D6")),
                 ("LEFTPADDING", (0, 0), (-1, -1), 3),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 3),
                 ("TOPPADDING", (0, 0), (-1, -1), 4),

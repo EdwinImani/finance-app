@@ -118,7 +118,9 @@ class PurchaseOrderItem(models.Model):
 
     product = models.ForeignKey(
         Product,
-        on_delete=models.PROTECT
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
     )
 
     description = models.CharField(
@@ -163,4 +165,4 @@ class PurchaseOrderItem(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return str(self.product)
+        return self.description or self.part_number or "Purchase order item"

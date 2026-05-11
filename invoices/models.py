@@ -179,7 +179,9 @@ class ProformaInvoiceItem(models.Model):
     product = models.ForeignKey(
         Product,
         related_name="proforma_items",
-        on_delete=models.PROTECT
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
     )
 
     hs_code = models.CharField(max_length=20, blank=True)
@@ -212,7 +214,7 @@ class ProformaInvoiceItem(models.Model):
 
     def __str__(self):
 
-        return f"{self.product} - {self.invoice}"
+        return f"{self.product or 'Deleted product'} - {self.invoice}"
 
 
 # ----------------------
@@ -247,7 +249,9 @@ class CommercialInvoiceItem(models.Model):
     product = models.ForeignKey(
         Product,
         related_name="commercial_items",
-        on_delete=models.PROTECT
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
     )
 
     hs_code = models.CharField(max_length=20, blank=True)
@@ -279,27 +283,30 @@ class CommercialInvoiceItem(models.Model):
                 if previous_item.product_id == self.product_id:
                     quantity_diff = self.quantity - previous_item.quantity
 
-                    if quantity_diff:
+                    if quantity_diff and self.product_id:
                         Product.objects.filter(pk=self.product_id).update(
                             unit_qty=F("unit_qty") - quantity_diff
                         )
                 else:
-                    Product.objects.filter(pk=previous_item.product_id).update(
-                        unit_qty=F("unit_qty") + previous_item.quantity
-                    )
-                    Product.objects.filter(pk=self.product_id).update(
-                        unit_qty=F("unit_qty") - self.quantity
-                    )
-            else:
+                    if previous_item.product_id:
+                        Product.objects.filter(pk=previous_item.product_id).update(
+                            unit_qty=F("unit_qty") + previous_item.quantity
+                        )
+                    if self.product_id:
+                        Product.objects.filter(pk=self.product_id).update(
+                            unit_qty=F("unit_qty") - self.quantity
+                        )
+            elif self.product_id:
                 Product.objects.filter(pk=self.product_id).update(
                     unit_qty=F("unit_qty") - self.quantity
                 )
 
     def delete(self, *args, **kwargs):
         with transaction.atomic():
-            Product.objects.filter(pk=self.product_id).update(
-                unit_qty=F("unit_qty") + self.quantity
-            )
+            if self.product_id:
+                Product.objects.filter(pk=self.product_id).update(
+                    unit_qty=F("unit_qty") + self.quantity
+                )
             super().delete(*args, **kwargs)
 
     def total_line(self):
@@ -308,7 +315,7 @@ class CommercialInvoiceItem(models.Model):
 
     def __str__(self):
 
-        return f"{self.product} - {self.invoice}"
+        return f"{self.product or 'Deleted product'} - {self.invoice}"
 
 
 class CommercialInvoicePacking(models.Model):
