@@ -410,6 +410,15 @@ def _build_styles():
             alignment=TA_LEFT,
             textColor=colors.white,
         ),
+        "table_head_center": ParagraphStyle(
+            "TableHeadCenter",
+            parent=base["BodyText"],
+            fontName="Helvetica-Bold",
+            fontSize=6,
+            leading=7,
+            alignment=TA_CENTER,
+            textColor=colors.white,
+        ),
         "table_cell": ParagraphStyle(
             "TableCell",
             parent=base["BodyText"],
@@ -419,6 +428,16 @@ def _build_styles():
             alignment=TA_JUSTIFY,
             textColor=colors.HexColor("#431407"),
         ),
+        "table_cell_part_number": ParagraphStyle(
+            "TableCellPartNumber",
+            parent=base["BodyText"],
+            fontName="Helvetica",
+            fontSize=5.2,
+            leading=6,
+            alignment=TA_LEFT,
+            textColor=colors.HexColor("#431407"),
+            wordWrap="CJK",
+        ),
         "table_cell_right": ParagraphStyle(
             "TableCellRight",
             parent=base["BodyText"],
@@ -426,6 +445,15 @@ def _build_styles():
             fontSize=6.3,
             leading=7.4,
             alignment=TA_RIGHT,
+            textColor=colors.HexColor("#431407"),
+        ),
+        "table_cell_center": ParagraphStyle(
+            "TableCellCenter",
+            parent=base["BodyText"],
+            fontName="Helvetica",
+            fontSize=6.3,
+            leading=7.4,
+            alignment=TA_CENTER,
             textColor=colors.HexColor("#431407"),
         ),
         "table_cell_amount": ParagraphStyle(
@@ -916,7 +944,7 @@ def _build_items_table(items, currency, styles, amount_from_last_page=None):
                 Paragraph(str(item["index"]), styles["table_cell"]),
                 Paragraph(_escape(item["description"]), styles["table_cell"]),
                 Paragraph(_escape(item["item_date"]), styles["table_cell"]),
-                Paragraph(_escape(item["part_number"]), styles["table_cell"]),
+                Paragraph(_escape(item["part_number"]), styles["table_cell_part_number"]),
                 Paragraph(_escape(item["hs_code"]), styles["table_cell"]),
                 Paragraph(str(item["quantity"]), styles["table_cell_amount"]),
                 Paragraph(_format_money(item["unit_price"], currency), styles["table_cell_amount"]),
@@ -975,8 +1003,8 @@ def _build_shipping_items_table(items, styles):
             [
                 Paragraph(str(item["index"]), styles["table_cell"]),
                 Paragraph(_escape(item["description"]), styles["table_cell"]),
-                Paragraph(_escape(item["part_number"]), styles["table_cell"]),
-                Paragraph(str(item["quantity"]), styles["table_cell_right"]),
+                Paragraph(_escape(item["part_number"]), styles["table_cell_part_number"]),
+                Paragraph(str(item["quantity"]), styles["table_cell"]),
             ]
         )
 
@@ -986,7 +1014,7 @@ def _build_shipping_items_table(items, styles):
                 Paragraph("-", styles["table_cell"]),
                 Paragraph("No items", styles["table_cell"]),
                 Paragraph("-", styles["table_cell"]),
-                Paragraph("-", styles["table_cell_right"]),
+                Paragraph("-", styles["table_cell"]),
             ]
         )
 
@@ -1022,45 +1050,45 @@ def _build_packing_section(*, invoice, packing_entries, styles):
     ]
 
     header_top = [
-        Paragraph("Item No.", styles["table_head"]),
+        Paragraph("Item No.", styles["table_head_center"]),
         Paragraph("No Packing", styles["table_head"]),
-        Paragraph("Gross", styles["table_head"]),
-        Paragraph("Net", styles["table_head"]),
-        Paragraph("L", styles["table_head"]),
-        Paragraph("W", styles["table_head"]),
-        Paragraph("H", styles["table_head"]),
+        Paragraph("Gross", styles["table_head_center"]),
+        Paragraph("Net", styles["table_head_center"]),
+        Paragraph("L", styles["table_head_center"]),
+        Paragraph("W", styles["table_head_center"]),
+        Paragraph("H", styles["table_head_center"]),
     ]
     rows = [header_top]
 
     for entry in packing_entries:
         rows.append(
             [
-                Paragraph(str(entry["index"]), styles["table_cell"]),
+                Paragraph(str(entry["index"]), styles["table_cell_center"]),
                 Paragraph(_escape(entry["no_packing"]), styles["table_cell"]),
-                Paragraph(_format_plain_decimal(entry["gross_weight"]), styles["table_cell_right"]),
-                Paragraph(_format_plain_decimal(entry["net_weight"]), styles["table_cell_right"]),
-                Paragraph(_format_plain_decimal(entry["dimension_length"]), styles["table_cell_right"]),
-                Paragraph(_format_plain_decimal(entry["dimension_width"]), styles["table_cell_right"]),
-                Paragraph(_format_plain_decimal(entry["dimension_height"]), styles["table_cell_right"]),
+                Paragraph(_format_plain_decimal(entry["gross_weight"]), styles["table_cell_center"]),
+                Paragraph(_format_plain_decimal(entry["net_weight"]), styles["table_cell_center"]),
+                Paragraph(_format_plain_decimal(entry["dimension_length"]), styles["table_cell_center"]),
+                Paragraph(_format_plain_decimal(entry["dimension_width"]), styles["table_cell_center"]),
+                Paragraph(_format_plain_decimal(entry["dimension_height"]), styles["table_cell_center"]),
             ]
         )
 
     if len(rows) == 1:
         rows.append(
             [
-                Paragraph("-", styles["table_cell"]),
+                Paragraph("-", styles["table_cell_center"]),
                 Paragraph("No packing entries", styles["table_cell"]),
-                Paragraph("-", styles["table_cell_right"]),
-                Paragraph("-", styles["table_cell_right"]),
-                Paragraph("-", styles["table_cell_right"]),
-                Paragraph("-", styles["table_cell_right"]),
-                Paragraph("-", styles["table_cell_right"]),
+                Paragraph("-", styles["table_cell_center"]),
+                Paragraph("-", styles["table_cell_center"]),
+                Paragraph("-", styles["table_cell_center"]),
+                Paragraph("-", styles["table_cell_center"]),
+                Paragraph("-", styles["table_cell_center"]),
             ]
         )
 
     packing_table = Table(
         rows,
-        colWidths=[16 * mm, 84 * mm, 18 * mm, 18 * mm, 16 * mm, 16 * mm, 16 * mm],
+        colWidths=[18 * mm, 70 * mm, 24 * mm, 24 * mm, 16 * mm, 16 * mm, 16 * mm],
         repeatRows=1,
     )
     packing_table.setStyle(
@@ -1599,7 +1627,7 @@ def _build_commercial_report_table(*, invoices, currency, styles):
         Paragraph("Number", styles["table_head"]),
         Paragraph("Importer", styles["table_head"]),
         Paragraph("End User", styles["table_head"]),
-        Paragraph("Qty", styles["table_head"]),
+        Paragraph("Qty", styles["table_cell_center"]),
         Paragraph("Subtotal", styles["table_head"]),
         Paragraph("VAT", styles["table_head"]),
         Paragraph("Freight", styles["table_head"]),
@@ -1653,7 +1681,7 @@ def _build_purchase_report_table(*, purchase_orders, currency, styles):
         Paragraph("Number", styles["table_head"]),
         Paragraph("Seller", styles["table_head"]),
         Paragraph("Requester", styles["table_head"]),
-        Paragraph("Qty", styles["table_head"]),
+        Paragraph("Qty", styles["table_head_center"]),
         Paragraph("Gross", styles["table_head"]),
         Paragraph("VAT", styles["table_head"]),
         Paragraph("Freight", styles["table_head"]),
@@ -1667,7 +1695,7 @@ def _build_purchase_report_table(*, purchase_orders, currency, styles):
                 Paragraph(_escape(po.purchase_number or "-"), styles["table_cell"]),
                 Paragraph(_escape(getattr(po.seller, "description", "-") or "-"), styles["table_cell"]),
                 Paragraph(_escape(getattr(po.requester, "description", "-") or "-"), styles["table_cell"]),
-                Paragraph(_escape(po.qty_total or 0), styles["table_cell_right"]),
+                Paragraph(_escape(po.qty_total or 0), styles["table_cell_center"]),
                 Paragraph(_format_money(getattr(po, "gross_value_db", 0), currency), styles["table_cell_right"]),
                 Paragraph(_format_money(po.vat_amount(), currency), styles["table_cell_right"]),
                 Paragraph(_format_money(po.freight, currency), styles["table_cell_right"]),
@@ -1680,7 +1708,7 @@ def _build_purchase_report_table(*, purchase_orders, currency, styles):
 
     table = Table(
         rows,
-        colWidths=[18 * mm, 28 * mm, 40 * mm, 40 * mm, 14 * mm, 18 * mm, 16 * mm, 16 * mm, 18 * mm],
+        colWidths=[18 * mm, 28 * mm, 39 * mm, 39 * mm, 16 * mm, 18 * mm, 16 * mm, 16 * mm, 18 * mm],
         repeatRows=1,
     )
     table.setStyle(
@@ -1704,6 +1732,7 @@ def _build_purchase_order_items_table(items, currency, styles, amount_from_last_
         Paragraph("Item", styles["table_head"]),
         Paragraph("Description", styles["table_head"]),
         Paragraph("Part Number", styles["table_head"]),
+        Paragraph("HS Code", styles["table_head"]),
         Paragraph("Quantity", styles["table_head"]),
         Paragraph("Unit Price Without VAT", styles["table_head"]),
         Paragraph("Total Without VAT", styles["table_head"]),
@@ -1715,6 +1744,7 @@ def _build_purchase_order_items_table(items, currency, styles, amount_from_last_
             [
                 Paragraph("", styles["table_cell"]),
                 Paragraph("Amount from Last Page", styles["table_cell"]),
+                Paragraph("", styles["table_cell"]),
                 Paragraph("", styles["table_cell"]),
                 Paragraph("", styles["table_cell_amount"]),
                 Paragraph("", styles["table_cell_amount"]),
@@ -1729,7 +1759,8 @@ def _build_purchase_order_items_table(items, currency, styles, amount_from_last_
             [
                 Paragraph(str(item["index"]), styles["table_cell"]),
                 Paragraph(_escape(item["description"]), styles["table_cell"]),
-                Paragraph(_escape(item["part_number"]), styles["table_cell"]),
+                Paragraph(_escape(item["part_number"]), styles["table_cell_part_number"]),
+                Paragraph(_escape(item["hs_code"]), styles["table_cell"]),
                 Paragraph(_format_plain_decimal(item["quantity"]), styles["table_cell_amount"]),
                 Paragraph(_format_money(item["unit_price"], currency), styles["table_cell_amount"]),
                 Paragraph(_format_money(item["total_amount"], currency), styles["table_cell_amount"]),
@@ -1738,11 +1769,11 @@ def _build_purchase_order_items_table(items, currency, styles, amount_from_last_
         )
 
     if len(rows) == 1:
-        rows.append([Paragraph("-", styles["table_cell"])] * 7)
+        rows.append([Paragraph("-", styles["table_cell"])] * 8)
 
     table = Table(
         rows,
-        colWidths=[12 * mm, 55 * mm, 32 * mm, 20 * mm, 30 * mm, 27 * mm, 14 * mm],
+        colWidths=[10 * mm, 46 * mm, 28 * mm, 20 * mm, 18 * mm, 28 * mm, 25 * mm, 15 * mm],
         repeatRows=1,
     )
     table.setStyle(

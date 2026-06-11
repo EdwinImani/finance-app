@@ -26,6 +26,7 @@ class ProformaConversionTests(TestCase):
         )
         self.product = Product.objects.create(
             description="Produit Test",
+            part_number="TEST-001",
             hs_code="8544.42",
             unit_qty=10,
             sale_price=Decimal("25.00"),
@@ -81,6 +82,21 @@ class ProformaConversionTests(TestCase):
         self.assertEqual(commercial.items.count(), 1)
         self.assertEqual(commercial.items.first().hs_code, "8544.42")
 
+    def test_convert_to_commercial_keeps_item_part_number(self):
+        proforma = ProformaInvoice.objects.create(importer=self.importer)
+        ProformaInvoiceItem.objects.create(
+            invoice=proforma,
+            product=self.product,
+            part_number="CUSTOM-REF",
+            quantity=1,
+            unit_price=Decimal("25.00"),
+        )
+
+        commercial = proforma.convert_to_commercial()
+
+        self.assertEqual(commercial.items.count(), 1)
+        self.assertEqual(commercial.items.first().part_number, "CUSTOM-REF")
+
     def test_proforma_item_uses_product_hs_code_by_default(self):
         proforma = ProformaInvoice.objects.create(importer=self.importer)
 
@@ -92,6 +108,18 @@ class ProformaConversionTests(TestCase):
         )
 
         self.assertEqual(item.hs_code, "8544.42")
+
+    def test_proforma_item_uses_product_part_number_by_default(self):
+        proforma = ProformaInvoice.objects.create(importer=self.importer)
+
+        item = ProformaInvoiceItem.objects.create(
+            invoice=proforma,
+            product=self.product,
+            quantity=1,
+            unit_price=Decimal("25.00"),
+        )
+
+        self.assertEqual(item.part_number, "TEST-001")
 
     def test_total_amount_uses_company_setting_vat(self):
         proforma = ProformaInvoice.objects.create(
@@ -164,6 +192,7 @@ class CommercialInvoiceStockTests(TestCase):
         )
         self.product = Product.objects.create(
             description="Produit Stock",
+            part_number="STOCK-001",
             hs_code="9027.80",
             unit_qty=20,
             sale_price=Decimal("15.00"),
@@ -188,6 +217,7 @@ class CommercialInvoiceStockTests(TestCase):
 
         self.assertEqual(self.product.unit_qty, 16)
         self.assertEqual(item.hs_code, "9027.80")
+        self.assertEqual(item.part_number, "STOCK-001")
 
     def test_update_item_quantity_updates_product_stock(self):
         item = CommercialInvoiceItem.objects.create(

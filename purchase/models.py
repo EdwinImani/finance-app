@@ -133,6 +133,11 @@ class PurchaseOrderItem(models.Model):
         blank=True
     )
 
+    hs_code = models.CharField(
+        max_length=20,
+        blank=True
+    )
+
     quantity = models.IntegerField(default=1)
 
     unit_price = models.DecimalField(
@@ -159,8 +164,17 @@ class PurchaseOrderItem(models.Model):
             if not self.description:
                 self.description = self.product.description
 
+            if not self.part_number:
+                self.part_number = self.product.part_number or ""
+
+            if not self.hs_code:
+                self.hs_code = self.product.hs_code or "-"
+
             if not self.unit_price:
                 self.unit_price = self.product.purchase_price
+
+        if not self.hs_code:
+            self.hs_code = "-"
 
         super().save(*args, **kwargs)
 

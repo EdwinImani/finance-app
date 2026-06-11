@@ -584,19 +584,19 @@
                     <span class="finance-side-label">{% translate "Missing part number" %}</span>
                     <div class="finance-side-value">{{ dashboard_alerts.products_missing_part_number }}</div>
                     <div class="finance-side-note">{% translate "Products to complete before documents or export." %}</div>
-                    <a href="{% url 'admin:products_product_changelist' %}" class="finance-side-button">{% translate "Open products" %}</a>
+                    <a href="{% url 'admin:products_product_changelist' %}?part_number_status=missing" class="finance-side-button">{% translate "Open products" %}</a>
                 </div>
                 <div class="finance-side-card">
                     <span class="finance-side-label">{% translate "Missing HS code" %}</span>
-                    <div class="finance-side-value">{{ dashboard_alerts.proformas_missing_hs_code }}</div>
-                    <div class="finance-side-note">{% translate "Proforma invoices without an HS code to review." %}</div>
-                    <a href="{% url 'admin:invoices_proformainvoice_changelist' %}" class="finance-side-button">{% translate "Open proformas" %}</a>
+                    <div class="finance-side-value">{{ dashboard_alerts.products_missing_hs_code }}</div>
+                    <div class="finance-side-note">{% translate "Products without an HS code to review." %}</div>
+                    <a href="{% url 'admin:products_product_changelist' %}?hs_code_status=missing" class="finance-side-button">{% translate "Open products" %}</a>
                 </div>
                 <div class="finance-side-card">
                     <span class="finance-side-label">{% translate "Low stock" %}</span>
                     <div class="finance-side-value">{{ dashboard_alerts.products_low_stock }}</div>
                     <div class="finance-side-note">{% translate "Products with low or zero stock to review." %}</div>
-                    <a href="{% url 'admin:products_product_changelist' %}" class="finance-side-button">{% translate "Open products" %}</a>
+                    <a href="{% url 'admin:products_product_changelist' %}?stock_status=low" class="finance-side-button">{% translate "Open products" %}</a>
                 </div>
             </div>
         </aside>
@@ -674,22 +674,18 @@
                     <article class="finance-stat">
                         <div class="finance-stat-label">{% translate "Gross Sale" %}</div>
                         <div class="finance-stat-value">{{ dashboard_sales.gross|floatformat:2 }}</div>
-                        <div class="finance-stat-note">{% translate "Sales amount before freight for the selected year." %}</div>
                     </article>
                     <article class="finance-stat">
                         <div class="finance-stat-label">{% translate "Freight Sale" %}</div>
                         <div class="finance-stat-value">{{ dashboard_sales.freight|floatformat:2 }}</div>
-                        <div class="finance-stat-note">{% translate "Total freight across commercial invoices for the selected year." %}</div>
                     </article>
                     <article class="finance-stat">
                         <div class="finance-stat-label">{% translate "Vat Sale" %}</div>
                         <div class="finance-stat-value">{{ dashboard_sales.vat|floatformat:2 }}</div>
-                        <div class="finance-stat-note">{% translate "Total VAT across commercial invoices for the selected year." %}</div>
                     </article>
                     <article class="finance-stat">
                         <div class="finance-stat-label">{% translate "Total Sale" %}</div>
                         <div class="finance-stat-value">{{ dashboard_sales.total|floatformat:2 }}</div>
-                        <div class="finance-stat-note">{% translate "Total sales including freight and VAT." %}</div>
                     </article>
                 </div>
             </section>
@@ -698,7 +694,6 @@
                 <div class="finance-panel-head">
                     <div>
                         <h2>{% translate "Management modules" %}</h2>
-                        <p>{% translate "Quick access to the main working sections, inspired by your example." %}</p>
                     </div>
                 </div>
 

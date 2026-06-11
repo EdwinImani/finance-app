@@ -1,0 +1,82 @@
+{% extends "admin/change_form.html" %}
+
+{% block extrahead %}
+{{ block.super }}
+{% if invoice_autosave_url %}
+<script>
+    window.invoiceAutosaveConfig = {
+        url: "{{ invoice_autosave_url|escapejs }}"
+    };
+</script>
+{% endif %}
+<style>
+    .partner-autosave-status {
+        display: inline-flex;
+        align-items: center;
+        min-height: 30px;
+        margin: 0 0 14px;
+        padding: 0 12px;
+        border-radius: 999px;
+        background: #fff7ed;
+        border: 1px solid rgba(217, 119, 6, 0.14);
+        color: #9a3412;
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+    .partner-autosave-status.is-saving {
+        color: #9a3412;
+    }
+
+    .partner-autosave-status.is-error {
+        color: #b91c1c;
+    }
+</style>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    var deleteButton = document.querySelector(".submit-row a.deletelink");
+    if (!deleteButton) {
+        return;
+    }
+
+    deleteButton.addEventListener("click", function(event) {
+        event.preventDefault();
+
+        var confirmed = window.confirm("Are you sure you want to delete this partner?");
+        if (!confirmed) {
+            return;
+        }
+
+        var csrfInput = document.querySelector('input[name="csrfmiddlewaretoken"]');
+        var deleteForm = document.createElement("form");
+        deleteForm.method = "post";
+        deleteForm.action = deleteButton.href;
+        deleteForm.style.display = "none";
+
+        if (csrfInput) {
+            var csrfClone = document.createElement("input");
+            csrfClone.type = "hidden";
+            csrfClone.name = "csrfmiddlewaretoken";
+            csrfClone.value = csrfInput.value;
+            deleteForm.appendChild(csrfClone);
+        }
+
+        var postInput = document.createElement("input");
+        postInput.type = "hidden";
+        postInput.name = "post";
+        postInput.value = "yes";
+        deleteForm.appendChild(postInput);
+
+        document.body.appendChild(deleteForm);
+        deleteForm.submit();
+    });
+});
+</script>
+{% endblock %}
+
+{% block content %}
+{% if invoice_autosave_url %}
+<div class="partner-autosave-status" data-invoice-autosave-status>Autosave active</div>
+{% endif %}
+{{ block.super }}
+{% endblock %}

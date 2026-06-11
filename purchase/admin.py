@@ -15,6 +15,7 @@ from django.template.loader import render_to_string
 from django.urls import path
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.html import format_html
 from financeapp.admin_mixins import PageSizeAdminMixin
 from financeapp.pdf_rendering import get_pdf_fallback_reason, should_try_weasyprint
 from invoices.pdf_builder import build_purchase_order_pdf, build_purchase_report_pdf
@@ -36,7 +37,7 @@ class PurchaseOrderItemInline(admin.TabularInline):
 
     fields = (
         "product",
-        "description",
+        "hs_code",
         "part_number",
         "quantity",
         "unit_price",
@@ -44,11 +45,15 @@ class PurchaseOrderItemInline(admin.TabularInline):
     )
 
     readonly_fields = (
-        "part_number",
         "total_line",
     )
 
     autocomplete_fields = ("product",)
+
+    def total_line(self, obj):
+        return obj.total_line()
+
+    total_line.short_description = "Total Amount"
 
 
 class PurchaseOrderAdminForm(forms.ModelForm):
@@ -129,6 +134,7 @@ class PurchaseOrderAdmin(PageSizeAdminMixin, admin.ModelAdmin):
         "purchase_date_display",
         "seller",
         "amount_display",
+        "pdf_link",
     )
 
     list_filter = ("purchase_date", "seller")
@@ -220,6 +226,17 @@ class PurchaseOrderAdmin(PageSizeAdminMixin, admin.ModelAdmin):
         return obj.total_amount()
 
     amount_display.short_description = "Amount"
+
+    def pdf_link(self, obj):
+        if not obj.pk:
+            return "-"
+
+        return format_html(
+            '<a class="purchase-list-pdf-button" href="{}" target="_blank">PDF</a>',
+            self.get_purchase_pdf_url(obj),
+        )
+
+    pdf_link.short_description = "PDF"
 
     def gross_value_display(self, obj):
         return obj.gross_value() if obj.pk else Decimal("0.00")
@@ -345,6 +362,7 @@ class PurchaseOrderAdmin(PageSizeAdminMixin, admin.ModelAdmin):
                 "index": index,
                 "description": item.description or (item.product.description if item.product else "-"),
                 "part_number": item.part_number or (item.product.part_number if item.product and item.product.part_number else "-"),
+                "hs_code": item.hs_code or (item.product.hs_code if item.product and item.product.hs_code else "-"),
                 "quantity": item.quantity,
                 "unit_price": item.unit_price,
                 "total_amount": item.total_line(),

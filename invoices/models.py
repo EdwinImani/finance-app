@@ -154,6 +154,7 @@ class ProformaInvoice(BaseInvoice):
                     invoice=commercial,
                     product=item.product,
                     hs_code=item.hs_code,
+                    part_number=item.part_number,
                     quantity=item.quantity,
                     unit_price=item.unit_price
                 )
@@ -186,6 +187,8 @@ class ProformaInvoiceItem(models.Model):
 
     hs_code = models.CharField(max_length=20, blank=True)
 
+    part_number = models.CharField(max_length=255, blank=True)
+
     item_date = models.DateField(null=True, blank=True)
 
     quantity = models.IntegerField(default=0)
@@ -197,8 +200,11 @@ class ProformaInvoiceItem(models.Model):
     )
 
     def save(self, *args, **kwargs):
-        if not self.hs_code and self.product_id:
-            self.hs_code = self.product.hs_code or "-"
+        if self.product_id:
+            if not self.hs_code:
+                self.hs_code = self.product.hs_code or "-"
+            if not self.part_number:
+                self.part_number = self.product.part_number or ""
 
         if not self.hs_code:
             self.hs_code = "-"
@@ -256,6 +262,8 @@ class CommercialInvoiceItem(models.Model):
 
     hs_code = models.CharField(max_length=20, blank=True)
 
+    part_number = models.CharField(max_length=255, blank=True)
+
     quantity = models.IntegerField(default=0)
 
     unit_price = models.DecimalField(
@@ -265,8 +273,11 @@ class CommercialInvoiceItem(models.Model):
     )
 
     def save(self, *args, **kwargs):
-        if not self.hs_code and self.product_id:
-            self.hs_code = self.product.hs_code or "-"
+        if self.product_id:
+            if not self.hs_code:
+                self.hs_code = self.product.hs_code or "-"
+            if not self.part_number:
+                self.part_number = self.product.part_number or ""
 
         if not self.hs_code:
             self.hs_code = "-"

@@ -279,8 +279,20 @@
 
     .inline-group .field-product .related-widget-wrapper select,
     .inline-group .field-product .related-widget-wrapper .select2-container {
-        min-width: 260px;
-        width: min(100%, 420px) !important;
+        min-width: 0;
+        width: 100% !important;
+    }
+
+    .inline-group .field-product select.select2-hidden-accessible {
+        position: absolute !important;
+        width: 1px !important;
+        height: 1px !important;
+        padding: 0 !important;
+        margin: -1px !important;
+        overflow: hidden !important;
+        clip: rect(0 0 0 0) !important;
+        white-space: nowrap !important;
+        border: 0 !important;
     }
 
     .change-form .related-widget-wrapper a.related-widget-wrapper-link,
@@ -320,6 +332,255 @@
         font-size: 11px;
     }
 
+    .inline-group .tabular {
+        overflow-x: auto;
+    }
+
+    .inline-group .tabular table {
+        width: 100%;
+        min-width: 1900px;
+        table-layout: fixed;
+    }
+
+    .inline-group .tabular td,
+    .inline-group .tabular th {
+        vertical-align: middle;
+    }
+
+    .inline-group .tabular td {
+        min-width: 0;
+    }
+
+    .inline-group .tabular .field-product {
+        width: 320px;
+    }
+
+    .inline-group .tabular .field-item_date {
+        width: 180px;
+    }
+
+    .inline-group .tabular .field-hs_code {
+        width: 160px;
+    }
+
+    .inline-group .tabular .field-product_description {
+        width: 240px;
+    }
+
+    .inline-group .tabular .field-part_number {
+        width: 150px;
+    }
+
+    .inline-group .tabular .field-stock_info {
+        width: 100px;
+    }
+
+    .inline-group .tabular .field-sale_price_info,
+    .inline-group .tabular .field-purchase_price_info,
+    .inline-group .tabular .field-unit_price,
+    .inline-group .tabular .field-total_line {
+        width: 130px;
+    }
+
+    .inline-group .tabular .field-quantity {
+        width: 110px;
+    }
+
+    .inline-group .tabular .field-product_note {
+        width: 220px;
+    }
+
+    .inline-group .tabular .delete {
+        width: 120px;
+    }
+
+    .inline-group .field-product .related-widget-wrapper {
+        display: grid;
+        grid-template-columns: repeat(3, 38px);
+        gap: 8px 10px;
+        align-items: center;
+        justify-content: start;
+    }
+
+    .inline-group .field-product .related-widget-wrapper select,
+    .inline-group .field-product .related-widget-wrapper .select2-container {
+        grid-column: 1 / -1;
+    }
+
+    .inline-group .field-product .related-widget-wrapper a.related-widget-wrapper-link {
+        width: 36px;
+        min-height: 36px;
+        padding: 0;
+        justify-self: center;
+    }
+
+    .inline-group .tabular input:not([type="checkbox"]):not([type="radio"]),
+    .inline-group .tabular select {
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .inline-group .tabular .field-quantity input,
+    .inline-group .tabular .field-unit_price input {
+        max-width: 96px;
+    }
+
+    .inline-group .tabular .field-item_date .datetimeshortcuts {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 8px;
+        white-space: nowrap;
+    }
+
+    .inline-group .tabular .field-item_date .timezonewarning {
+        display: none;
+    }
+
+    .inline-group .tabular .readonly,
+    .inline-group .tabular [data-product-field] {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .inline-group .tabular .field-part_number,
+    .inline-group .tabular [data-product-field="part_number"] {
+        font-size: 10px;
+        line-height: 1.25;
+        font-variant-numeric: tabular-nums;
+        overflow-wrap: anywhere;
+        white-space: normal;
+    }
+
+    .inline-group.invoice-commercial-items .tabular table {
+        min-width: 0;
+        width: 100%;
+    }
+
+    .inline-group.invoice-commercial-items .tabular th,
+    .inline-group.invoice-commercial-items .tabular td {
+        padding-left: 6px;
+        padding-right: 6px;
+        font-size: 11px;
+        text-align: left;
+        vertical-align: top;
+    }
+
+    .inline-group.invoice-commercial-items .tabular .field-product {
+        width: 24%;
+    }
+
+    .inline-group.invoice-commercial-items .tabular .field-hs_code {
+        width: 15%;
+    }
+
+    .inline-group.invoice-commercial-items .tabular .field-part_number {
+        width: 15%;
+    }
+
+    .inline-group.invoice-commercial-items .tabular .field-unit_price,
+    .inline-group.invoice-commercial-items .tabular .field-total_line {
+        width: 14%;
+    }
+
+    .inline-group.invoice-commercial-items .tabular .field-quantity {
+        width: 10%;
+    }
+
+    .inline-group.invoice-commercial-items .tabular .delete {
+        width: 10%;
+    }
+
+    .inline-group.invoice-commercial-items .field-product .related-widget-wrapper {
+        grid-template-columns: repeat(3, 30px);
+        gap: 6px;
+        justify-content: start;
+    }
+
+    .inline-group.invoice-commercial-items .field-product .related-widget-wrapper select,
+    .inline-group.invoice-commercial-items .field-product .related-widget-wrapper .select2-container {
+        grid-column: 1 / -1;
+    }
+
+    .inline-group.invoice-commercial-items .field-product .related-widget-wrapper a.related-widget-wrapper-link {
+        width: 28px;
+        min-height: 28px;
+        padding: 0;
+    }
+
+    .inline-group.invoice-commercial-items .tabular input:not([type="checkbox"]):not([type="radio"]),
+    .inline-group.invoice-commercial-items .tabular select {
+        min-height: 32px;
+        padding: 6px 8px;
+        font-size: 12px;
+    }
+
+    .inline-group.invoice-commercial-items .field-hs_code input,
+    .inline-group.invoice-commercial-items .field-quantity input,
+    .inline-group.invoice-commercial-items .field-unit_price input {
+        width: 100%;
+        max-width: none;
+    }
+
+    .inline-group.invoice-commercial-items .field-total_line {
+        text-align: left;
+    }
+
+    .inline-group.invoice-commercial-items .invoice-line-delete {
+        min-height: 30px;
+        padding: 0 9px;
+        font-size: 11px;
+        max-width: 100%;
+    }
+
+    .inline-group.invoice-commercial-items .tabular td.original p,
+    .inline-group.invoice-commercial-items .tabular td.original .inline_label {
+        display: none !important;
+    }
+
+    .inline-group.invoice-commercial-packings .invoice-line-delete {
+        min-height: 30px;
+        padding: 0 10px;
+        font-size: 11px;
+    }
+
+    .inline-group.invoice-commercial-packings .tabular table {
+        min-width: 0;
+        width: 100%;
+    }
+
+    .inline-group.invoice-commercial-packings .tabular th,
+    .inline-group.invoice-commercial-packings .tabular td {
+        padding-left: 8px;
+        padding-right: 8px;
+        font-size: 11px;
+    }
+
+    .inline-group.invoice-commercial-packings .tabular .field-no_packing {
+        width: 20%;
+    }
+
+    .inline-group.invoice-commercial-packings .tabular .field-gross_weight,
+    .inline-group.invoice-commercial-packings .tabular .field-net_weight,
+    .inline-group.invoice-commercial-packings .tabular .field-dimension_length,
+    .inline-group.invoice-commercial-packings .tabular .field-dimension_width,
+    .inline-group.invoice-commercial-packings .tabular .field-dimension_height {
+        width: 16%;
+    }
+
+    .inline-group.invoice-commercial-packings .tabular input:not([type="checkbox"]):not([type="radio"]) {
+        min-height: 32px;
+        padding: 6px 8px;
+        font-size: 12px;
+    }
+
+    .inline-group.invoice-commercial-packings .tabular td.original p,
+    .inline-group.invoice-commercial-packings .tabular td.original .inline_label {
+        display: none !important;
+    }
+
     .inline-group .tabular tr:nth-child(even) td {
         background: #fffbeb;
     }
@@ -328,8 +589,14 @@
         background: #fff3e0;
     }
 
-    .inline-group td.delete input[type="checkbox"] {
-        display: none;
+    .inline-group td.delete {
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    .inline-group td.delete input[type="checkbox"],
+    .inline-group td.delete .inline-deletelink {
+        display: none !important;
     }
 
     .invoice-line-delete {
@@ -377,22 +644,163 @@
         }
     }
 </style>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    function setupInlineDeleteButtons(root) {
+        (root || document).querySelectorAll(".inline-group td.delete").forEach(function(deleteCell) {
+            if (deleteCell.querySelector(".invoice-line-delete")) {
+                return;
+            }
+
+            var row = deleteCell.closest("tr");
+            var deleteCheckbox = row ? row.querySelector('input[name$="-DELETE"]') : null;
+            var inlineDeleteLink = row ? row.querySelector(".inline-deletelink") : null;
+
+            if (!deleteCheckbox && !inlineDeleteLink) {
+                return;
+            }
+
+            deleteCell.querySelectorAll(".inline-deletelink").forEach(function(link) {
+                link.style.display = "none";
+            });
+
+            var button = document.createElement("button");
+            button.type = "button";
+            button.className = "invoice-line-delete";
+            button.textContent = "Delete";
+
+            button.addEventListener("click", function() {
+                if (!deleteCheckbox || !deleteCheckbox.checked) {
+                    var confirmed = window.confirm("Are you sure you want to delete this item?");
+                    if (!confirmed) {
+                        return;
+                    }
+                }
+
+                if (!deleteCheckbox && inlineDeleteLink) {
+                    inlineDeleteLink.click();
+                    return;
+                }
+
+                deleteCheckbox.checked = !deleteCheckbox.checked;
+                button.classList.toggle("is-marked", deleteCheckbox.checked);
+                button.textContent = deleteCheckbox.checked ? "Undo delete" : "Delete";
+
+                if (row) {
+                    row.classList.toggle("invoice-row-marked-delete", deleteCheckbox.checked);
+                }
+            });
+
+            deleteCell.appendChild(button);
+        });
+    }
+
+    function productDescriptionOnly(label) {
+        var text = (label || "").trim();
+        var separator = " - ";
+        var separatorIndex = text.indexOf(separator);
+        return separatorIndex === -1 ? text : text.slice(separatorIndex + separator.length).trim();
+    }
+
+    function showOnlyProductDescription(root) {
+        (root || document).querySelectorAll(".inline-group .field-product select").forEach(function(select) {
+            var selectedOption = select.options[select.selectedIndex];
+            var wrapper = select.closest(".related-widget-wrapper");
+            var rendered = wrapper ? wrapper.querySelector(".select2-selection__rendered") : null;
+            var description = productDescriptionOnly(
+                selectedOption ? selectedOption.textContent : (rendered ? rendered.textContent : "")
+            );
+
+            if (rendered && description) {
+                rendered.textContent = description;
+                rendered.title = description;
+            }
+        });
+    }
+
+    document.querySelectorAll(".inline-group").forEach(function(inlineGroup) {
+        var hasProductRows = inlineGroup.querySelector(".field-product");
+        var hasItemDate = inlineGroup.querySelector(".field-item_date");
+        var hasPackingRows = inlineGroup.querySelector(".field-no_packing");
+        if (hasProductRows && !hasItemDate) {
+            inlineGroup.classList.add("invoice-commercial-items");
+        }
+        if (hasPackingRows) {
+            inlineGroup.classList.add("invoice-commercial-packings");
+        }
+    });
+    setupInlineDeleteButtons(document);
+    showOnlyProductDescription(document);
+    document.body.addEventListener("formset:added", function(event) {
+        setupInlineDeleteButtons(event.target);
+        showOnlyProductDescription(event.target);
+    });
+    document.addEventListener("change", function(event) {
+        if (event.target.matches(".inline-group .field-product select")) {
+            window.setTimeout(function() {
+                showOnlyProductDescription(document);
+            }, 0);
+        }
+    }, true);
+
+    if (window.django && django.jQuery) {
+        django.jQuery(document).on("select2:select select2:close", ".inline-group .field-product select", function() {
+            window.setTimeout(function() {
+                showOnlyProductDescription(document);
+            }, 0);
+        });
+    }
+
+    var deleteButton = document.querySelector(".submit-row a.deletelink");
+    if (!deleteButton) {
+        return;
+    }
+
+    deleteButton.addEventListener("click", function(event) {
+        event.preventDefault();
+
+        var confirmed = window.confirm("Are you sure you want to delete this invoice?");
+        if (!confirmed) {
+            return;
+        }
+
+        var csrfInput = document.querySelector('input[name="csrfmiddlewaretoken"]');
+        var deleteForm = document.createElement("form");
+        deleteForm.method = "post";
+        deleteForm.action = deleteButton.href;
+        deleteForm.style.display = "none";
+
+        if (csrfInput) {
+            var csrfClone = document.createElement("input");
+            csrfClone.type = "hidden";
+            csrfClone.name = "csrfmiddlewaretoken";
+            csrfClone.value = csrfInput.value;
+            deleteForm.appendChild(csrfClone);
+        }
+
+        var postInput = document.createElement("input");
+        postInput.type = "hidden";
+        postInput.name = "post";
+        postInput.value = "yes";
+        deleteForm.appendChild(postInput);
+
+        document.body.appendChild(deleteForm);
+        deleteForm.submit();
+    });
+});
+</script>
 {% endblock %}
 
 {% block content_title %}
 <div class="invoice-hero">
     <div>
         <h1>{% if add %}Add {{ opts.verbose_name|capfirst }}{% else %}Edit {{ opts.verbose_name|capfirst }}{% endif %}</h1>
-        <p>Enter customer details, add products quickly, and review the VAT and total amount live while you build the invoice.</p>
     </div>
     <div class="invoice-badge">
         {% if original and original.invoice_number %}
             {{ original.invoice_number }}
         {% else %}
             New invoice
-        {% endif %}
-        {% if invoice_autosave_url %}
-        <div class="invoice-autosave-status" data-invoice-autosave-status>Autosave active</div>
         {% endif %}
     </div>
 </div>

@@ -61,6 +61,9 @@
     }
 
     #header {
+        position: sticky;
+        top: 0;
+        z-index: 9000;
         background: rgba(255, 255, 255, 0.84);
         color: #fff;
         box-shadow: 0 12px 30px rgba(120, 53, 15, 0.08);
@@ -576,45 +579,45 @@
         background: rgba(255, 255, 255, 0.72);
     }
 
-    .admin-header-actions {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        margin-left: 16px;
-        vertical-align: middle;
+    #user-tools {
+        font-size: 0;
     }
 
-    .admin-header-actions a,
-    .admin-header-actions button {
+    #user-tools .username-only {
+        color: var(--global-admin-text);
+        font-size: 13px;
+        font-weight: 800;
+        letter-spacing: 0;
+        text-transform: none;
+    }
+
+    #user-tools .header-action,
+    #user-tools .logout-form button {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        box-sizing: border-box;
-        height: 34px;
-        min-height: 30px;
-        padding: 0 12px;
+        min-height: 34px;
+        margin-left: 10px;
+        padding: 0 13px;
         border-radius: 999px !important;
-        border: 1px solid rgba(217, 119, 6, 0.14);
-        background: #fff7ed;
-        color: #9a3412 !important;
-        font-size: 12px;
+        border: 1px solid rgba(217, 119, 6, 0.12);
+        background: rgba(255, 255, 255, 0.76);
+        color: var(--global-admin-text) !important;
+        font-size: 13px;
         font-weight: 800;
         line-height: 1;
         text-decoration: none;
-        box-shadow: 0 6px 14px rgba(180, 83, 9, 0.08);
+        box-shadow: 0 8px 16px rgba(180, 83, 9, 0.08);
         cursor: pointer;
-        margin: 0;
-        vertical-align: middle;
     }
 
-    .admin-header-actions a:hover,
-    .admin-header-actions button:hover {
-        background: #fff0f1;
+    #user-tools .header-action:hover,
+    #user-tools .logout-form button:hover {
+        background: rgba(255, 255, 255, 0.98);
     }
 
-    .admin-header-actions form {
-        display: inline-flex;
-        align-items: center;
+    #user-tools .logout-form {
+        display: inline;
         margin: 0;
         padding: 0;
     }
@@ -712,18 +715,23 @@ document.addEventListener("DOMContentLoaded", function() {
   <a href="{% url 'admin:index' %}">
     {{ company_brand_name|default:site_header|default:_('Django administration') }}
   </a>
-  {% if user.is_authenticated %}
-  <span class="admin-header-actions">
-    <a href="{% url 'admin:index' %}">Welcome page</a>
-    <form method="post" action="{% url 'admin:logout' %}">
-      {% csrf_token %}
-      <button type="submit">Déconnexion</button>
-    </form>
-  </span>
-  {% endif %}
 </div>
 {% if user.is_anonymous %}
   {% include "admin/color_theme_toggle.html" %}
+{% endif %}
+{% endblock %}
+
+{% block usertools %}
+{% if user.is_authenticated %}
+<div id="user-tools">
+  <span class="username-only">{{ user.get_username }}</span>
+  <a href="{% url 'admin:index' %}" class="header-action">{% translate "Welcome page" %}</a>
+  <form id="logout-form" class="logout-form" method="post" action="{% url 'admin:logout' %}">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{% url 'admin:login' %}">
+    <button type="submit">{% translate "Log out" %}</button>
+  </form>
+</div>
 {% endif %}
 {% endblock %}
 

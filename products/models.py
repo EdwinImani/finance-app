@@ -57,4 +57,4 @@ class Product(models.Model):
         return self.description
 
     def __str__(self):
-        return self.admin_label()
+        return self.description

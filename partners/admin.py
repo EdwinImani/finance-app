@@ -1,4 +1,9 @@
 from django.contrib import admin
+from django.forms.formsets import all_valid
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, redirect
+from django.urls import path, reverse
+from django.utils import timezone
 from financeapp.admin_mixins import PageSizeAdminMixin
 from .models import Partner, PartnerAddress, PartnerPhone
 
@@ -30,6 +35,7 @@ class PartnerPhoneInline(admin.TabularInline):
 @admin.register(Partner)
 class PartnerAdmin(PageSizeAdminMixin, admin.ModelAdmin):
     changelist_template = "admin/partners/partner/change_list.html"
+    change_form_template = "admin/partners/partner/change_form.html"
 
     list_display = (
         "description",
@@ -51,6 +57,82 @@ class PartnerAdmin(PageSizeAdminMixin, admin.ModelAdmin):
         PartnerAddressInline,
         PartnerPhoneInline
     ]
+
+    class Media:
+        js = ("admin/js/invoice_autosave.js",)
+
+    def render_change_form(self, request, context, add=False, change=False, form_url="", obj=None):
+        context["invoice_autosave_url"] = self.get_partner_autosave_url(obj) if obj and obj.pk else ""
+        return super().render_change_form(request, context, add, change, form_url, obj)
+
+    def get_partner_autosave_url(self, obj):
+        return reverse("admin:partners_partner_autosave", args=[obj.pk])
+
+    def create_draft_partner(self, request):
+        partner_type = request.GET.get("partner_type")
+        valid_types = {choice[0] for choice in Partner.PARTNER_TYPES}
+
+        if partner_type not in valid_types:
+            partner_type = "importer"
+
+        return Partner.objects.create(
+            description="New partner",
+            partner_type=partner_type,
+        )
+
+    def add_view(self, request, form_url="", extra_context=None):
+        if request.method == "GET" and not request.GET.get("_popup"):
+            draft = self.create_draft_partner(request)
+            return redirect(reverse("admin:partners_partner_change", args=[draft.pk]))
+
+        return super().add_view(request, form_url, extra_context)
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path(
+                "<int:object_id>/autosave/",
+                self.admin_site.admin_view(self.autosave),
+                name="partners_partner_autosave",
+            ),
+        ]
+        return custom_urls + urls
+
+    def autosave(self, request, object_id):
+        if request.method != "POST":
+            return JsonResponse({"ok": False, "error": "POST required."}, status=405)
+
+        obj = get_object_or_404(Partner, pk=object_id)
+        form_class = self.get_form(request, obj, change=True)
+        form = form_class(request.POST, request.FILES, instance=obj)
+        formsets, inline_instances = self._create_formsets(request, form.instance, change=True)
+
+        if form.is_valid() and all_valid(formsets):
+            new_object = self.save_form(request, form, change=True)
+            self.save_model(request, new_object, form, change=True)
+            form.save_m2m()
+            self.save_related(request, form, formsets, change=True)
+            return JsonResponse(
+                {
+                    "ok": True,
+                    "saved_at": timezone.localtime().strftime("%d/%m/%Y %H:%M:%S"),
+                    "partner": new_object.description or "",
+                }
+            )
+
+        errors = {"form": form.errors}
+        inline_errors = []
+        for inline, formset in zip(inline_instances, formsets):
+            if formset.non_form_errors() or any(child.errors for child in formset.forms):
+                inline_errors.append(
+                    {
+                        "inline": inline.__class__.__name__,
+                        "non_form_errors": list(formset.non_form_errors()),
+                        "errors": [child.errors for child in formset.forms if child.errors],
+                    }
+                )
+        errors["inlines"] = inline_errors
+        return JsonResponse({"ok": False, "errors": errors}, status=400)
 
     # ----------------------
     # AUTO PARTNER TYPE

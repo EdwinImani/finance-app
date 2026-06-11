@@ -153,6 +153,33 @@
         font-weight: 700;
     }
 
+    .change-list #result_list .column-pdf_link {
+        width: 86px;
+        text-align: center;
+    }
+
+    .purchase-list-pdf-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 28px;
+        padding: 0 12px;
+        border-radius: 999px;
+        border: 1px solid rgba(217, 119, 6, 0.24);
+        background: #fff7ed;
+        color: #9a3412 !important;
+        font-size: 11px;
+        font-weight: 800;
+        line-height: 1;
+        text-decoration: none !important;
+        box-shadow: 0 8px 16px rgba(180, 83, 9, 0.08);
+    }
+
+    .purchase-list-pdf-button:hover {
+        background: #ffedd5;
+        border-color: rgba(217, 119, 6, 0.40);
+    }
+
     .change-list .paginator {
         margin-top: 14px;
         background: #fffaf9;
@@ -188,23 +215,6 @@
         color: var(--po-text);
     }
 
-    .purchase-list-hero p {
-        margin: 10px 0 0;
-        color: var(--po-muted);
-        font-size: 14px;
-        max-width: 720px;
-    }
-
-    .purchase-list-badge {
-        background: #fff;
-        border: 1px solid var(--po-border);
-        border-radius: 999px;
-        padding: 10px 14px;
-        color: var(--po-text);
-        font-weight: 700;
-        white-space: nowrap;
-    }
-
     @media (max-width: 900px) {
         .purchase-list-hero {
             flex-direction: column;
@@ -216,15 +226,59 @@
         }
     }
 </style>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    var form = document.getElementById("changelist-form");
+    if (form) {
+        form.addEventListener("submit", function(event) {
+            var action = form.querySelector('select[name="action"]');
+            if (!action || action.value !== "delete_selected") {
+                return;
+            }
+
+            var selectedRows = form.querySelectorAll('input.action-select:checked');
+            var selectAcross = form.querySelector('input[name="select_across"]');
+            var selectedAcross = selectAcross && selectAcross.value === "1";
+            if (!selectedRows.length && !selectedAcross) {
+                return;
+            }
+
+            var confirmed = window.confirm("Are you sure you want to delete the selected purchase orders?");
+            if (!confirmed) {
+                event.preventDefault();
+                return;
+            }
+
+            if (!form.querySelector('input[name="post"]')) {
+                var postInput = document.createElement("input");
+                postInput.type = "hidden";
+                postInput.name = "post";
+                postInput.value = "yes";
+                form.appendChild(postInput);
+            }
+        });
+    }
+
+    document.querySelectorAll(".change-list .paginator").forEach(function(paginator) {
+        Array.from(paginator.childNodes).forEach(function(node) {
+            if (node.nodeType !== Node.TEXT_NODE) {
+                return;
+            }
+
+            if (node.textContent.toLowerCase().includes("purchase order")) {
+                node.textContent = "";
+            }
+        });
+    });
+});
+</script>
 {% endblock %}
 
 {% block content_title %}
 <div class="purchase-list-hero">
     <div>
         <h1>Purchase Orders</h1>
-        <p>Review orders quickly, search by partner or number, and jump to the report view from the same workspace.</p>
     </div>
-    <div class="purchase-list-badge">{{ cl.result_count }} orders</div>
 </div>
 {% endblock %}
 

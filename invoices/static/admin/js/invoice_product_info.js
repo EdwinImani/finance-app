@@ -23,28 +23,45 @@
         const deleteCheckbox = row.querySelector('input[name$="-DELETE"]');
         const deleteButton = row.querySelector(".invoice-line-delete");
 
-        if (!deleteCheckbox || !deleteButton) {
+        if (!deleteButton) {
             return;
         }
 
-        deleteButton.classList.toggle("is-marked", deleteCheckbox.checked);
-        deleteButton.textContent = deleteCheckbox.checked ? "Undo delete" : "Delete line";
-        row.classList.toggle("invoice-row-marked-delete", deleteCheckbox.checked);
+        const isMarked = deleteCheckbox && deleteCheckbox.checked;
+        deleteButton.classList.toggle("is-marked", Boolean(isMarked));
+        deleteButton.textContent = isMarked ? "Undo delete" : "Delete";
+        row.classList.toggle("invoice-row-marked-delete", Boolean(isMarked));
     }
 
     function decorateDeleteControls(root) {
         (root || document).querySelectorAll("tr.form-row").forEach(function (row) {
             const deleteCell = row.querySelector("td.delete");
             const deleteCheckbox = row.querySelector('input[name$="-DELETE"]');
+            const inlineDeleteLink = row.querySelector(".inline-deletelink");
 
-            if (!deleteCell || !deleteCheckbox || deleteCell.querySelector(".invoice-line-delete")) {
+            if (!deleteCell || (!deleteCheckbox && !inlineDeleteLink) || deleteCell.querySelector(".invoice-line-delete")) {
                 return;
             }
+
+            deleteCell.querySelectorAll(".inline-deletelink").forEach(function (link) {
+                link.style.display = "none";
+            });
 
             const button = document.createElement("button");
             button.type = "button";
             button.className = "invoice-line-delete";
             button.addEventListener("click", function () {
+                if (!deleteCheckbox || !deleteCheckbox.checked) {
+                    if (!window.confirm("Are you sure you want to delete this item?")) {
+                        return;
+                    }
+                }
+
+                if (!deleteCheckbox && inlineDeleteLink) {
+                    inlineDeleteLink.click();
+                    return;
+                }
+
                 deleteCheckbox.checked = !deleteCheckbox.checked;
                 syncDeleteButton(row);
                 updateSummary();
@@ -125,6 +142,7 @@
 
         const unitPriceInput = row.querySelector('input[name$="-unit_price"]');
         const hsCodeInput = row.querySelector('input[name$="-hs_code"]');
+        const partNumberInput = row.querySelector('input[name$="-part_number"]');
 
         updateText(row, "description", data.description);
         updateText(row, "part_number", data.part_number);
@@ -137,8 +155,12 @@
             unitPriceInput.value = data.sale_price || "0";
         }
 
-        if (hsCodeInput && data.hs_code) {
-            hsCodeInput.value = data.hs_code;
+        if (hsCodeInput) {
+            hsCodeInput.value = data.hs_code || "";
+        }
+
+        if (partNumberInput) {
+            partNumberInput.value = data.part_number || "";
         }
 
         updateRowTotal(row);

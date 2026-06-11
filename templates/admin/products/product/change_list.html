@@ -31,6 +31,16 @@
         gap: 10px;
         flex-wrap: wrap;
         margin-bottom: 14px;
+        padding: 0;
+        list-style: none;
+        background: transparent;
+    }
+
+    .change-list .object-tools li {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        background: transparent;
     }
 
     .change-list .object-tools a {
@@ -203,16 +213,6 @@
         max-width: 720px;
     }
 
-    .product-list-badge {
-        background: #fff;
-        border: 1px solid var(--product-border);
-        border-radius: 999px;
-        padding: 10px 14px;
-        color: #9a3412;
-        font-weight: 700;
-        white-space: nowrap;
-    }
-
     @media (max-width: 900px) {
         .product-list-hero {
             flex-direction: column;
@@ -224,14 +224,48 @@
         }
     }
 </style>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    var form = document.getElementById("changelist-form");
+    if (!form) {
+        return;
+    }
+
+    form.addEventListener("submit", function(event) {
+        var action = form.querySelector('select[name="action"]');
+        if (!action || action.value !== "delete_selected") {
+            return;
+        }
+
+        var selectedRows = form.querySelectorAll('input.action-select:checked');
+        var selectAcross = form.querySelector('input[name="select_across"]');
+        var selectedAcross = selectAcross && selectAcross.value === "1";
+        if (!selectedRows.length && !selectedAcross) {
+            return;
+        }
+
+        var confirmed = window.confirm("Are you sure you want to delete the selected items?");
+        if (!confirmed) {
+            event.preventDefault();
+            return;
+        }
+
+        if (!form.querySelector('input[name="post"]')) {
+            var postInput = document.createElement("input");
+            postInput.type = "hidden";
+            postInput.name = "post";
+            postInput.value = "yes";
+            form.appendChild(postInput);
+        }
+    });
+});
+</script>
 {% endblock %}
 
 {% block content_title %}
 <div class="product-list-hero">
     <div>
         <h1>Products</h1>
-        <p>Browse stock, references, and sales information in a cleaner workspace with the same visual order as purchase orders.</p>
     </div>
-    <div class="product-list-badge">{{ cl.result_count }} products</div>
 </div>
 {% endblock %}

@@ -31,6 +31,34 @@ class PartNumberFilter(admin.SimpleListFilter):
 
 
 # ----------------------
+# HS CODE FILTER
+# ----------------------
+
+class HSCodeFilter(admin.SimpleListFilter):
+
+    title = "HS Code"
+    parameter_name = "hs_code_status"
+
+    def lookups(self, request, model_admin):
+        return (
+            ("missing", "Not specified"),
+            ("filled", "Specified"),
+        )
+
+    def queryset(self, request, queryset):
+
+        missing_hs_code = Q(hs_code__isnull=True) | Q(hs_code="") | Q(hs_code="-")
+
+        if self.value() == "missing":
+            return queryset.filter(missing_hs_code)
+
+        if self.value() == "filled":
+            return queryset.exclude(missing_hs_code)
+
+        return queryset
+
+
+# ----------------------
 # LOW STOCK FILTER
 # ----------------------
 
@@ -76,11 +104,11 @@ class ProductAdmin(PageSizeAdminMixin, admin.ModelAdmin):
         "note",
     )
 
-    search_help_text = "Search by part number, description, or note"
+    search_help_text = "Search by description, part number, HS code, or note"
 
     ordering = ("description",)
 
-    list_filter = (LowStockFilter, PartNumberFilter)
+    list_filter = (LowStockFilter, PartNumberFilter, HSCodeFilter)
 
     # ----------------------
     # PART NUMBER DISPLAY

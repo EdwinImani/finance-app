@@ -1,6 +1,4 @@
-document.addEventListener("change", function(e) {
-    const target = e.target;
-    const row = target.closest("tr");
+function updatePurchaseOrderItemRow(row, refreshProduct) {
     if (!row) return;
 
     function updateTotal() {
@@ -22,35 +20,72 @@ document.addEventListener("change", function(e) {
         }
     }
 
+    if (!refreshProduct) {
+        updateTotal();
+        return;
+    }
+
+    const select = row.querySelector("select[name$='product']") || row.querySelector("select[name$='-product']");
+    const productId = select ? select.value : "";
+    if (!productId) {
+        updateTotal();
+        return;
+    }
+
+    fetch(`/purchase/product-info/${productId}/`)
+        .then(response => response.json())
+        .then(data => {
+            const descriptionInput = row.querySelector("input[name$='description']") || row.querySelector("input[name$='-description']");
+            const partNumberInput = row.querySelector("input[name$='part_number']") || row.querySelector("input[name$='-part_number']");
+            const hsCodeInput = row.querySelector("input[name$='hs_code']") || row.querySelector("input[name$='-hs_code']");
+            const hsCodeDisplay = row.querySelector('[data-product-field="hs_code"]');
+            const partNumberDisplay = row.querySelector('[data-product-field="part_number"]');
+            const unitPriceInput = row.querySelector("input[name$='unit_price']") || row.querySelector("input[name$='-unit_price']");
+
+            if (descriptionInput) {
+                descriptionInput.value = data.description || "";
+            }
+            if (partNumberInput) {
+                partNumberInput.value = data.part_number || "";
+            }
+            if (hsCodeInput) {
+                hsCodeInput.value = data.hs_code || "";
+            }
+            if (hsCodeDisplay) {
+                hsCodeDisplay.textContent = data.hs_code || "-";
+            }
+            if (partNumberDisplay) {
+                partNumberDisplay.textContent = data.part_number || "-";
+            }
+            if (unitPriceInput) {
+                unitPriceInput.value = data.unit_price || "0";
+            }
+            updateTotal();
+        })
+        .catch(() => {
+            updateTotal();
+        });
+}
+
+document.addEventListener("change", function(e) {
+    const target = e.target;
+    const row = target.closest("tr");
+    if (!row) return;
+
     if (target.name.includes("product")) {
-        const select = target;
-        const productId = select.value;
-        if (!productId) return;
-
-        fetch(`/purchase/product-info/${productId}/`)
-            .then(response => response.json())
-            .then(data => {
-                const descriptionInput = row.querySelector("input[name$='description']") || row.querySelector("input[name$='-description']");
-                const partNumberInput = row.querySelector("input[name$='part_number']") || row.querySelector("input[name$='-part_number']");
-                const unitPriceInput = row.querySelector("input[name$='unit_price']") || row.querySelector("input[name$='-unit_price']");
-
-                if (descriptionInput) {
-                    descriptionInput.value = data.description || "";
-                }
-                if (partNumberInput) {
-                    partNumberInput.value = data.part_number || "";
-                }
-                if (unitPriceInput) {
-                    unitPriceInput.value = data.unit_price || "0";
-                }
-                updateTotal();
-            })
-            .catch(() => {
-                updateTotal();
-            });
+        updatePurchaseOrderItemRow(row, true);
     }
 
     if (target.name.includes("quantity") || target.name.includes("unit_price")) {
-        updateTotal();
+        updatePurchaseOrderItemRow(row, false);
     }
 });
+
+if (window.django && django.jQuery) {
+    django.jQuery(document).on("select2:select select2:close", ".inline-group .field-product select", function() {
+        const row = this.closest("tr");
+        window.setTimeout(function() {
+            updatePurchaseOrderItemRow(row, true);
+        }, 0);
+    });
+}

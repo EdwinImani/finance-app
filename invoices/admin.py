@@ -36,26 +36,14 @@ class ProformaItemInline(admin.TabularInline):
 
     fields = (
         "product",
-        "item_date",
         "hs_code",
-        "product_description",
         "part_number",
-        "stock_info",
-        "sale_price_info",
-        "purchase_price_info",
-        "product_note",
         "quantity",
         "unit_price",
         "total_line",
     )
 
     readonly_fields = (
-        "product_description",
-        "part_number",
-        "stock_info",
-        "sale_price_info",
-        "purchase_price_info",
-        "product_note",
         "total_line",
     )
 
@@ -71,7 +59,7 @@ class ProformaItemInline(admin.TabularInline):
     product_description.short_description = "Description"
 
     def part_number(self, obj):
-        value = obj.product.part_number if obj.product and obj.product.part_number else "-"
+        value = obj.part_number or (obj.product.part_number if obj.product and obj.product.part_number else "-")
         return format_html('<span data-product-field="part_number">{}</span>', value)
 
     part_number.short_description = "Part Number"
@@ -99,6 +87,11 @@ class ProformaItemInline(admin.TabularInline):
         return format_html('<span data-product-field="note">{}</span>', value)
 
     product_note.short_description = "Note"
+
+    def total_line(self, obj):
+        return obj.total_line()
+
+    total_line.short_description = "Total Amount"
 
 
 class InvoiceAdminForm(forms.ModelForm):
@@ -208,7 +201,7 @@ class InvoiceAdminMixin:
         if not obj.pk:
             return "-"
 
-        return format_html('<a class="button" href="{}" target="_blank">Create PDF</a>', self.get_invoice_pdf_url(obj))
+        return format_html('<a class="invoice-pdf-button" href="{}" target="_blank">PDF</a>', self.get_invoice_pdf_url(obj))
 
     pdf_link.short_description = "PDF"
 
@@ -264,7 +257,7 @@ class InvoiceAdminMixin:
                 "item_date": (
                     getattr(item, "item_date", None) or getattr(obj, "invoice_date", None)
                 ).strftime("%d/%m/%Y") if (getattr(item, "item_date", None) or getattr(obj, "invoice_date", None)) else "-",
-                "part_number": item.product.part_number if item.product and item.product.part_number else "-",
+                "part_number": item.part_number or (item.product.part_number if item.product and item.product.part_number else "-"),
                 "hs_code": item.hs_code or "-",
                 "quantity": item.quantity,
                 "unit_price": item.unit_price,
@@ -564,24 +557,13 @@ class CommercialItemInline(admin.TabularInline):
     fields = (
         "product",
         "hs_code",
-        "product_description",
         "part_number",
-        "stock_info",
-        "sale_price_info",
-        "purchase_price_info",
-        "product_note",
         "quantity",
         "unit_price",
         "total_line",
     )
 
     readonly_fields = (
-        "product_description",
-        "part_number",
-        "stock_info",
-        "sale_price_info",
-        "purchase_price_info",
-        "product_note",
         "total_line",
     )
 
@@ -597,7 +579,7 @@ class CommercialItemInline(admin.TabularInline):
     product_description.short_description = "Description"
 
     def part_number(self, obj):
-        value = obj.product.part_number if obj.product and obj.product.part_number else "-"
+        value = obj.part_number or (obj.product.part_number if obj.product and obj.product.part_number else "-")
         return format_html('<span data-product-field="part_number">{}</span>', value)
 
     part_number.short_description = "Part Number"
@@ -625,6 +607,11 @@ class CommercialItemInline(admin.TabularInline):
         return format_html('<span data-product-field="note">{}</span>', value)
 
     product_note.short_description = "Note"
+
+    def total_line(self, obj):
+        return obj.total_line()
+
+    total_line.short_description = "Total Amount"
 
 
 class CommercialPackingInline(admin.TabularInline):

@@ -6,6 +6,7 @@ from django.urls import reverse
 from company.models import CompanySetting
 from products.models import Product
 from purchase.admin import PurchaseOrderAdminForm
+from purchase.models import PurchaseOrder, PurchaseOrderItem
 
 
 class ProductInfoViewTests(TestCase):
@@ -49,3 +50,26 @@ class PurchaseOrderAdminFormTests(TestCase):
         form = PurchaseOrderAdminForm()
 
         self.assertEqual(form.fields["vat_percent"].initial, Decimal("20.00"))
+
+
+class PurchaseOrderItemTests(TestCase):
+
+    def test_item_uses_product_hs_code_and_part_number_by_default(self):
+        product = Product.objects.create(
+            description="Produit PO",
+            part_number="PO-001",
+            hs_code="8504.40",
+            purchase_price=Decimal("12.50"),
+        )
+        purchase_order = PurchaseOrder.objects.create()
+
+        item = PurchaseOrderItem.objects.create(
+            purchase_order=purchase_order,
+            product=product,
+            quantity=2,
+        )
+
+        self.assertEqual(item.description, "Produit PO")
+        self.assertEqual(item.part_number, "PO-001")
+        self.assertEqual(item.hs_code, "8504.40")
+        self.assertEqual(item.unit_price, Decimal("12.50"))
