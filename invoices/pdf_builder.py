@@ -323,8 +323,8 @@ def _build_styles():
             "InvoiceTitle",
             parent=base["Heading1"],
             fontName="Helvetica-Bold",
-            fontSize=18,
-            leading=20,
+            fontSize=20.5,
+            leading=22.5,
             textColor=colors.HexColor("#9A3412"),
             spaceAfter=0,
         ),
@@ -332,8 +332,8 @@ def _build_styles():
             "SectionTitle",
             parent=base["Heading4"],
             fontName="Helvetica-Bold",
-            fontSize=6.5,
-            leading=7.5,
+            fontSize=8.5,
+            leading=9.5,
             textColor=colors.HexColor("#C2410C"),
             spaceAfter=0,
         ),
@@ -341,8 +341,8 @@ def _build_styles():
             "DocumentTypeTitle",
             parent=base["Heading4"],
             fontName="Helvetica-Bold",
-            fontSize=9,
-            leading=10.5,
+            fontSize=11,
+            leading=12.5,
             textColor=colors.HexColor("#C2410C"),
             spaceAfter=0,
         ),
@@ -350,16 +350,16 @@ def _build_styles():
             "Label",
             parent=base["BodyText"],
             fontName="Helvetica-Bold",
-            fontSize=6,
-            leading=7,
+            fontSize=8,
+            leading=9,
             textColor=colors.HexColor("#7C2D12"),
         ),
         "body": ParagraphStyle(
             "Body",
             parent=base["BodyText"],
             fontName="Helvetica",
-            fontSize=7,
-            leading=8.2,
+            fontSize=9,
+            leading=10.2,
             alignment=TA_JUSTIFY,
             textColor=colors.black,
         ),
@@ -367,8 +367,8 @@ def _build_styles():
             "BodyLeft",
             parent=base["BodyText"],
             fontName="Helvetica",
-            fontSize=7,
-            leading=8.2,
+            fontSize=9,
+            leading=10.2,
             alignment=TA_LEFT,
             textColor=colors.black,
         ),
@@ -376,8 +376,8 @@ def _build_styles():
             "BodyCompact",
             parent=base["BodyText"],
             fontName="Helvetica",
-            fontSize=7,
-            leading=7.6,
+            fontSize=9,
+            leading=9.7,
             spaceBefore=0,
             spaceAfter=0,
             alignment=TA_JUSTIFY,
@@ -387,8 +387,8 @@ def _build_styles():
             "BodySmall",
             parent=base["BodyText"],
             fontName="Helvetica",
-            fontSize=6,
-            leading=7,
+            fontSize=8,
+            leading=9,
             alignment=TA_JUSTIFY,
             textColor=colors.black,
         ),
@@ -396,8 +396,8 @@ def _build_styles():
             "BodyRight",
             parent=base["BodyText"],
             fontName="Helvetica",
-            fontSize=7,
-            leading=8.2,
+            fontSize=9,
+            leading=10.2,
             alignment=TA_RIGHT,
             textColor=colors.black,
         ),
@@ -405,8 +405,8 @@ def _build_styles():
             "TableHead",
             parent=base["BodyText"],
             fontName="Helvetica-Bold",
-            fontSize=6,
-            leading=7,
+            fontSize=8,
+            leading=9,
             alignment=TA_LEFT,
             textColor=colors.HexColor("#C2410C"),
         ),
@@ -414,8 +414,8 @@ def _build_styles():
             "TableHeadCenter",
             parent=base["BodyText"],
             fontName="Helvetica-Bold",
-            fontSize=6,
-            leading=7,
+            fontSize=8,
+            leading=9,
             alignment=TA_CENTER,
             textColor=colors.HexColor("#C2410C"),
         ),
@@ -423,8 +423,8 @@ def _build_styles():
             "TableCell",
             parent=base["BodyText"],
             fontName="Helvetica",
-            fontSize=6.3,
-            leading=7.4,
+            fontSize=8.3,
+            leading=9.4,
             alignment=TA_JUSTIFY,
             textColor=colors.HexColor("#431407"),
         ),
@@ -432,8 +432,8 @@ def _build_styles():
             "TableCellPartNumber",
             parent=base["BodyText"],
             fontName="Helvetica",
-            fontSize=5.2,
-            leading=6,
+            fontSize=7.2,
+            leading=8,
             alignment=TA_LEFT,
             textColor=colors.HexColor("#431407"),
             wordWrap="CJK",
@@ -442,8 +442,8 @@ def _build_styles():
             "TableCellRight",
             parent=base["BodyText"],
             fontName="Helvetica",
-            fontSize=6.3,
-            leading=7.4,
+            fontSize=8.3,
+            leading=9.4,
             alignment=TA_RIGHT,
             textColor=colors.HexColor("#431407"),
         ),
@@ -451,8 +451,8 @@ def _build_styles():
             "TableCellCenter",
             parent=base["BodyText"],
             fontName="Helvetica",
-            fontSize=6.3,
-            leading=7.4,
+            fontSize=8.3,
+            leading=9.4,
             alignment=TA_CENTER,
             textColor=colors.HexColor("#431407"),
         ),
@@ -460,8 +460,8 @@ def _build_styles():
             "TableCellAmount",
             parent=base["BodyText"],
             fontName="Helvetica",
-            fontSize=6.3,
-            leading=7.4,
+            fontSize=8.3,
+            leading=9.4,
             alignment=TA_LEFT,
             textColor=colors.HexColor("#431407"),
         ),
@@ -469,8 +469,8 @@ def _build_styles():
             "Footer",
             parent=base["BodyText"],
             fontName="Helvetica-Bold",
-            fontSize=8,
-            leading=9,
+            fontSize=10,
+            leading=11,
             alignment=TA_RIGHT,
             textColor=colors.black,
         ),
@@ -478,8 +478,8 @@ def _build_styles():
             "FooterLeftSmall",
             parent=base["BodyText"],
             fontName="Helvetica-Bold",
-            fontSize=7,
-            leading=8,
+            fontSize=9,
+            leading=10,
             alignment=TA_LEFT,
             textColor=colors.black,
         ),
@@ -487,8 +487,8 @@ def _build_styles():
             "FooterCenterSmall",
             parent=base["BodyText"],
             fontName="Helvetica-Bold",
-            fontSize=7,
-            leading=8,
+            fontSize=9,
+            leading=10,
             alignment=TA_CENTER,
             textColor=colors.black,
         ),
@@ -496,8 +496,8 @@ def _build_styles():
             "FooterRightSmall",
             parent=base["BodyText"],
             fontName="Helvetica-Bold",
-            fontSize=7,
-            leading=8,
+            fontSize=9,
+            leading=10,
             alignment=TA_RIGHT,
             textColor=colors.black,
         ),
@@ -1580,10 +1580,10 @@ def _build_report_histogram(*, chart_labels, chart_totals, title):
     chart.categoryAxis.labels.angle = 0
     chart.categoryAxis.labels.boxAnchor = "n"
     chart.categoryAxis.labels.fontName = "Helvetica"
-    chart.categoryAxis.labels.fontSize = 7.5
+    chart.categoryAxis.labels.fontSize = 9.5
     chart.categoryAxis.labels.dy = -6
     chart.valueAxis.labels.fontName = "Helvetica"
-    chart.valueAxis.labels.fontSize = 7.5
+    chart.valueAxis.labels.fontSize = 9.5
     chart.valueAxis.valueMin = 0
     chart.valueAxis.visibleGrid = True
     chart.valueAxis.gridStrokeColor = colors.HexColor("#D9D9D9")
@@ -1610,9 +1610,9 @@ def _build_report_histogram(*, chart_labels, chart_totals, title):
         chart.bars[(0, index)].strokeWidth = 0.8
 
     drawing.add(chart)
-    drawing.add(String(0, 70 * mm, title, fontName="Helvetica-Bold", fontSize=13, fillColor=colors.HexColor("#9A3412")))
-    drawing.add(String(0, 64 * mm, "Metric: Total Amount", fontName="Helvetica-Bold", fontSize=8, fillColor=colors.HexColor("#5F6368")))
-    drawing.add(String(90 * mm, 4 * mm, "Month", fontName="Helvetica", fontSize=8, fillColor=colors.HexColor("#5F6368"), textAnchor="middle"))
+    drawing.add(String(0, 70 * mm, title, fontName="Helvetica-Bold", fontSize=15, fillColor=colors.HexColor("#9A3412")))
+    drawing.add(String(0, 64 * mm, "Metric: Total Amount", fontName="Helvetica-Bold", fontSize=10, fillColor=colors.HexColor("#5F6368")))
+    drawing.add(String(90 * mm, 4 * mm, "Month", fontName="Helvetica", fontSize=10, fillColor=colors.HexColor("#5F6368"), textAnchor="middle"))
     return drawing
 
 
@@ -2003,7 +2003,7 @@ if pdf_canvas is not None:
             for index, state in enumerate(page_states[:-1], start=1):
                 self.__dict__.update(state)
                 self.page_count = total_pages
-                self.setFont("Helvetica", 8)
+                self.setFont("Helvetica", 10)
                 self.setFillColor(colors.HexColor("#6C7682"))
                 self.drawCentredString(
                     self._pagesize[0] / 2,
