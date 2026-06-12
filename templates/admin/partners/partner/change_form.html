@@ -31,9 +31,41 @@
     .partner-autosave-status.is-error {
         color: #b91c1c;
     }
+
+    .change-form .form-row.field-partner_type select,
+    .change-form #id_partner_type {
+        width: 360px;
+        max-width: 100%;
+        min-height: 58px;
+        padding: 12px 18px;
+        font-size: 18px !important;
+        line-height: 1.5 !important;
+    }
+
+    .change-form .form-row.field-partner_type select option,
+    .change-form #id_partner_type option {
+        min-height: 58px;
+        padding: 18px 18px !important;
+        font: 26px Arial, sans-serif !important;
+        line-height: 2 !important;
+    }
 </style>
 <script>
 document.addEventListener("DOMContentLoaded", function() {
+    var partnerTypeSelect = document.querySelector("#id_partner_type");
+    if (partnerTypeSelect) {
+        partnerTypeSelect.style.fontSize = "18px";
+        partnerTypeSelect.style.lineHeight = "1.5";
+        partnerTypeSelect.style.minHeight = "58px";
+
+        Array.from(partnerTypeSelect.options).forEach(function(option) {
+            option.style.font = "26px Arial, sans-serif";
+            option.style.fontSize = "26px";
+            option.style.lineHeight = "2";
+            option.style.padding = "18px";
+        });
+    }
+
     var deleteButton = document.querySelector(".submit-row a.deletelink");
     if (!deleteButton) {
         return;
@@ -72,11 +104,4 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 });
 </script>
-{% endblock %}
-
-{% block content %}
-{% if invoice_autosave_url %}
-<div class="partner-autosave-status" data-invoice-autosave-status>Autosave active</div>
-{% endif %}
-{{ block.super }}
 {% endblock %}

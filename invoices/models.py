@@ -130,7 +130,10 @@ class ProformaInvoice(BaseInvoice):
     # CONVERT TO COMMERCIAL
     # ----------------------
 
-    def convert_to_commercial(self):
+    def convert_to_commercial(self, *, user_initiated=False):
+        if not user_initiated:
+            return None
+
         existing_commercial = CommercialInvoice.objects.filter(
             our_reference=self.invoice_number
         ).first()

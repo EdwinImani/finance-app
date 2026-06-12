@@ -519,7 +519,7 @@ class ProformaInvoiceAdmin(InvoiceAdminMixin, PageSizeAdminMixin, admin.ModelAdm
         for proforma in queryset:
 
             if hasattr(proforma, "convert_to_commercial"):
-                proforma.convert_to_commercial()
+                proforma.convert_to_commercial(user_initiated=True)
 
     convert_to_commercial.short_description = "Convert to Commercial Invoice"
 

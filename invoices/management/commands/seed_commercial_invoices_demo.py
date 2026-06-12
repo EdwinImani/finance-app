@@ -51,7 +51,6 @@ PRODUCTS = [
         "part_number": "IPS-2200",
         "note": "4-20mA output",
         "unit_qty": 500,
-        "unit_price": Decimal("135.00"),
         "sale_price": Decimal("185.00"),
         "purchase_price": Decimal("118.00"),
     },
@@ -60,7 +59,6 @@ PRODUCTS = [
         "part_number": "SCV-80A",
         "note": "DN80 manual valve",
         "unit_qty": 250,
-        "unit_price": Decimal("420.00"),
         "sale_price": Decimal("520.00"),
         "purchase_price": Decimal("389.00"),
     },
@@ -69,7 +67,6 @@ PRODUCTS = [
         "part_number": "PLC-X8",
         "note": "8 digital inputs",
         "unit_qty": 350,
-        "unit_price": Decimal("260.00"),
         "sale_price": Decimal("325.00"),
         "purchase_price": Decimal("238.00"),
     },
@@ -78,7 +75,6 @@ PRODUCTS = [
         "part_number": "SSC-100",
         "note": "Twisted pair cable roll",
         "unit_qty": 600,
-        "unit_price": Decimal("95.00"),
         "sale_price": Decimal("130.00"),
         "purchase_price": Decimal("82.00"),
     },
@@ -87,7 +83,6 @@ PRODUCTS = [
         "part_number": "EJB-44",
         "note": "ATEX certified enclosure",
         "unit_qty": 180,
-        "unit_price": Decimal("310.00"),
         "sale_price": Decimal("415.00"),
         "purchase_price": Decimal("285.00"),
     },
@@ -195,7 +190,6 @@ class Command(BaseCommand):
                     "part_number": data["part_number"],
                     "note": data["note"],
                     "unit_qty": data["unit_qty"],
-                    "unit_price": data["unit_price"],
                     "sale_price": data["sale_price"],
                     "purchase_price": data["purchase_price"],
                 },
@@ -230,13 +224,12 @@ class Command(BaseCommand):
 
             for item_index, (product_name, quantity) in enumerate(items, start=1):
                 product = products[product_name]
-                unit_price = product.sale_price or product.unit_price
                 CommercialInvoiceItem.objects.create(
                     invoice=invoice,
                     product=product,
                     hs_code=f"HS-{year % 100:02d}{index:04d}{item_index}",
                     quantity=quantity,
-                    unit_price=unit_price,
+                    unit_price=product.sale_price,
                 )
 
             created += 1

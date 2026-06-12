@@ -41,7 +41,7 @@ class ProformaConversionTests(TestCase):
             unit_price=Decimal("25.00"),
         )
 
-        commercial = proforma.convert_to_commercial()
+        commercial = proforma.convert_to_commercial(user_initiated=True)
 
         self.product.refresh_from_db()
 
@@ -58,14 +58,31 @@ class ProformaConversionTests(TestCase):
             unit_price=Decimal("25.00"),
         )
 
-        first_commercial = proforma.convert_to_commercial()
-        second_commercial = proforma.convert_to_commercial()
+        first_commercial = proforma.convert_to_commercial(user_initiated=True)
+        second_commercial = proforma.convert_to_commercial(user_initiated=True)
 
         self.product.refresh_from_db()
 
         self.assertEqual(first_commercial.pk, second_commercial.pk)
         self.assertEqual(CommercialInvoice.objects.count(), 1)
         self.assertEqual(self.product.unit_qty, 6)
+
+    def test_convert_to_commercial_requires_user_initiated_action(self):
+        proforma = ProformaInvoice.objects.create(importer=self.importer)
+        ProformaInvoiceItem.objects.create(
+            invoice=proforma,
+            product=self.product,
+            quantity=2,
+            unit_price=Decimal("25.00"),
+        )
+
+        commercial = proforma.convert_to_commercial()
+
+        self.product.refresh_from_db()
+
+        self.assertIsNone(commercial)
+        self.assertEqual(CommercialInvoice.objects.count(), 0)
+        self.assertEqual(self.product.unit_qty, 10)
 
     def test_convert_to_commercial_keeps_item_hs_code(self):
         proforma = ProformaInvoice.objects.create(importer=self.importer)
@@ -77,7 +94,7 @@ class ProformaConversionTests(TestCase):
             unit_price=Decimal("25.00"),
         )
 
-        commercial = proforma.convert_to_commercial()
+        commercial = proforma.convert_to_commercial(user_initiated=True)
 
         self.assertEqual(commercial.items.count(), 1)
         self.assertEqual(commercial.items.first().hs_code, "8544.42")
@@ -92,7 +109,7 @@ class ProformaConversionTests(TestCase):
             unit_price=Decimal("25.00"),
         )
 
-        commercial = proforma.convert_to_commercial()
+        commercial = proforma.convert_to_commercial(user_initiated=True)
 
         self.assertEqual(commercial.items.count(), 1)
         self.assertEqual(commercial.items.first().part_number, "CUSTOM-REF")
@@ -151,7 +168,7 @@ class ProformaConversionTests(TestCase):
             unit_price=Decimal("25.00"),
         )
 
-        commercial = proforma.convert_to_commercial()
+        commercial = proforma.convert_to_commercial(user_initiated=True)
 
         self.assertEqual(commercial.vat_percent, Decimal("7.50"))
 

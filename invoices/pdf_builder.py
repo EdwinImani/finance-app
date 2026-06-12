@@ -916,7 +916,6 @@ def _build_items_table(items, currency, styles, amount_from_last_page=None):
         [
             Paragraph("Item", styles["table_head"]),
             Paragraph("Description", styles["table_head"]),
-            Paragraph("Date", styles["table_head"]),
             Paragraph("Part No", styles["table_head"]),
             Paragraph("HS Code", styles["table_head"]),
             Paragraph("Qty", styles["table_head"]),
@@ -931,7 +930,6 @@ def _build_items_table(items, currency, styles, amount_from_last_page=None):
                 Paragraph("Amount from Last Page", styles["table_cell"]),
                 Paragraph("", styles["table_cell"]),
                 Paragraph("", styles["table_cell"]),
-                Paragraph("", styles["table_cell"]),
                 Paragraph("", styles["table_cell_amount"]),
                 Paragraph("", styles["table_cell_amount"]),
                 Paragraph(_format_money(amount_from_last_page, currency), styles["table_cell_amount"]),
@@ -943,7 +941,6 @@ def _build_items_table(items, currency, styles, amount_from_last_page=None):
             [
                 Paragraph(str(item["index"]), styles["table_cell"]),
                 Paragraph(_escape(item["description"]), styles["table_cell"]),
-                Paragraph(_escape(item["item_date"]), styles["table_cell"]),
                 Paragraph(_escape(item["part_number"]), styles["table_cell_part_number"]),
                 Paragraph(_escape(item["hs_code"]), styles["table_cell"]),
                 Paragraph(str(item["quantity"]), styles["table_cell_amount"]),
@@ -959,7 +956,6 @@ def _build_items_table(items, currency, styles, amount_from_last_page=None):
                 Paragraph("No items", styles["table_cell"]),
                 Paragraph("-", styles["table_cell"]),
                 Paragraph("-", styles["table_cell"]),
-                Paragraph("-", styles["table_cell"]),
                 Paragraph("-", styles["table_cell_amount"]),
                 Paragraph("-", styles["table_cell_amount"]),
                 Paragraph("-", styles["table_cell_amount"]),
@@ -968,7 +964,7 @@ def _build_items_table(items, currency, styles, amount_from_last_page=None):
 
     table = Table(
         rows,
-        colWidths=[10 * mm, 48 * mm, 20 * mm, 23 * mm, 18 * mm, 12 * mm, 25 * mm, 24 * mm],
+        colWidths=[10 * mm, 60 * mm, 28 * mm, 20 * mm, 12 * mm, 25 * mm, 25 * mm],
         repeatRows=1,
     )
     table.setStyle(
@@ -976,7 +972,7 @@ def _build_items_table(items, currency, styles, amount_from_last_page=None):
             [
                 ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#C2410C")),
                 ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-                ("ALIGN", (5, 1), (-1, -1), "LEFT"),
+                ("ALIGN", (4, 1), (-1, -1), "LEFT"),
                 ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#FFF7ED")]),
                 ("LEFTPADDING", (0, 0), (-1, -1), 4),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 4),

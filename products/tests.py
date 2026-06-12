@@ -59,3 +59,10 @@ class ProductAdminSearchTests(TestCase):
 
         self.assertEqual(results.count(), 1)
         self.assertEqual(results.first().part_number, "CAB-100")
+
+    def test_product_admin_form_hides_unit_price(self):
+        form_class = self.admin.get_form(None)
+
+        self.assertNotIn("unit_price", form_class.base_fields)
+        self.assertIn("sale_price", form_class.base_fields)
+        self.assertIn("purchase_price", form_class.base_fields)

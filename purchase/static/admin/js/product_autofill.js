@@ -50,6 +50,7 @@ function updatePurchaseOrderItemRow(row, refreshProduct) {
             }
             if (hsCodeInput) {
                 hsCodeInput.value = data.hs_code || "";
+                hsCodeInput.dispatchEvent(new Event("change", { bubbles: true }));
             }
             if (hsCodeDisplay) {
                 hsCodeDisplay.textContent = data.hs_code || "-";
@@ -58,12 +59,32 @@ function updatePurchaseOrderItemRow(row, refreshProduct) {
                 partNumberDisplay.textContent = data.part_number || "-";
             }
             if (unitPriceInput) {
-                unitPriceInput.value = data.unit_price || "0";
+                unitPriceInput.value = data.purchase_price || "0";
             }
             updateTotal();
         })
         .catch(() => {
             updateTotal();
+        });
+}
+
+function fillMissingPurchaseHsCode(row) {
+    if (!row) return;
+
+    const select = row.querySelector("select[name$='product']") || row.querySelector("select[name$='-product']");
+    const hsCodeInput = row.querySelector("input[name$='hs_code']") || row.querySelector("input[name$='-hs_code']");
+    const productId = select ? select.value : "";
+    const currentHsCode = hsCodeInput ? hsCodeInput.value.trim() : "";
+
+    if (!productId || !hsCodeInput || (currentHsCode && currentHsCode !== "-")) {
+        return;
+    }
+
+    fetch(`/purchase/product-info/${productId}/`)
+        .then(response => response.json())
+        .then(data => {
+            hsCodeInput.value = data.hs_code || "-";
+            hsCodeInput.dispatchEvent(new Event("change", { bubbles: true }));
         });
 }
 
@@ -89,3 +110,11 @@ if (window.django && django.jQuery) {
         }, 0);
     });
 }
+
+document.addEventListener("DOMContentLoaded", function() {
+    document.querySelectorAll(".inline-group tr").forEach(fillMissingPurchaseHsCode);
+});
+
+document.body.addEventListener("formset:added", function(event) {
+    event.target.querySelectorAll(".inline-group tr, tr").forEach(fillMissingPurchaseHsCode);
+});

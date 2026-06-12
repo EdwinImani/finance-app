@@ -33,8 +33,8 @@ class ProductInfoViewTests(TestCase):
                 "hs_code": "8471.30",
                 "note": "Note produit",
                 "unit_qty": "12",
-                "unit_price": "5.50",
                 "sale_price": "9.90",
+                "purchase_price": "5.50",
             },
         )
 

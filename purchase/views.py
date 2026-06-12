@@ -13,8 +13,8 @@ def product_info(request, product_id):
             "hs_code": product.hs_code,
             "note": product.note,
             "unit_qty": str(product.unit_qty),
-            "unit_price": str(product.purchase_price),
             "sale_price": str(product.sale_price),
+            "purchase_price": str(product.purchase_price),
         }
 
         return JsonResponse(data)

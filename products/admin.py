@@ -94,6 +94,7 @@ class ProductAdmin(PageSizeAdminMixin, admin.ModelAdmin):
         "hs_code_display",
         "unit_qty",
         "sale_price",
+        "purchase_price",
         "total_sold",
     )
 

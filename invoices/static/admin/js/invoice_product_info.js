@@ -148,7 +148,7 @@
         updateText(row, "part_number", data.part_number);
         updateText(row, "stock", data.unit_qty);
         updateText(row, "sale_price", data.sale_price);
-        updateText(row, "purchase_price", data.unit_price);
+        updateText(row, "purchase_price", data.purchase_price);
         updateText(row, "note", data.note);
 
         if (unitPriceInput) {
