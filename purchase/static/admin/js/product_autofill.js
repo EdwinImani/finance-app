@@ -25,8 +25,11 @@ function updatePurchaseOrderItemRow(row, refreshProduct) {
         return;
     }
 
-    const select = row.querySelector("select[name$='product']") || row.querySelector("select[name$='-product']");
-    const productId = select ? select.value : "";
+    const productField = row.querySelector("select[name$='product']") ||
+        row.querySelector("select[name$='-product']") ||
+        row.querySelector("input.vForeignKeyRawIdAdminField[name$='product']") ||
+        row.querySelector("input[name$='-product']");
+    const productId = productField ? productField.value : "";
     if (!productId) {
         updateTotal();
         return;
@@ -71,7 +74,10 @@ function updatePurchaseOrderItemRow(row, refreshProduct) {
 function fillMissingPurchaseHsCode(row) {
     if (!row) return;
 
-    const select = row.querySelector("select[name$='product']") || row.querySelector("select[name$='-product']");
+    const select = row.querySelector("select[name$='product']") ||
+        row.querySelector("select[name$='-product']") ||
+        row.querySelector("input.vForeignKeyRawIdAdminField[name$='product']") ||
+        row.querySelector("input[name$='-product']");
     const hsCodeInput = row.querySelector("input[name$='hs_code']") || row.querySelector("input[name$='-hs_code']");
     const productId = select ? select.value : "";
     const currentHsCode = hsCodeInput ? hsCodeInput.value.trim() : "";

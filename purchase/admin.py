@@ -48,7 +48,7 @@ class PurchaseOrderItemInline(admin.TabularInline):
         "total_line",
     )
 
-    autocomplete_fields = ("product",)
+    raw_id_fields = ("product",)
 
     def total_line(self, obj):
         return obj.total_line()
@@ -144,7 +144,7 @@ class PurchaseOrderAdmin(PageSizeAdminMixin, admin.ModelAdmin):
         "sent_by",
     )
 
-    autocomplete_fields = ("seller",)
+    raw_id_fields = ("seller",)
 
     inlines = [PurchaseOrderItemInline]
 
@@ -153,6 +153,7 @@ class PurchaseOrderAdmin(PageSizeAdminMixin, admin.ModelAdmin):
             "admin/js/product_autofill.js",
             "admin/js/purchase_partner_type.js",
             "admin/js/invoice_autosave.js",
+            "admin/js/raw_id_label_display.js",
         )
 
     def get_default_purchase_date(self):

@@ -47,7 +47,7 @@ class ProformaItemInline(admin.TabularInline):
         "total_line",
     )
 
-    autocomplete_fields = ("product",)
+    raw_id_fields = ("product",)
 
     class Media:
         js = ("admin/js/invoice_product_info.js",)
@@ -128,7 +128,11 @@ class InvoiceAdminMixin:
     )
 
     class Media:
-        js = ("admin/js/invoice_product_info.js", "admin/js/invoice_autosave.js")
+        js = (
+            "admin/js/invoice_product_info.js",
+            "admin/js/invoice_autosave.js",
+            "admin/js/raw_id_label_display.js",
+        )
 
     def get_company_year(self):
         company = CompanySetting.objects.first()
@@ -442,7 +446,7 @@ class ProformaInvoiceAdmin(InvoiceAdminMixin, PageSizeAdminMixin, admin.ModelAdm
         "pdf_link",
     )
 
-    autocomplete_fields = (
+    raw_id_fields = (
         "importer",
         "end_user",
     )
@@ -567,7 +571,7 @@ class CommercialItemInline(admin.TabularInline):
         "total_line",
     )
 
-    autocomplete_fields = ("product",)
+    raw_id_fields = ("product",)
 
     class Media:
         js = ("admin/js/invoice_product_info.js",)
@@ -674,7 +678,7 @@ class CommercialInvoiceAdmin(InvoiceAdminMixin, PageSizeAdminMixin, admin.ModelA
         "pdf_link",
     )
 
-    autocomplete_fields = (
+    raw_id_fields = (
         "importer",
         "end_user",
     )

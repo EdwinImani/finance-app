@@ -11,7 +11,7 @@
 
     function getInvoiceRows() {
         return Array.from(document.querySelectorAll("tr.form-row")).filter(function (row) {
-            return row.querySelector('select[name$="-product"], input[name$="-quantity"], input[name$="-unit_price"]');
+            return row.querySelector('select[name$="-product"], input.vForeignKeyRawIdAdminField[name$="-product"], input[name$="-quantity"], input[name$="-unit_price"]');
         });
     }
 
@@ -199,9 +199,9 @@
     function isProductField(element) {
         return (
             element &&
-            element.tagName === "SELECT" &&
             element.name &&
-            element.name.endsWith("-product")
+            element.name.endsWith("-product") &&
+            (element.tagName === "SELECT" || element.classList.contains("vForeignKeyRawIdAdminField"))
         );
     }
 
@@ -239,6 +239,12 @@
     function bindAllFields(root) {
         (root || document)
             .querySelectorAll('select[name$="-product"]')
+            .forEach(function (field) {
+                bindProductField(field);
+            });
+
+        (root || document)
+            .querySelectorAll('input.vForeignKeyRawIdAdminField[name$="-product"]')
             .forEach(function (field) {
                 bindProductField(field);
             });
