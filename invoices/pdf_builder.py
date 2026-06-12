@@ -675,14 +675,16 @@ def _build_purchase_order_commercial_terms_box(purchase_order, company, styles):
     if not terms_lines:
         terms_lines = ["-"]
 
-    signature_lines = [
-        f"<b>President:</b> {_format_preserving_layout(president)}",
-        f"<b>Date:</b> {purchase_date}",
+    signature_block = [
+        Paragraph(_format_preserving_layout(president), styles["body_right"]),
+        Paragraph("President", styles["body_right"]),
+        Spacer(1, 5 * mm),
+        Paragraph(f"<b>Date:</b> {purchase_date}", styles["body_right"]),
     ]
     table = Table(
         [[
             Paragraph("<br/>".join(terms_lines), styles.get("body_left", styles["body"])),
-            [Spacer(1, 10 * mm), Paragraph("<br/>".join(signature_lines), styles["body_right"])],
+            [Spacer(1, 10 * mm), *signature_block],
         ]],
         colWidths=[118 * mm, 66 * mm],
         hAlign="LEFT",
@@ -1048,11 +1050,11 @@ def _build_packing_section(*, invoice, packing_entries, styles):
     header_top = [
         Paragraph("Item No.", styles["table_head_center"]),
         Paragraph("No Packing", styles["table_head"]),
-        Paragraph("Gross", styles["table_head_center"]),
-        Paragraph("Net", styles["table_head_center"]),
-        Paragraph("L", styles["table_head_center"]),
-        Paragraph("W", styles["table_head_center"]),
-        Paragraph("H", styles["table_head_center"]),
+        Paragraph("Gross/kg", styles["table_head_center"]),
+        Paragraph("Net/kg", styles["table_head_center"]),
+        Paragraph("L/cm", styles["table_head_center"]),
+        Paragraph("W/cm", styles["table_head_center"]),
+        Paragraph("H/cm", styles["table_head_center"]),
     ]
     rows = [header_top]
 
@@ -1061,8 +1063,8 @@ def _build_packing_section(*, invoice, packing_entries, styles):
             [
                 Paragraph(str(entry["index"]), styles["table_cell_center"]),
                 Paragraph(_escape(entry["no_packing"]), styles["table_cell"]),
-                Paragraph(_format_plain_decimal(entry["gross_weight"]), styles["table_cell_center"]),
-                Paragraph(_format_plain_decimal(entry["net_weight"]), styles["table_cell_center"]),
+                Paragraph(_format_weight_kg(entry["gross_weight"]), styles["table_cell_center"]),
+                Paragraph(_format_weight_kg(entry["net_weight"]), styles["table_cell_center"]),
                 Paragraph(_format_plain_decimal(entry["dimension_length"]), styles["table_cell_center"]),
                 Paragraph(_format_plain_decimal(entry["dimension_width"]), styles["table_cell_center"]),
                 Paragraph(_format_plain_decimal(entry["dimension_height"]), styles["table_cell_center"]),
@@ -1398,6 +1400,11 @@ def _has_amount(value):
 def _format_plain_decimal(value):
     amount = Decimal(value or 0).quantize(Decimal("0.01"))
     return f"{amount:,.2f}"
+
+
+def _format_weight_kg(value):
+    amount = Decimal(value or 0).quantize(Decimal("0.001"))
+    return f"{amount:,.3f}"
 
 
 def _clean_lines(*values):
@@ -1938,11 +1945,16 @@ def _build_purchase_order_signature_block(purchase_order, company, styles):
         footer_lines = [Spacer(1, 0)]
 
     president = getattr(company, "president", "") or "-"
-    signature = Paragraph(
-        f"{_escape(president)}<br/>President<br/>Date: {purchase_order.purchase_date.strftime('%d-%b-%Y') if purchase_order.purchase_date else '-'}",
-        styles["body_right"],
-    )
-    table = Table([[footer_lines, [signature]]], colWidths=[118 * mm, 66 * mm], hAlign="LEFT")
+    signature = [
+        Paragraph(_escape(president), styles["body_right"]),
+        Paragraph("President", styles["body_right"]),
+        Spacer(1, 5 * mm),
+        Paragraph(
+            f"Date: {purchase_order.purchase_date.strftime('%d-%b-%Y') if purchase_order.purchase_date else '-'}",
+            styles["body_right"],
+        ),
+    ]
+    table = Table([[footer_lines, signature]], colWidths=[118 * mm, 66 * mm], hAlign="LEFT")
     table.setStyle(
         TableStyle(
             [

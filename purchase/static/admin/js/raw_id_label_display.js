@@ -124,6 +124,17 @@
         }
     }
 
+    function hideDjangoRawIdLabel(input) {
+        const container = input.closest(".related-widget-wrapper") || input.parentElement.parentElement;
+        if (!container) {
+            return;
+        }
+
+        container.querySelectorAll("strong").forEach(function (label) {
+            label.style.display = "none";
+        });
+    }
+
     function setupInput(input) {
         if (!input || input.dataset.rawIdLabelReady === "true") {
             return;
@@ -145,6 +156,7 @@
         input.dataset.rawIdLabelReady = "true";
         input.type = "hidden";
         wrapInput(input, visible, link);
+        hideDjangoRawIdLabel(input);
 
         visible.addEventListener("click", function () {
             const currentLink = lookupLink(input);
