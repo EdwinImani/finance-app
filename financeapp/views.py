@@ -26,4 +26,9 @@ def related_object_label(request, app_label, model_name, object_id):
     except model.DoesNotExist:
         return JsonResponse({"ok": False, "label": ""}, status=404)
 
-    return JsonResponse({"ok": True, "label": str(obj)})
+    if model_key == ("products", "product"):
+        label = obj.description
+    else:
+        label = str(obj)
+
+    return JsonResponse({"ok": True, "label": label})

@@ -88,7 +88,7 @@
             return;
         }
 
-        const existingLabel = labelFromDjango(input);
+        const existingLabel = config.app === "products" ? "" : labelFromDjango(input);
         if (existingLabel && existingLabel !== objectId) {
             setVisibleValue(input, visible, existingLabel);
             return;

@@ -2,6 +2,7 @@ from decimal import Decimal
 
 from django import forms
 from django.contrib import admin
+from django.forms.formsets import all_valid
 from django.db.models import Count, DecimalField, ExpressionWrapper, F, Sum, Value
 from django.db.models.functions import Coalesce, TruncMonth
 from django.http import HttpResponse, JsonResponse
@@ -389,11 +390,13 @@ class InvoiceAdminMixin:
         obj = get_object_or_404(self.model, pk=object_id)
         form_class = self.get_form(request, obj, change=True)
         form = form_class(request.POST, request.FILES, instance=obj)
+        formsets, inline_instances = self._create_formsets(request, form.instance, change=True)
 
-        if form.is_valid():
+        if form.is_valid() and all_valid(formsets):
             new_object = self.save_form(request, form, change=True)
             self.save_model(request, new_object, form, change=True)
             form.save_m2m()
+            self.save_related(request, form, formsets, change=True)
             return JsonResponse(
                 {
                     "ok": True,
@@ -402,7 +405,19 @@ class InvoiceAdminMixin:
                 }
             )
 
-        return JsonResponse({"ok": False, "errors": {"form": form.errors}}, status=400)
+        errors = {"form": form.errors}
+        inline_errors = []
+        for inline, formset in zip(inline_instances, formsets):
+            if formset.non_form_errors() or any(child.errors for child in formset.forms):
+                inline_errors.append(
+                    {
+                        "inline": inline.__class__.__name__,
+                        "non_form_errors": list(formset.non_form_errors()),
+                        "errors": [child.errors for child in formset.forms if child.errors],
+                    }
+                )
+        errors["inlines"] = inline_errors
+        return JsonResponse({"ok": False, "errors": errors}, status=400)
 
 
 # ----------------------

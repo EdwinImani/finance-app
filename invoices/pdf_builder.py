@@ -408,7 +408,7 @@ def _build_styles():
             fontSize=6,
             leading=7,
             alignment=TA_LEFT,
-            textColor=colors.white,
+            textColor=colors.HexColor("#C2410C"),
         ),
         "table_head_center": ParagraphStyle(
             "TableHeadCenter",
@@ -417,7 +417,7 @@ def _build_styles():
             fontSize=6,
             leading=7,
             alignment=TA_CENTER,
-            textColor=colors.white,
+            textColor=colors.HexColor("#C2410C"),
         ),
         "table_cell": ParagraphStyle(
             "TableCell",
@@ -823,7 +823,7 @@ def _partner_card(title, partner, styles):
     card.setStyle(
         TableStyle(
             [
-                ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#FFF7ED")),
+                ("BACKGROUND", (0, 0), (-1, -1), colors.white),
                 ("LEFTPADDING", (0, 0), (-1, -1), 5 * mm),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 5 * mm),
                 ("TOPPADDING", (0, 0), (-1, -1), 2 * mm),
@@ -844,7 +844,7 @@ def _info_box(title, text, styles):
     box.setStyle(
         TableStyle(
             [
-                ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#FFF7ED")),
+                ("BACKGROUND", (0, 0), (-1, -1), colors.white),
                 ("LEFTPADDING", (0, 0), (-1, -1), 5 * mm),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 5 * mm),
                 ("TOPPADDING", (0, 0), (-1, -1), 2 * mm),
@@ -970,10 +970,10 @@ def _build_items_table(items, currency, styles, amount_from_last_page=None):
     table.setStyle(
         TableStyle(
             [
-                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#C2410C")),
+                ("BACKGROUND", (0, 0), (-1, 0), colors.white),
                 ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
                 ("ALIGN", (4, 1), (-1, -1), "LEFT"),
-                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#FFF7ED")]),
+                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.white]),
                 ("LEFTPADDING", (0, 0), (-1, -1), 4),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 4),
                 ("TOPPADDING", (0, 0), (-1, -1), 5),
@@ -1022,9 +1022,9 @@ def _build_shipping_items_table(items, styles):
     table.setStyle(
         TableStyle(
             [
-                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#C2410C")),
+                ("BACKGROUND", (0, 0), (-1, 0), colors.white),
                 ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#FFF7ED")]),
+                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.white]),
                 ("LEFTPADDING", (0, 0), (-1, -1), 4),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 4),
                 ("TOPPADDING", (0, 0), (-1, -1), 5),
@@ -1090,9 +1090,9 @@ def _build_packing_section(*, invoice, packing_entries, styles):
     packing_table.setStyle(
         TableStyle(
             [
-                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#C2410C")),
+                ("BACKGROUND", (0, 0), (-1, 0), colors.white),
                 ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#FFF7ED")]),
+                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.white]),
                 ("LEFTPADDING", (0, 0), (-1, -1), 4),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 4),
                 ("TOPPADDING", (0, 0), (-1, -1), 5),
@@ -1142,7 +1142,7 @@ def _build_totals_table_from_values(*, gross_value, freight, vat_amount, discoun
     table.setStyle(
         TableStyle(
             [
-                ("BACKGROUND", (0, total_row_index), (-1, total_row_index), colors.HexColor("#FFEDD5")),
+                ("BACKGROUND", (0, total_row_index), (-1, total_row_index), colors.white),
                 ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
                 ("TOPPADDING", (0, 0), (-1, -1), 4),
                 ("LEFTPADDING", (0, 0), (-1, -1), 6),
@@ -1520,7 +1520,7 @@ def _build_report_summary_table(*, currency, total_qty, total_subtotal, total_va
     table.setStyle(
         TableStyle(
             [
-                ("BACKGROUND", (0, 5), (-1, 5), colors.HexColor("#FFEDD5")),
+                ("BACKGROUND", (0, 5), (-1, 5), colors.white),
                 ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
                 ("TOPPADDING", (0, 0), (-1, -1), 4),
                 ("LEFTPADDING", (0, 0), (-1, -1), 6),
@@ -1547,7 +1547,7 @@ def _build_purchase_report_summary_table(*, currency, total_qty, total_gross, to
     table.setStyle(
         TableStyle(
             [
-                ("BACKGROUND", (0, 4), (-1, 4), colors.HexColor("#FFEDD5")),
+                ("BACKGROUND", (0, 4), (-1, 4), colors.white),
                 ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
                 ("TOPPADDING", (0, 0), (-1, -1), 4),
                 ("LEFTPADDING", (0, 0), (-1, -1), 6),
@@ -1658,9 +1658,9 @@ def _build_commercial_report_table(*, invoices, currency, styles):
     table.setStyle(
         TableStyle(
             [
-                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#C2410C")),
+                ("BACKGROUND", (0, 0), (-1, 0), colors.white),
                 ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#FFF7ED")]),
+                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.white]),
                 ("LEFTPADDING", (0, 0), (-1, -1), 4),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 4),
                 ("TOPPADDING", (0, 0), (-1, -1), 5),
@@ -1710,9 +1710,9 @@ def _build_purchase_report_table(*, purchase_orders, currency, styles):
     table.setStyle(
         TableStyle(
             [
-                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#C2410C")),
+                ("BACKGROUND", (0, 0), (-1, 0), colors.white),
                 ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#FFF7ED")]),
+                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.white]),
                 ("LEFTPADDING", (0, 0), (-1, -1), 4),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 4),
                 ("TOPPADDING", (0, 0), (-1, -1), 5),
@@ -1775,9 +1775,9 @@ def _build_purchase_order_items_table(items, currency, styles, amount_from_last_
     table.setStyle(
         TableStyle(
             [
-                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#C2410C")),
+                ("BACKGROUND", (0, 0), (-1, 0), colors.white),
                 ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#FFF7ED")]),
+                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.white]),
                 ("LEFTPADDING", (0, 0), (-1, -1), 4),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 4),
                 ("TOPPADDING", (0, 0), (-1, -1), 5),
