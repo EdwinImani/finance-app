@@ -11,6 +11,21 @@ from products.models import Product
 
 from .forms import CommercialInvoiceForm, ProformaInvoiceForm
 from .models import CommercialInvoice, CommercialInvoiceItem, ProformaInvoice, ProformaInvoiceItem
+from .pdf_builder import PDF_FIRST_PAGE_ITEM_LIMIT, PDF_OTHER_PAGE_ITEM_LIMIT, _split_items_for_pages
+
+
+class PdfPaginationTests(TestCase):
+
+    def test_pdf_item_pages_use_six_items_then_sixteen_items(self):
+        items = list(range(39))
+
+        pages = _split_items_for_pages(
+            items,
+            first_page_max=PDF_FIRST_PAGE_ITEM_LIMIT,
+            other_pages_max=PDF_OTHER_PAGE_ITEM_LIMIT,
+        )
+
+        self.assertEqual([len(page) for page in pages], [6, 16, 16, 1])
 
 
 class ProformaConversionTests(TestCase):

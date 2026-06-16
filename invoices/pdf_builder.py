@@ -3,6 +3,8 @@ from io import BytesIO
 from pathlib import Path
 
 pdf_canvas = None
+PDF_FIRST_PAGE_ITEM_LIMIT = 6
+PDF_OTHER_PAGE_ITEM_LIMIT = 16
 
 try:
     from reportlab.lib import colors
@@ -55,7 +57,11 @@ def build_invoice_pdf(*, invoice, company, items, importer, end_user, invoice_ti
     if _is_shipping_document(document_type):
         story.extend(_build_shipping_document_intro(invoice, company, styles))
         story.append(Spacer(1, 4 * mm))
-        item_pages = _split_items_for_pages(items, first_page_max=16, other_pages_max=20)
+        item_pages = _split_items_for_pages(
+            items,
+            first_page_max=PDF_FIRST_PAGE_ITEM_LIMIT,
+            other_pages_max=PDF_OTHER_PAGE_ITEM_LIMIT,
+        )
         for page_index, page_items in enumerate(item_pages):
             if page_index > 0:
                 story.append(PageBreak())
@@ -71,7 +77,11 @@ def build_invoice_pdf(*, invoice, company, items, importer, end_user, invoice_ti
                     story.append(Spacer(1, 4 * mm))
                     story.extend(packing_section)
     else:
-        item_pages = _split_items_for_pages(items, first_page_max=11, other_pages_max=19)
+        item_pages = _split_items_for_pages(
+            items,
+            first_page_max=PDF_FIRST_PAGE_ITEM_LIMIT,
+            other_pages_max=PDF_OTHER_PAGE_ITEM_LIMIT,
+        )
         page_totals = _compute_page_totals(
             invoice=invoice,
             item_pages=item_pages,
@@ -286,7 +296,11 @@ def build_purchase_order_pdf(*, purchase_order, company, items, seller, requeste
     story.extend(_build_purchase_order_context_blocks(seller, requester, purchase_order, company, styles, requester_is_explicit))
     story.append(Spacer(1, 6 * mm))
 
-    item_pages = _split_items_for_pages(items, first_page_max=11, other_pages_max=19)
+    item_pages = _split_items_for_pages(
+        items,
+        first_page_max=PDF_FIRST_PAGE_ITEM_LIMIT,
+        other_pages_max=PDF_OTHER_PAGE_ITEM_LIMIT,
+    )
     page_totals = _compute_purchase_order_page_totals(purchase_order=purchase_order, item_pages=item_pages)
     for page_index, page_items in enumerate(item_pages):
         if page_index > 0:
