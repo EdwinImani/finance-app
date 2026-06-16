@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.db.models import Sum, Q
+from django.utils.html import format_html
 from financeapp.admin_mixins import PageSizeAdminMixin
 from .models import Product
 
@@ -91,11 +92,7 @@ class ProductAdmin(PageSizeAdminMixin, admin.ModelAdmin):
 
     list_display = (
         "description",
-        "part_number_display",
-        "hs_code_display",
-        "unit_qty",
-        "sale_price",
-        "purchase_price",
+        "part_number_with_hs_code",
         "total_sold",
     )
 
@@ -116,10 +113,18 @@ class ProductAdmin(PageSizeAdminMixin, admin.ModelAdmin):
     # PART NUMBER DISPLAY
     # ----------------------
 
-    def part_number_display(self, obj):
-        return obj.part_number if obj.part_number else "Not specified"
+    def part_number_with_hs_code(self, obj):
+        part_number = obj.part_number or "Not specified"
+        hs_code = obj.hs_code or "Not specified"
+        return format_html(
+            '<span class="product-part-number">{}</span>'
+            '<span class="product-hs-code">HS Code: {}</span>',
+            part_number,
+            hs_code,
+        )
 
-    part_number_display.short_description = "Part Number"
+    part_number_with_hs_code.short_description = "Part Number"
+    part_number_with_hs_code.admin_order_field = "part_number"
 
     def hs_code_display(self, obj):
         return obj.hs_code if obj.hs_code else "Not specified"
@@ -154,14 +159,18 @@ class ProductAdmin(PageSizeAdminMixin, admin.ModelAdmin):
 
         extra_matches = self.model.objects.filter(
             Q(part_number__iexact=term) |
+            Q(part_number__istartswith=term) |
             Q(part_number__icontains=term) |
+            Q(description__istartswith=term) |
             Q(description__icontains=term) |
             Q(note__icontains=term)
         )
 
         for word in term.split():
             extra_matches = extra_matches.filter(
+                Q(part_number__istartswith=word) |
                 Q(part_number__icontains=word) |
+                Q(description__istartswith=word) |
                 Q(description__icontains=word) |
                 Q(note__icontains=word)
             )

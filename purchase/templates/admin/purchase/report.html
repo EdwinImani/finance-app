@@ -197,16 +197,27 @@
     }
 
     .purchase-field input[type="date"] {
-        min-height: 54px;
-        font-size: 17px;
+        min-height: 72px;
+        max-width: 380px;
+        padding: 14px 18px;
+        font-size: 24px;
         font-weight: 700;
         color: #1f2f3d;
+        zoom: 1.22;
+        transform-origin: left top;
     }
 
     .purchase-field input[type="date"]::-webkit-datetime-edit {
         color: #1f2f3d;
-        font-size: 17px;
+        font-size: 24px;
         font-weight: 700;
+    }
+
+    .purchase-field input[type="date"]::-webkit-calendar-picker-indicator {
+        width: 28px;
+        height: 28px;
+        padding: 6px;
+        cursor: pointer;
     }
 
     .purchase-field input[type="date"]::-webkit-datetime-edit-text,

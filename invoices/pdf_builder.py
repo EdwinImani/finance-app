@@ -1673,7 +1673,8 @@ def _build_commercial_report_table(*, invoices, currency, styles):
 
     table = Table(
         rows,
-        colWidths=[18 * mm, 24 * mm, 33 * mm, 33 * mm, 14 * mm, 18 * mm, 16 * mm, 16 * mm, 16 * mm, 18 * mm],
+        colWidths=[18 * mm, 23 * mm, 31 * mm, 31 * mm, 8 * mm, 17 * mm, 14 * mm, 14 * mm, 14 * mm, 14 * mm],
+        hAlign="LEFT",
         repeatRows=1,
     )
     table.setStyle(
@@ -1725,7 +1726,8 @@ def _build_purchase_report_table(*, purchase_orders, currency, styles):
 
     table = Table(
         rows,
-        colWidths=[18 * mm, 28 * mm, 39 * mm, 39 * mm, 16 * mm, 18 * mm, 16 * mm, 16 * mm, 18 * mm],
+        colWidths=[18 * mm, 27 * mm, 32 * mm, 32 * mm, 8 * mm, 18 * mm, 15 * mm, 15 * mm, 19 * mm],
+        hAlign="LEFT",
         repeatRows=1,
     )
     table.setStyle(

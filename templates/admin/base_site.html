@@ -17,6 +17,8 @@
         --global-admin-accent-soft: #d86c73;
         --global-admin-shadow: 0 18px 42px rgba(120, 53, 15, 0.10);
         --global-admin-radius: 22px;
+        --global-control-height: 48px;
+        --global-control-radius: 14px;
         --global-sidebar-bg: #2b4157;
         --global-sidebar-bg-strong: #24384d;
         --global-sidebar-panel: rgba(255, 255, 255, 0.06);
@@ -40,8 +42,10 @@
     }
 
     body {
-        zoom: 0.61;
+        zoom: 0.66;
+        font-family: Inter, "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, Arial, sans-serif;
         font-size: 18px;
+        line-height: 1.45;
         background:
             radial-gradient(circle at 14% 20%, rgba(251, 146, 60, 0.12), transparent 24%),
             radial-gradient(circle at 84% 18%, rgba(217, 119, 6, 0.08), transparent 22%),
@@ -51,6 +55,14 @@
         min-height: 0;
         overflow-y: auto;
         overflow-x: hidden;
+    }
+
+    input,
+    select,
+    textarea,
+    button,
+    .button {
+        font-family: inherit;
     }
 
     body::before {
@@ -102,6 +114,7 @@
         border-right: 1px solid rgba(255, 255, 255, 0.05);
         box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.04);
         padding: 18px 12px 18px;
+        font-size: 1.04rem;
         height: auto !important;
         max-height: none !important;
         overflow: visible !important;
@@ -181,15 +194,15 @@
         align-items: center;
         justify-content: center;
         gap: 6px;
-        min-height: 30px;
-        padding: 0 12px;
+        min-height: 34px;
+        padding: 0 14px;
         margin-top: 2px;
         border-radius: 999px;
         background: rgba(61, 214, 198, 0.18);
         border: 1px solid rgba(61, 214, 198, 0.22);
         color: #eafffb !important;
         font-weight: 800;
-        font-size: 15px;
+        font-size: 16px;
         letter-spacing: 0.01em;
         text-decoration: none;
         box-shadow: 0 8px 16px rgba(11, 67, 76, 0.18);
@@ -229,8 +242,9 @@
         border: 1px solid rgba(255, 255, 255, 0.08);
         background: rgba(255, 255, 255, 0.10);
         color: var(--global-sidebar-text);
-        min-height: 42px;
-        padding: 0 14px;
+        min-height: var(--global-control-height);
+        padding: 0 16px;
+        font-size: 18px;
         box-sizing: border-box;
     }
 
@@ -244,8 +258,8 @@
         background: linear-gradient(180deg, var(--global-sidebar-bg) 0%, var(--global-sidebar-bg-strong) 100%);
         color: var(--global-sidebar-text);
         align-self: stretch;
-        min-height: 164vh !important;
-        height: 164vh !important;
+        min-height: 152vh !important;
+        height: 152vh !important;
         border-radius: 0 !important;
         border-right: 1px solid rgba(255, 255, 255, 0.05);
     }
@@ -495,7 +509,8 @@
     .vDateTimeField,
     .vLargeTextField,
     .vForeignKeyRawIdAdminField {
-        border-radius: 14px;
+        min-height: var(--global-control-height);
+        border-radius: var(--global-control-radius);
         border: 1px solid rgba(217, 119, 6, 0.10);
         background: rgba(255, 255, 255, 0.92);
         color: var(--global-admin-text);
@@ -517,6 +532,56 @@
         outline: none;
     }
 
+    .change-form fieldset.module.aligned > .form-row {
+        display: grid;
+        grid-template-columns: minmax(170px, 240px) minmax(0, 1fr);
+        align-items: center;
+        column-gap: 20px;
+        row-gap: 10px;
+    }
+
+    .change-form fieldset.module.aligned > .form-row > div,
+    .change-form fieldset.module.aligned > .form-row .flex-container {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        flex-wrap: wrap;
+        min-width: 0;
+    }
+
+    .change-form fieldset.module.aligned > .form-row > div {
+        grid-column: 1 / -1;
+        width: 100%;
+    }
+
+    .change-form fieldset.module.aligned > .form-row label {
+        flex: 0 0 min(240px, 100%);
+        width: auto !important;
+        min-width: 0;
+        margin: 0;
+        padding: 0;
+        text-align: left;
+        white-space: normal;
+    }
+
+    .change-form fieldset.module.aligned > .form-row .readonly,
+    .change-form fieldset.module.aligned > .form-row input:not([type="checkbox"]):not([type="radio"]),
+    .change-form fieldset.module.aligned > .form-row textarea,
+    .change-form fieldset.module.aligned > .form-row select,
+    .change-form fieldset.module.aligned > .form-row .related-widget-wrapper,
+    .change-form fieldset.module.aligned > .form-row .select2-container {
+        flex: 1 1 360px;
+        min-width: 240px;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+
+    @media (max-width: 900px) {
+        .change-form fieldset.module.aligned > .form-row {
+            grid-template-columns: 1fr;
+        }
+    }
+
     .selector,
     .selector-available,
     .selector-chosen,
@@ -532,6 +597,134 @@
     .calendarbox h2,
     .clockbox h2 {
         color: #9a3412;
+        font-size: 18px;
+        padding: 10px 14px;
+        box-sizing: border-box;
+    }
+
+    .calendarbox,
+    .clockbox {
+        z-index: 10050 !important;
+    }
+
+    .report-date-field {
+        position: relative;
+    }
+
+    .report-date-field .report-date-input {
+        min-height: 72px !important;
+        max-width: 380px !important;
+        padding: 14px 18px !important;
+        font-size: 24px !important;
+        font-weight: 800 !important;
+    }
+
+    .report-calendar-popover {
+        position: absolute;
+        top: calc(100% + 10px);
+        left: 0;
+        z-index: 20000;
+        width: 390px;
+        padding: 14px;
+        border: 1px solid rgba(217, 119, 6, 0.22);
+        border-radius: 16px;
+        background: #fffdfa;
+        box-shadow: 0 22px 48px rgba(31, 42, 55, 0.18);
+        color: #1f2f3d;
+    }
+
+    .report-calendar-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 12px;
+    }
+
+    .report-calendar-title {
+        font-size: 23px;
+        font-weight: 900;
+        color: #9a3412;
+        text-transform: capitalize;
+    }
+
+    .report-calendar-nav {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .report-calendar-nav button,
+    .report-calendar-footer button {
+        min-width: 42px;
+        min-height: 38px;
+        border: 1px solid rgba(217, 119, 6, 0.18);
+        border-radius: 10px;
+        background: #fff7ed;
+        color: #9a3412;
+        font-size: 20px;
+        font-weight: 900;
+        cursor: pointer;
+    }
+
+    .report-calendar-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 4px;
+    }
+
+    .report-calendar-table th {
+        padding: 6px 0;
+        color: #6f7a8a;
+        font-size: 17px;
+        font-weight: 900;
+        text-align: center;
+        text-transform: uppercase;
+    }
+
+    .report-calendar-table td {
+        padding: 0;
+        text-align: center;
+    }
+
+    .report-calendar-day {
+        width: 48px;
+        height: 42px;
+        border: 0;
+        border-radius: 10px;
+        background: transparent;
+        color: #1f2f3d;
+        font-size: 20px;
+        font-weight: 800;
+        cursor: pointer;
+    }
+
+    .report-calendar-day:hover {
+        background: #ffedd5;
+        color: #9a3412;
+    }
+
+    .report-calendar-day.is-muted {
+        color: #9aa6b2;
+        font-weight: 700;
+    }
+
+    .report-calendar-day.is-selected {
+        background: #d97706;
+        color: #fff;
+    }
+
+    .report-calendar-footer {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        margin-top: 12px;
+    }
+
+    .report-calendar-footer button {
+        min-width: 0;
+        padding: 0 14px;
+        font-size: 17px;
     }
 
     .select2-container--admin-autocomplete,
@@ -755,6 +948,210 @@
             document.addEventListener("DOMContentLoaded", installAutocompletePositioning);
         } else {
             installAutocompletePositioning();
+        }
+    })();
+
+    (function() {
+        const MONTHS = [
+            "janvier", "fevrier", "mars", "avril", "mai", "juin",
+            "juillet", "aout", "septembre", "octobre", "novembre", "decembre"
+        ];
+        const DAYS = ["lu", "ma", "me", "je", "ve", "sa", "di"];
+        let activePicker = null;
+
+        function pad(value) {
+            return String(value).padStart(2, "0");
+        }
+
+        function formatDate(date) {
+            return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+        }
+
+        function parseDate(value) {
+            const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value || "");
+            if (!match) {
+                return null;
+            }
+            const date = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+            return Number.isNaN(date.getTime()) ? null : date;
+        }
+
+        function mondayFirstIndex(date) {
+            return (date.getDay() + 6) % 7;
+        }
+
+        function closePicker() {
+            if (activePicker) {
+                activePicker.remove();
+                activePicker = null;
+            }
+        }
+
+        function renderCalendar(input, visibleMonth) {
+            closePicker();
+
+            const wrapper = input.closest(".commercial-field, .purchase-field");
+            if (!wrapper) {
+                return;
+            }
+
+            wrapper.classList.add("report-date-field");
+
+            const selected = parseDate(input.value);
+            const year = visibleMonth.getFullYear();
+            const month = visibleMonth.getMonth();
+            const firstOfMonth = new Date(year, month, 1);
+            const start = new Date(year, month, 1 - mondayFirstIndex(firstOfMonth));
+
+            const picker = document.createElement("div");
+            picker.className = "report-calendar-popover";
+
+            const header = document.createElement("div");
+            header.className = "report-calendar-header";
+
+            const title = document.createElement("div");
+            title.className = "report-calendar-title";
+            title.textContent = `${MONTHS[month]} ${year}`;
+
+            const nav = document.createElement("div");
+            nav.className = "report-calendar-nav";
+
+            const previousButton = document.createElement("button");
+            previousButton.type = "button";
+            previousButton.textContent = "<";
+            previousButton.setAttribute("aria-label", "Previous month");
+            previousButton.addEventListener("click", function(event) {
+                event.stopPropagation();
+                renderCalendar(input, new Date(year, month - 1, 1));
+            });
+
+            const nextButton = document.createElement("button");
+            nextButton.type = "button";
+            nextButton.textContent = ">";
+            nextButton.setAttribute("aria-label", "Next month");
+            nextButton.addEventListener("click", function(event) {
+                event.stopPropagation();
+                renderCalendar(input, new Date(year, month + 1, 1));
+            });
+
+            nav.appendChild(previousButton);
+            nav.appendChild(nextButton);
+            header.appendChild(title);
+            header.appendChild(nav);
+            picker.appendChild(header);
+
+            const table = document.createElement("table");
+            table.className = "report-calendar-table";
+
+            const thead = document.createElement("thead");
+            const headRow = document.createElement("tr");
+            DAYS.forEach(function(day) {
+                const th = document.createElement("th");
+                th.textContent = day;
+                headRow.appendChild(th);
+            });
+            thead.appendChild(headRow);
+            table.appendChild(thead);
+
+            const tbody = document.createElement("tbody");
+            for (let week = 0; week < 6; week += 1) {
+                const row = document.createElement("tr");
+                for (let day = 0; day < 7; day += 1) {
+                    const current = new Date(start);
+                    current.setDate(start.getDate() + week * 7 + day);
+
+                    const cell = document.createElement("td");
+                    const button = document.createElement("button");
+                    button.type = "button";
+                    button.className = "report-calendar-day";
+                    button.textContent = current.getDate();
+
+                    if (current.getMonth() !== month) {
+                        button.classList.add("is-muted");
+                    }
+                    if (selected && formatDate(current) === formatDate(selected)) {
+                        button.classList.add("is-selected");
+                    }
+
+                    button.addEventListener("click", function(event) {
+                        event.stopPropagation();
+                        input.value = formatDate(current);
+                        input.dispatchEvent(new Event("change", { bubbles: true }));
+                        closePicker();
+                    });
+
+                    cell.appendChild(button);
+                    row.appendChild(cell);
+                }
+                tbody.appendChild(row);
+            }
+            table.appendChild(tbody);
+            picker.appendChild(table);
+
+            const footer = document.createElement("div");
+            footer.className = "report-calendar-footer";
+
+            const clearButton = document.createElement("button");
+            clearButton.type = "button";
+            clearButton.textContent = "Effacer";
+            clearButton.addEventListener("click", function(event) {
+                event.stopPropagation();
+                input.value = "";
+                input.dispatchEvent(new Event("change", { bubbles: true }));
+                closePicker();
+            });
+
+            const todayButton = document.createElement("button");
+            todayButton.type = "button";
+            todayButton.textContent = "Aujourd'hui";
+            todayButton.addEventListener("click", function(event) {
+                event.stopPropagation();
+                input.value = formatDate(new Date());
+                input.dispatchEvent(new Event("change", { bubbles: true }));
+                closePicker();
+            });
+
+            footer.appendChild(clearButton);
+            footer.appendChild(todayButton);
+            picker.appendChild(footer);
+
+            wrapper.appendChild(picker);
+            activePicker = picker;
+        }
+
+        function installReportDatePickers() {
+            document.querySelectorAll(".commercial-field input[type='date'], .purchase-field input[type='date']").forEach(function(input) {
+                if (input.dataset.reportDatePickerReady === "1") {
+                    return;
+                }
+
+                input.dataset.reportDatePickerReady = "1";
+                input.type = "text";
+                input.classList.add("report-date-input");
+                input.placeholder = "YYYY-MM-DD";
+                input.setAttribute("autocomplete", "off");
+
+                input.addEventListener("focus", function() {
+                    renderCalendar(input, parseDate(input.value) || new Date());
+                });
+
+                input.addEventListener("click", function(event) {
+                    event.stopPropagation();
+                    renderCalendar(input, parseDate(input.value) || new Date());
+                });
+            });
+
+            document.addEventListener("click", function(event) {
+                if (activePicker && !event.target.closest(".report-calendar-popover")) {
+                    closePicker();
+                }
+            });
+        }
+
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", installReportDatePickers);
+        } else {
+            installReportDatePickers();
         }
     })();
 </script>
