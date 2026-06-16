@@ -49,6 +49,8 @@ class PartnerAdmin(PageSizeAdminMixin, admin.ModelAdmin):
         "email",
     )
 
+    ordering = ("description",)
+
     list_filter = (
         "partner_type",
     )

@@ -9,7 +9,7 @@ from .models import Product
 
 class ProductModelTests(TestCase):
 
-    def test_admin_label_prefers_part_number_then_description(self):
+    def test_admin_label_uses_description_even_when_part_number_exists(self):
         product = Product.objects.create(
             description="Produit A",
             part_number="REF-123",
@@ -17,7 +17,7 @@ class ProductModelTests(TestCase):
             sale_price=Decimal("19.90"),
         )
 
-        self.assertEqual(str(product), "REF-123 - Produit A")
+        self.assertEqual(str(product), "Produit A")
 
     def test_admin_label_uses_description_when_part_number_is_missing(self):
         product = Product.objects.create(

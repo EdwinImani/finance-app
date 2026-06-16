@@ -9,103 +9,6 @@
     };
 </script>
 {% endif %}
-<script>
-    (function() {
-        let activeAutocomplete = null;
-
-        function bodyZoom() {
-            const zoom = window.getComputedStyle(document.body).zoom;
-            const parsedZoom = parseFloat(zoom);
-            return Number.isFinite(parsedZoom) && parsedZoom > 0 ? parsedZoom : 1;
-        }
-
-        function openDropdownContainer() {
-            const dropdown = document.querySelector(".select2-container--open .select2-dropdown");
-            return dropdown ? dropdown.parentElement : null;
-        }
-
-        function positionOpenAutocomplete(select) {
-            const $ = window.django && django.jQuery;
-            if (!$) {
-                return;
-            }
-
-            const select2 = $(select).data("select2");
-            if (!select2 || !select2.$container || !select2.$container.length) {
-                return;
-            }
-
-            const container = openDropdownContainer();
-            if (!container) {
-                return;
-            }
-
-            const zoom = bodyZoom();
-            const rect = select2.$container[0].getBoundingClientRect();
-
-            container.style.position = "absolute";
-            container.style.left = `${(rect.left + window.scrollX) / zoom}px`;
-            container.style.top = `${(rect.bottom + window.scrollY) / zoom}px`;
-            container.style.width = `${rect.width / zoom}px`;
-            container.style.zIndex = "10000";
-        }
-
-        function keepAutocompleteNearField(select) {
-            let remainingFrames = 8;
-
-            function tick() {
-                positionOpenAutocomplete(select);
-                remainingFrames -= 1;
-
-                if (remainingFrames > 0) {
-                    window.requestAnimationFrame(tick);
-                }
-            }
-
-            window.requestAnimationFrame(tick);
-        }
-
-        function refreshOpenAutocomplete() {
-            if (activeAutocomplete) {
-                positionOpenAutocomplete(activeAutocomplete);
-            }
-        }
-
-        function installAutocompletePositionFix() {
-            const $ = window.django && django.jQuery;
-            if (!$) {
-                window.setTimeout(installAutocompletePositionFix, 25);
-                return;
-            }
-
-            $(document).on("select2:open", "select.admin-autocomplete", function() {
-                const select = this;
-                activeAutocomplete = select;
-
-                const select2 = $(select).data("select2");
-                if (select2 && select2.$container && select2.$container.length) {
-                    select2.$container[0].scrollIntoView({
-                        block: "center",
-                        inline: "nearest",
-                    });
-                }
-
-                keepAutocompleteNearField(select);
-            });
-
-            $(document).on("select2:close", "select.admin-autocomplete", function() {
-                if (activeAutocomplete === this) {
-                    activeAutocomplete = null;
-                }
-            });
-
-            window.addEventListener("scroll", refreshOpenAutocomplete, true);
-            window.addEventListener("resize", refreshOpenAutocomplete);
-        }
-
-        installAutocompletePositionFix();
-    })();
-</script>
 <style>
     :root {
         --po-form-bg: #f7f1ef;
@@ -364,15 +267,15 @@
     }
 
     .inline-group .tabular .field-product {
-        width: 22%;
+        width: 30%;
     }
 
     .inline-group .tabular .field-hs_code {
-        width: 18%;
+        width: 15%;
     }
 
     .inline-group .tabular .field-part_number {
-        width: 15%;
+        width: 13%;
         white-space: nowrap;
     }
 
@@ -409,7 +312,7 @@
 
     .inline-group .field-product .select2-selection__rendered {
         font-size: 11px;
-        line-height: 30px !important;
+        line-height: 36px !important;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
@@ -417,8 +320,8 @@
 
     .inline-group .field-product .select2-selection,
     .inline-group .field-product .select2-selection__arrow {
-        min-height: 32px !important;
-        height: 32px !important;
+        min-height: 38px !important;
+        height: 38px !important;
     }
 
     .inline-group .field-product .related-widget-wrapper a.related-widget-wrapper-link {
@@ -595,6 +498,75 @@
 
     .invoice-autosave-status.is-error {
         color: #bf3c3c;
+    }
+
+    .change-form .module h2,
+    .change-form .module caption,
+    .change-form .inline-group h2 {
+        font-size: 24px;
+    }
+
+    .change-form .form-row,
+    .change-form label,
+    .change-form input:not([type="checkbox"]):not([type="radio"]),
+    .change-form textarea,
+    .change-form select,
+    .change-form .readonly,
+    .change-form .related-widget-wrapper .select2-selection__rendered {
+        font-size: 22px !important;
+    }
+
+    .change-form input:not([type="checkbox"]):not([type="radio"]),
+    .change-form textarea,
+    .change-form select,
+    .change-form .related-widget-wrapper .select2-selection {
+        min-height: 58px;
+    }
+
+    .change-form .related-widget-wrapper .select2-selection__rendered {
+        line-height: 56px !important;
+    }
+
+    .change-form .field-total_amount_display .readonly {
+        font-size: 28px;
+    }
+
+    .inline-group .tabular th,
+    .inline-group .tabular td {
+        font-size: 20px;
+    }
+
+    .inline-group .tabular input:not([type="checkbox"]):not([type="radio"]),
+    .inline-group .tabular select {
+        min-height: 52px;
+        font-size: 20px;
+    }
+
+    .inline-group .field-product .select2-selection,
+    .inline-group .field-product .select2-selection__arrow {
+        min-height: 52px !important;
+        height: 52px !important;
+    }
+
+    .inline-group .field-product .select2-selection__rendered {
+        font-size: 20px;
+        line-height: 50px !important;
+    }
+
+    .inline-group .tabular .field-part_number,
+    .inline-group .tabular [data-product-field="part_number"] {
+        font-size: 18px;
+    }
+
+    .purchase-order-hero h1 {
+        font-size: 52px;
+    }
+
+    .purchase-order-hero p,
+    .purchase-order-badge,
+    .invoice-autosave-status,
+    .po-inline-delete {
+        font-size: 21px;
     }
 
     @media (max-width: 900px) {

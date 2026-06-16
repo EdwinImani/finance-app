@@ -966,7 +966,7 @@ def _build_items_table(items, currency, styles, amount_from_last_page=None):
 
     table = Table(
         rows,
-        colWidths=[10 * mm, 60 * mm, 28 * mm, 20 * mm, 12 * mm, 25 * mm, 25 * mm],
+        colWidths=[10 * mm, 58 * mm, 34 * mm, 20 * mm, 8 * mm, 25 * mm, 25 * mm],
         repeatRows=1,
     )
     table.setStyle(
@@ -1018,7 +1018,7 @@ def _build_shipping_items_table(items, styles):
 
     table = Table(
         rows,
-        colWidths=[18 * mm, 96 * mm, 42 * mm, 28 * mm],
+        colWidths=[18 * mm, 96 * mm, 50 * mm, 20 * mm],
         repeatRows=1,
     )
     table.setStyle(
@@ -1776,7 +1776,7 @@ def _build_purchase_order_items_table(items, currency, styles, amount_from_last_
 
     table = Table(
         rows,
-        colWidths=[10 * mm, 46 * mm, 28 * mm, 20 * mm, 18 * mm, 28 * mm, 25 * mm, 15 * mm],
+        colWidths=[10 * mm, 46 * mm, 34 * mm, 20 * mm, 12 * mm, 28 * mm, 25 * mm, 15 * mm],
         repeatRows=1,
     )
     table.setStyle(

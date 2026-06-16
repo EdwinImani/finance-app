@@ -1,6 +1,18 @@
 function updatePurchaseOrderItemRow(row, refreshProduct) {
     if (!row) return;
 
+    function defaultQuantityToOne() {
+        const qtyInput = row.querySelector("input[name$='quantity']") || row.querySelector("input[name$='-quantity']");
+
+        if (!qtyInput) return;
+
+        const qty = parseFloat(qtyInput.value || "0");
+        if (!qtyInput.value || qty === 0) {
+            qtyInput.value = "1";
+            qtyInput.dispatchEvent(new Event("change", { bubbles: true }));
+        }
+    }
+
     function updateTotal() {
         const qtyInput = row.querySelector("input[name$='quantity']");
         const unitPriceInput = row.querySelector("input[name$='unit_price']");
@@ -34,6 +46,8 @@ function updatePurchaseOrderItemRow(row, refreshProduct) {
         updateTotal();
         return;
     }
+
+    defaultQuantityToOne();
 
     fetch(`/purchase/product-info/${productId}/`)
         .then(response => response.json())

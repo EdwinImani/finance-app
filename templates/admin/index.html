@@ -16,7 +16,8 @@
     }
 
     body.dashboard #content {
-        padding: 28px 28px 28px !important;
+        padding: 26px 28px 28px !important;
+        overflow: visible !important;
     }
 
     .finance-dashboard {
@@ -34,6 +35,7 @@
         --dash-muted: #708090;
         width: 100%;
         max-width: 100%;
+        font-size: 1.12rem;
         padding: 26px 0 14px;
         box-sizing: border-box;
     }
@@ -41,7 +43,7 @@
     .finance-frame {
         display: grid;
         grid-template-columns: 276px minmax(0, 1fr);
-        gap: 24px;
+        gap: 22px;
         align-items: start;
         width: 100%;
     }
@@ -96,7 +98,7 @@
     }
 
     .finance-brand-name {
-        font-size: 1.15rem;
+        font-size: 1.45rem;
         font-weight: 800;
         letter-spacing: -0.03em;
     }
@@ -109,7 +111,7 @@
         border-radius: 999px;
         background: rgba(61, 214, 198, 0.18);
         color: #bafff6;
-        font-size: 0.72rem;
+        font-size: 1rem;
         font-weight: 800;
         letter-spacing: 0.08em;
         text-transform: uppercase;
@@ -134,7 +136,7 @@
     .finance-side-label {
         display: block;
         color: rgba(223, 234, 244, 0.72);
-        font-size: 0.76rem;
+        font-size: 1.05rem;
         font-weight: 800;
         letter-spacing: 0.08em;
         text-transform: uppercase;
@@ -142,7 +144,7 @@
 
     .finance-side-value {
         margin-top: 8px;
-        font-size: 1.3rem;
+        font-size: 1.7rem;
         font-weight: 800;
         letter-spacing: -0.03em;
     }
@@ -150,7 +152,7 @@
     .finance-side-note {
         margin-top: 6px;
         color: rgba(223, 234, 244, 0.72);
-        font-size: 0.86rem;
+        font-size: 1.12rem;
         line-height: 1.5;
     }
 
@@ -175,7 +177,7 @@
 
     .finance-main {
         display: grid;
-        gap: 22px;
+        gap: 20px;
         min-width: 0;
         width: 100%;
     }
@@ -191,7 +193,7 @@
     .finance-topbar-title h1 {
         margin: 0;
         color: #d97706;
-        font-size: clamp(2rem, 3vw, 2.5rem);
+        font-size: clamp(2.65rem, 3.4vw, 3.15rem);
         letter-spacing: -0.04em;
     }
 
@@ -199,6 +201,7 @@
         margin: 8px 0 0;
         color: var(--dash-muted);
         max-width: 760px;
+        font-size: 1.08rem;
         line-height: 1.7;
     }
 
@@ -210,6 +213,7 @@
         border-radius: 999px;
         background: rgba(217, 119, 6, 0.08);
         color: #9a3412;
+        font-size: 1.05rem;
         font-weight: 800;
     }
 
@@ -230,6 +234,7 @@
         border: 1px solid rgba(35, 56, 77, 0.10);
         background: rgba(255, 255, 255, 0.88);
         color: #23384d;
+        font-size: 1.05rem;
         font-weight: 800;
         text-decoration: none;
         box-shadow: 0 10px 18px rgba(35, 56, 77, 0.08);
@@ -250,7 +255,7 @@
     }
 
     .finance-hero-panel {
-        padding: 22px 24px 24px;
+        padding: 20px 22px 22px;
         width: 100%;
         box-sizing: border-box;
     }
@@ -284,13 +289,14 @@
         display: block;
         margin-bottom: 6px;
         color: #9a3412;
-        font-size: 0.82rem;
+        font-size: 1.12rem;
         letter-spacing: 0.06em;
         text-transform: uppercase;
     }
 
     .finance-overview-item span {
         color: var(--dash-text);
+        font-size: 1.08rem;
         font-weight: 700;
     }
 
@@ -313,7 +319,7 @@
         align-items: center;
         gap: 8px;
         color: var(--dash-muted);
-        font-size: 0.82rem;
+        font-size: 1.08rem;
     }
 
     .finance-legend-swatch {
@@ -341,7 +347,7 @@
     }
 
     .finance-summary {
-        padding: 22px;
+        padding: 20px;
         width: 100%;
         box-sizing: border-box;
     }
@@ -361,7 +367,7 @@
 
     .finance-stat-label {
         color: var(--dash-muted);
-        font-size: 0.8rem;
+        font-size: 1.1rem;
         font-weight: 700;
         letter-spacing: 0.06em;
         text-transform: uppercase;
@@ -370,7 +376,7 @@
     .finance-stat-value {
         margin-top: 10px;
         color: #1f2a37;
-        font-size: clamp(1.5rem, 2vw, 2rem);
+        font-size: clamp(2rem, 2.35vw, 2.55rem);
         font-weight: 800;
         letter-spacing: -0.04em;
     }
@@ -378,18 +384,18 @@
     .finance-stat-note {
         margin-top: 6px;
         color: var(--dash-muted);
-        font-size: 0.9rem;
+        font-size: 1.15rem;
     }
 
     .finance-lower-grid {
         display: grid;
         grid-template-columns: minmax(0, 1.5fr) minmax(320px, 0.9fr);
-        gap: 22px;
+        gap: 20px;
     }
 
     .finance-apps-panel,
     .finance-actions-panel {
-        padding: 22px;
+        padding: 20px;
         width: 100%;
         box-sizing: border-box;
     }
@@ -405,12 +411,13 @@
     .finance-panel-head h2 {
         margin: 0;
         color: #7f1720;
-        font-size: 1.35rem;
+        font-size: 1.75rem;
     }
 
     .finance-panel-head p {
         margin: 6px 0 0;
         color: var(--dash-muted);
+        font-size: 1.08rem;
     }
 
     .finance-apps-grid {
@@ -429,7 +436,7 @@
         padding: 16px 18px;
         background: linear-gradient(180deg, rgba(255, 248, 247, 1) 0%, rgba(249, 236, 237, 0.92) 100%);
         color: #9a3412;
-        font-size: 0.9rem;
+        font-size: 1.18rem;
         font-weight: 800;
         letter-spacing: 0.08em;
         text-transform: uppercase;
@@ -454,6 +461,7 @@
     .finance-model-item a,
     .finance-model-item span {
         color: #23384d;
+        font-size: 1.08rem;
         font-weight: 700;
         text-decoration: none;
     }
@@ -473,7 +481,7 @@
         padding: 0 14px;
         border-radius: 999px;
         text-decoration: none;
-        font-size: 0.84rem;
+        font-size: 1.1rem;
         font-weight: 800;
     }
 
@@ -504,6 +512,7 @@
     .finance-action-item a,
     .finance-action-item span {
         color: #23384d;
+        font-size: 1.08rem;
         font-weight: 700;
         text-decoration: none;
     }
@@ -511,7 +520,7 @@
     .finance-action-meta {
         margin-top: 5px;
         color: var(--dash-muted);
-        font-size: 0.88rem;
+        font-size: 1.12rem;
     }
 
     .finance-empty {

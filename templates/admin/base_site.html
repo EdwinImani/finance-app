@@ -28,25 +28,29 @@
     }
 
     html {
-        font-size: 16px;
-        overflow-y: auto;
+        font-size: 20px;
+        height: 100%;
+        overflow: hidden;
     }
 
     @media (min-width: 1200px) {
         html {
-            font-size: 18px;
+            font-size: 21px;
         }
     }
 
     body {
-        zoom: 2;
+        zoom: 1.85;
+        font-size: 18px;
         background:
             radial-gradient(circle at 14% 20%, rgba(251, 146, 60, 0.12), transparent 24%),
             radial-gradient(circle at 84% 18%, rgba(217, 119, 6, 0.08), transparent 22%),
             linear-gradient(180deg, #fdf9f8 0%, #f7f1ef 100%);
         color: var(--global-admin-text);
-        min-height: 100vh;
+        height: 100%;
+        min-height: 0;
         overflow-y: auto;
+        overflow-x: hidden;
     }
 
     body::before {
@@ -182,7 +186,7 @@
         border: 1px solid rgba(61, 214, 198, 0.22);
         color: #eafffb !important;
         font-weight: 800;
-        font-size: 12px;
+        font-size: 15px;
         letter-spacing: 0.01em;
         text-decoration: none;
         box-shadow: 0 8px 16px rgba(11, 67, 76, 0.18);
@@ -307,14 +311,14 @@
     .actions select,
     .actions select[name="action"] {
         min-height: 42px;
-        font-size: 16px !important;
+        font-size: 18px !important;
         line-height: 1.5 !important;
         padding: 8px 12px;
     }
 
     .actions select option,
     .actions select[name="action"] option {
-        font-size: 16px !important;
+        font-size: 18px !important;
         line-height: 1.6 !important;
         padding: 10px 12px !important;
     }
@@ -357,7 +361,7 @@
         border-radius: 6px;
         background: #fff;
         color: #1f2a37;
-        font-size: 16px;
+        font-size: 18px;
         line-height: 1.35;
         text-align: left;
         box-shadow: none;
@@ -399,7 +403,7 @@
         min-height: 38px;
         padding: 9px 14px;
         color: #1f2a37;
-        font-size: 15px;
+        font-size: 17px;
         line-height: 1.35;
         cursor: pointer;
     }
@@ -520,19 +524,42 @@
 
     .select2-container--admin-autocomplete,
     .select2-container--open {
-        z-index: 10000;
+        z-index: 10000 !important;
     }
 
     .select2-container--admin-autocomplete .select2-dropdown,
     .select2-container--default .select2-dropdown {
         border-color: rgba(217, 119, 6, 0.22);
         box-shadow: 0 16px 34px rgba(31, 42, 55, 0.16);
+        overflow: hidden;
     }
 
     .select2-container--admin-autocomplete .select2-results__options,
     .select2-container--default .select2-results__options {
         max-height: 320px;
         overflow-y: auto !important;
+    }
+
+    .select2-container--admin-autocomplete .select2-search--dropdown,
+    .select2-container--default .select2-search--dropdown {
+        padding: 8px;
+    }
+
+    .select2-container--admin-autocomplete .select2-search__field,
+    .select2-container--default .select2-search__field {
+        box-sizing: border-box;
+        width: 100% !important;
+        min-height: 40px;
+        font-size: 17px;
+    }
+
+    .select2-container--admin-autocomplete .select2-results__option,
+    .select2-container--default .select2-results__option {
+        font-size: 17px;
+        line-height: 1.4;
+        padding: 9px 12px;
+        white-space: normal;
+        overflow-wrap: anywhere;
     }
 
     .aligned label,
@@ -586,7 +613,7 @@
 
     #user-tools .username-only {
         color: var(--global-admin-text);
-        font-size: 13px;
+        font-size: 16px;
         font-weight: 800;
         letter-spacing: 0;
         text-transform: none;
@@ -604,7 +631,7 @@
         border: 1px solid rgba(217, 119, 6, 0.12);
         background: rgba(255, 255, 255, 0.76);
         color: var(--global-admin-text) !important;
-        font-size: 13px;
+        font-size: 16px;
         font-weight: 800;
         line-height: 1;
         text-decoration: none;
@@ -623,6 +650,102 @@
         padding: 0;
     }
 </style>
+<script>
+    (function() {
+        let activeAutocomplete = null;
+
+        function getBodyZoom() {
+            const zoom = window.getComputedStyle(document.body).zoom;
+            const parsedZoom = parseFloat(zoom);
+            return Number.isFinite(parsedZoom) && parsedZoom > 0 ? parsedZoom : 1;
+        }
+
+        function getOpenDropdownContainer() {
+            const dropdown = document.querySelector(".select2-container--open .select2-dropdown");
+            return dropdown ? dropdown.parentElement : null;
+        }
+
+        function positionAutocomplete(select) {
+            const $ = window.django && window.django.jQuery;
+
+            if (!$ || !select) {
+                return;
+            }
+
+            const select2 = $(select).data("select2");
+
+            if (!select2 || !select2.$container || !select2.$container.length) {
+                return;
+            }
+
+            const dropdownContainer = getOpenDropdownContainer();
+
+            if (!dropdownContainer) {
+                return;
+            }
+
+            const zoom = getBodyZoom();
+            const rect = select2.$container[0].getBoundingClientRect();
+            const dropdownWidth = Math.max(rect.width, Math.min(520, window.innerWidth - 32));
+
+            dropdownContainer.style.position = "absolute";
+            dropdownContainer.style.left = `${(rect.left + window.scrollX) / zoom}px`;
+            dropdownContainer.style.top = `${(rect.bottom + window.scrollY) / zoom}px`;
+            dropdownContainer.style.width = `${dropdownWidth / zoom}px`;
+            dropdownContainer.style.zIndex = "10000";
+        }
+
+        function keepPositioned(select) {
+            let frames = 8;
+
+            function tick() {
+                positionAutocomplete(select);
+                frames -= 1;
+
+                if (frames > 0 && activeAutocomplete === select) {
+                    window.requestAnimationFrame(tick);
+                }
+            }
+
+            window.requestAnimationFrame(tick);
+        }
+
+        function refreshPosition() {
+            if (activeAutocomplete) {
+                positionAutocomplete(activeAutocomplete);
+            }
+        }
+
+        function installAutocompletePositioning() {
+            const $ = window.django && window.django.jQuery;
+
+            if (!$) {
+                window.setTimeout(installAutocompletePositioning, 25);
+                return;
+            }
+
+            $(document).on("select2:open", "select.admin-autocomplete", function() {
+                activeAutocomplete = this;
+                keepPositioned(this);
+            });
+
+            $(document).on("select2:close", "select.admin-autocomplete", function() {
+                if (activeAutocomplete === this) {
+                    activeAutocomplete = null;
+                }
+            });
+
+            window.addEventListener("scroll", refreshPosition, true);
+            window.addEventListener("resize", refreshPosition);
+        }
+
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", installAutocompletePositioning);
+        } else {
+            installAutocompletePositioning();
+        }
+    })();
+</script>
 {% endblock %}
 
 {% block extrahead %}

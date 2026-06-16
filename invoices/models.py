@@ -194,7 +194,7 @@ class ProformaInvoiceItem(models.Model):
 
     item_date = models.DateField(null=True, blank=True)
 
-    quantity = models.IntegerField(default=0)
+    quantity = models.IntegerField(default=1)
 
     unit_price = models.DecimalField(
         max_digits=10,
@@ -267,7 +267,7 @@ class CommercialInvoiceItem(models.Model):
 
     part_number = models.CharField(max_length=255, blank=True)
 
-    quantity = models.IntegerField(default=0)
+    quantity = models.IntegerField(default=1)
 
     unit_price = models.DecimalField(
         max_digits=10,

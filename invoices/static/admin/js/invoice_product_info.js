@@ -97,6 +97,15 @@
         return total;
     }
 
+    function defaultQuantityToOne(row) {
+        const quantityInput = row && row.querySelector('input[name$="-quantity"]');
+
+        if (quantityInput && (!quantityInput.value || toNumber(quantityInput.value) === 0)) {
+            quantityInput.value = "1";
+            quantityInput.dispatchEvent(new Event("change", { bubbles: true }));
+        }
+    }
+
     function getSummaryRate() {
         const vatRateInput = document.querySelector("#id_vat_percent");
         return vatRateInput ? toNumber(vatRateInput.value) : 0;
@@ -143,6 +152,10 @@
         const unitPriceInput = row.querySelector('input[name$="-unit_price"]');
         const hsCodeInput = row.querySelector('input[name$="-hs_code"]');
         const partNumberInput = row.querySelector('input[name$="-part_number"]');
+
+        if (data && Object.keys(data).length) {
+            defaultQuantityToOne(row);
+        }
 
         updateText(row, "description", data.description);
         updateText(row, "part_number", data.part_number);

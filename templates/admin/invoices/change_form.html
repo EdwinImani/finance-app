@@ -9,80 +9,6 @@
     };
 </script>
 {% endif %}
-<script>
-    (function() {
-        let activeAutocomplete = null;
-
-        function bodyZoom() {
-            const zoom = window.getComputedStyle(document.body).zoom;
-            const parsedZoom = parseFloat(zoom);
-            return Number.isFinite(parsedZoom) && parsedZoom > 0 ? parsedZoom : 1;
-        }
-
-        function openDropdownContainer() {
-            const dropdown = document.querySelector(".select2-container--open .select2-dropdown");
-            return dropdown ? dropdown.parentElement : null;
-        }
-
-        function positionOpenAutocomplete(select) {
-            const $ = window.django && django.jQuery;
-            if (!$) {
-                return;
-            }
-
-            const select2 = $(select).data("select2");
-            if (!select2 || !select2.$container || !select2.$container.length) {
-                return;
-            }
-
-            const container = openDropdownContainer();
-            if (!container) {
-                return;
-            }
-
-            const zoom = bodyZoom();
-            const rect = select2.$container[0].getBoundingClientRect();
-
-            container.style.left = `${(rect.left + window.scrollX) / zoom}px`;
-            container.style.top = `${(rect.bottom + window.scrollY) / zoom}px`;
-            container.style.width = `${rect.width / zoom}px`;
-            container.style.zIndex = "10000";
-        }
-
-        function refreshOpenAutocomplete() {
-            if (activeAutocomplete) {
-                positionOpenAutocomplete(activeAutocomplete);
-            }
-        }
-
-        function installAutocompletePositionFix() {
-            const $ = window.django && django.jQuery;
-            if (!$) {
-                window.setTimeout(installAutocompletePositionFix, 25);
-                return;
-            }
-
-            $(document).on("select2:open", "select.admin-autocomplete", function() {
-                const select = this;
-                activeAutocomplete = select;
-                window.requestAnimationFrame(function() {
-                    positionOpenAutocomplete(select);
-                });
-            });
-
-            $(document).on("select2:close", "select.admin-autocomplete", function() {
-                if (activeAutocomplete === this) {
-                    activeAutocomplete = null;
-                }
-            });
-
-            window.addEventListener("scroll", refreshOpenAutocomplete, true);
-            window.addEventListener("resize", refreshOpenAutocomplete);
-        }
-
-        installAutocompletePositionFix();
-    })();
-</script>
 <style>
     :root {
         --invoice-bg: #fff4e6;
@@ -338,7 +264,7 @@
 
     .inline-group .tabular table {
         width: 100%;
-        min-width: 1900px;
+        min-width: 2020px;
         table-layout: fixed;
     }
 
@@ -358,7 +284,7 @@
     }
 
     .inline-group .tabular .field-product {
-        width: 320px;
+        width: 440px;
     }
 
     .inline-group .tabular .field-item_date {
@@ -479,15 +405,15 @@
     }
 
     .inline-group.invoice-commercial-items .tabular .field-product {
-        width: 21%;
+        width: 28%;
     }
 
     .inline-group.invoice-commercial-items .tabular .field-hs_code {
-        width: 18%;
+        width: 15%;
     }
 
     .inline-group.invoice-commercial-items .tabular .field-part_number {
-        width: 15%;
+        width: 13%;
     }
 
     .inline-group.invoice-commercial-items .tabular .field-unit_price,
@@ -522,8 +448,8 @@
 
     .inline-group.invoice-commercial-items .tabular input:not([type="checkbox"]):not([type="radio"]),
     .inline-group.invoice-commercial-items .tabular select {
-        min-height: 32px;
-        padding: 6px 8px;
+        min-height: 38px;
+        padding: 8px 10px;
         font-size: 12px;
     }
 
@@ -636,6 +562,73 @@
 
     .invoice-row-marked-delete td {
         opacity: 0.55;
+    }
+
+    .change-form .module h2,
+    .change-form .inline-group h2,
+    .change-form .module caption {
+        font-size: 24px;
+    }
+
+    .change-form .form-row,
+    .change-form label,
+    .change-form input:not([type="checkbox"]):not([type="radio"]),
+    .change-form textarea,
+    .change-form select,
+    .change-form .readonly,
+    .change-form .related-widget-wrapper .select2-selection__rendered {
+        font-size: 22px !important;
+    }
+
+    .change-form input:not([type="checkbox"]):not([type="radio"]),
+    .change-form textarea,
+    .change-form select,
+    .change-form .related-widget-wrapper .select2-selection {
+        min-height: 58px;
+    }
+
+    .change-form .related-widget-wrapper .select2-selection__rendered {
+        line-height: 56px !important;
+    }
+
+    .change-form .field-total_amount_display .readonly {
+        font-size: 28px;
+    }
+
+    .inline-group .tabular th,
+    .inline-group .tabular td,
+    .inline-group.invoice-commercial-items .tabular th,
+    .inline-group.invoice-commercial-items .tabular td,
+    .inline-group.invoice-commercial-packings .tabular th,
+    .inline-group.invoice-commercial-packings .tabular td {
+        font-size: 20px;
+    }
+
+    .inline-group .tabular input:not([type="checkbox"]):not([type="radio"]),
+    .inline-group .tabular select,
+    .inline-group.invoice-commercial-items .tabular input:not([type="checkbox"]):not([type="radio"]),
+    .inline-group.invoice-commercial-items .tabular select,
+    .inline-group.invoice-commercial-packings .tabular input:not([type="checkbox"]):not([type="radio"]) {
+        min-height: 52px;
+        font-size: 20px;
+    }
+
+    .inline-group .tabular .field-part_number,
+    .inline-group .tabular [data-product-field="part_number"] {
+        font-size: 18px;
+    }
+
+    .invoice-hero h1 {
+        font-size: 52px;
+    }
+
+    .invoice-hero p,
+    .invoice-badge,
+    .invoice-autosave-status,
+    .invoice-line-delete,
+    .inline-group.invoice-commercial-items .invoice-line-delete,
+    .inline-group.invoice-commercial-packings .invoice-line-delete {
+        font-size: 21px;
     }
 
     @media (max-width: 900px) {

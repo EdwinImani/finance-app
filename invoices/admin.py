@@ -48,7 +48,7 @@ class ProformaItemInline(admin.TabularInline):
         "total_line",
     )
 
-    raw_id_fields = ("product",)
+    autocomplete_fields = ("product",)
 
     class Media:
         js = ("admin/js/invoice_product_info.js",)
@@ -461,7 +461,7 @@ class ProformaInvoiceAdmin(InvoiceAdminMixin, PageSizeAdminMixin, admin.ModelAdm
         "pdf_link",
     )
 
-    raw_id_fields = (
+    autocomplete_fields = (
         "importer",
         "end_user",
     )
@@ -586,7 +586,7 @@ class CommercialItemInline(admin.TabularInline):
         "total_line",
     )
 
-    raw_id_fields = ("product",)
+    autocomplete_fields = ("product",)
 
     class Media:
         js = ("admin/js/invoice_product_info.js",)
@@ -693,7 +693,7 @@ class CommercialInvoiceAdmin(InvoiceAdminMixin, PageSizeAdminMixin, admin.ModelA
         "pdf_link",
     )
 
-    raw_id_fields = (
+    autocomplete_fields = (
         "importer",
         "end_user",
     )

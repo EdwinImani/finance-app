@@ -87,6 +87,7 @@ class LowStockFilter(admin.SimpleListFilter):
 @admin.register(Product)
 class ProductAdmin(PageSizeAdminMixin, admin.ModelAdmin):
     changelist_template = "admin/products/product/change_list.html"
+    change_form_template = "admin/products/product/change_form.html"
 
     list_display = (
         "description",
