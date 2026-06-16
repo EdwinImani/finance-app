@@ -82,6 +82,47 @@ class ProformaConversionTests(TestCase):
         self.assertEqual(CommercialInvoice.objects.count(), 1)
         self.assertEqual(self.product.unit_qty, 6)
 
+    def test_reconvert_to_commercial_syncs_existing_invoice_changes(self):
+        proforma = ProformaInvoice.objects.create(
+            importer=self.importer,
+            freight=Decimal("10.00"),
+            discount=Decimal("1.00"),
+            vat_percent=Decimal("20.00"),
+        )
+        item = ProformaInvoiceItem.objects.create(
+            invoice=proforma,
+            product=self.product,
+            part_number="INITIAL-REF",
+            quantity=4,
+            unit_price=Decimal("25.00"),
+        )
+        commercial = proforma.convert_to_commercial(user_initiated=True)
+        original_commercial_number = commercial.invoice_number
+
+        proforma.freight = Decimal("30.00")
+        proforma.discount = Decimal("5.00")
+        proforma.vat_percent = Decimal("7.50")
+        proforma.save()
+        item.part_number = "UPDATED-REF"
+        item.quantity = 2
+        item.unit_price = Decimal("40.00")
+        item.save()
+
+        synced_commercial = proforma.convert_to_commercial(user_initiated=True)
+        synced_item = synced_commercial.items.get()
+        self.product.refresh_from_db()
+
+        self.assertEqual(synced_commercial.pk, commercial.pk)
+        self.assertEqual(CommercialInvoice.objects.count(), 1)
+        self.assertEqual(synced_commercial.invoice_number, original_commercial_number)
+        self.assertEqual(synced_commercial.freight, Decimal("30.00"))
+        self.assertEqual(synced_commercial.discount, Decimal("5.00"))
+        self.assertEqual(synced_commercial.vat_percent, Decimal("7.50"))
+        self.assertEqual(synced_item.part_number, "UPDATED-REF")
+        self.assertEqual(synced_item.quantity, 2)
+        self.assertEqual(synced_item.unit_price, Decimal("40.00"))
+        self.assertEqual(self.product.unit_qty, 8)
+
     def test_convert_to_commercial_requires_user_initiated_action(self):
         proforma = ProformaInvoice.objects.create(importer=self.importer)
         ProformaInvoiceItem.objects.create(

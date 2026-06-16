@@ -42,13 +42,20 @@
         let timer = null;
         let isSaving = false;
         let isSubmitting = false;
+        let saveAgain = false;
 
         function autosave() {
-            if (isSaving || isSubmitting) {
+            if (isSubmitting) {
+                return;
+            }
+
+            if (isSaving) {
+                saveAgain = true;
                 return;
             }
 
             isSaving = true;
+            saveAgain = false;
             setStatus("Autosaving...", "is-saving");
 
             fetch(config.url, {
@@ -75,15 +82,34 @@
                 })
                 .finally(function () {
                     isSaving = false;
+                    if (saveAgain && !isSubmitting) {
+                        scheduleAutosave(250);
+                    }
                 });
         }
 
-        function scheduleAutosave() {
+        function scheduleAutosave(delay) {
             if (isSubmitting) {
                 return;
             }
             window.clearTimeout(timer);
-            timer = window.setTimeout(autosave, 1200);
+            timer = window.setTimeout(autosave, delay == null ? 1200 : delay);
+        }
+
+        function scheduleAutosaveSoon() {
+            scheduleAutosave(250);
+        }
+
+        function scheduleAutosaveAfterDomUpdate() {
+            window.setTimeout(scheduleAutosaveSoon, 0);
+        }
+
+        function shouldIgnoreClick(target) {
+            return (
+                target.closest(".related-widget-wrapper-link") ||
+                target.closest(".select2-selection") ||
+                target.closest(".select2-results__option")
+            );
         }
 
         form.addEventListener("submit", function () {
@@ -96,5 +122,45 @@
         form.addEventListener("change", function (event) {
             scheduleAutosave();
         }, true);
+        form.addEventListener("click", function (event) {
+            const target = event.target;
+            if (!target || shouldIgnoreClick(target)) {
+                return;
+            }
+
+            if (
+                target.matches("input[type='checkbox'], input[type='radio'], button, input[type='button']") ||
+                target.closest(".invoice-line-delete") ||
+                target.closest(".po-inline-delete") ||
+                target.closest(".deletelink") ||
+                target.closest(".inline-deletelink")
+            ) {
+                scheduleAutosaveAfterDomUpdate();
+            }
+        }, true);
+
+        document.addEventListener("formset:added", scheduleAutosaveAfterDomUpdate);
+        document.addEventListener("formset:removed", scheduleAutosaveAfterDomUpdate);
+
+        if (window.django && window.django.jQuery) {
+            const $ = window.django.jQuery;
+            $(document).on(
+                "select2:select select2:unselect select2:clear select2:close",
+                "select",
+                function () {
+                    scheduleAutosaveAfterDomUpdate();
+                }
+            );
+            $(document).on("formset:added formset:removed", function () {
+                scheduleAutosaveAfterDomUpdate();
+            });
+        }
+
+        document.addEventListener("visibilitychange", function () {
+            if (document.visibilityState === "hidden") {
+                window.clearTimeout(timer);
+                autosave();
+            }
+        });
     });
 })();

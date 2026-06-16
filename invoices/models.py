@@ -134,23 +134,33 @@ class ProformaInvoice(BaseInvoice):
         if not user_initiated:
             return None
 
-        existing_commercial = CommercialInvoice.objects.filter(
-            our_reference=self.invoice_number
-        ).first()
-
-        if existing_commercial:
-            return existing_commercial
-
         with transaction.atomic():
-            commercial = CommercialInvoice.objects.create(
-                invoice_date=self.invoice_date,
-                importer=self.importer,
-                end_user=self.end_user,
-                freight=self.freight,
-                discount=self.discount,
-                vat_percent=self.vat_percent,
+            commercial = CommercialInvoice.objects.filter(
                 our_reference=self.invoice_number
-            )
+            ).first()
+
+            if commercial:
+                commercial.invoice_date = self.invoice_date
+                commercial.importer = self.importer
+                commercial.end_user = self.end_user
+                commercial.freight = self.freight
+                commercial.discount = self.discount
+                commercial.vat_percent = self.vat_percent
+                commercial.our_reference = self.invoice_number
+                commercial.save()
+
+                for commercial_item in commercial.items.select_related("product"):
+                    commercial_item.delete()
+            else:
+                commercial = CommercialInvoice.objects.create(
+                    invoice_date=self.invoice_date,
+                    importer=self.importer,
+                    end_user=self.end_user,
+                    freight=self.freight,
+                    discount=self.discount,
+                    vat_percent=self.vat_percent,
+                    our_reference=self.invoice_number
+                )
 
             for item in self.items.select_related("product"):
                 CommercialInvoiceItem.objects.create(
