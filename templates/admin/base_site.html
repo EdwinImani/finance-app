@@ -40,7 +40,7 @@
     }
 
     body {
-        zoom: 33%;
+        zoom: 0.61;
         font-size: 18px;
         background:
             radial-gradient(circle at 14% 20%, rgba(251, 146, 60, 0.12), transparent 24%),
@@ -102,6 +102,9 @@
         border-right: 1px solid rgba(255, 255, 255, 0.05);
         box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.04);
         padding: 18px 12px 18px;
+        height: auto !important;
+        max-height: none !important;
+        overflow: visible !important;
     }
 
     #nav-sidebar .module {
@@ -240,6 +243,11 @@
     .toggle-nav-sidebar {
         background: linear-gradient(180deg, var(--global-sidebar-bg) 0%, var(--global-sidebar-bg-strong) 100%);
         color: var(--global-sidebar-text);
+        align-self: stretch;
+        min-height: 164vh !important;
+        height: 164vh !important;
+        border-radius: 0 !important;
+        border-right: 1px solid rgba(255, 255, 255, 0.05);
     }
 
     #nav-filter {
@@ -440,6 +448,10 @@
         position: relative;
         z-index: 1;
         padding-top: 22px;
+        width: min(100%, 1640px);
+        margin-left: auto !important;
+        margin-right: auto !important;
+        box-sizing: border-box;
     }
 
     #content-related .module,
