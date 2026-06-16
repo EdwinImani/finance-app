@@ -144,11 +144,24 @@
         });
     }
 
-    function updateInvoiceRow(row, data) {
+    function shouldUseDefaultUnitPrice(input, forceDefaultPrice) {
+        if (!input) {
+            return false;
+        }
+
+        if (forceDefaultPrice) {
+            return true;
+        }
+
+        return !input.value || toNumber(input.value) === 0;
+    }
+
+    function updateInvoiceRow(row, data, options) {
         if (!row) {
             return;
         }
 
+        const settings = options || {};
         const unitPriceInput = row.querySelector('input[name$="-unit_price"]');
         const hsCodeInput = row.querySelector('input[name$="-hs_code"]');
         const partNumberInput = row.querySelector('input[name$="-part_number"]');
@@ -164,7 +177,7 @@
         updateText(row, "purchase_price", data.purchase_price);
         updateText(row, "note", data.note);
 
-        if (unitPriceInput) {
+        if (shouldUseDefaultUnitPrice(unitPriceInput, settings.forceDefaultPrice)) {
             unitPriceInput.value = data.sale_price || "0";
         }
 
@@ -184,9 +197,12 @@
         return element ? element.closest("tr") : null;
     }
 
-    function fetchProductInfoForField(field) {
+    function fetchProductInfoForField(field, options) {
         const row = getRowFromElement(field);
         const productId = field ? field.value : "";
+        const previousProductId = field ? field.dataset.invoiceLastProductId || "" : "";
+        const productChanged = Boolean(productId) && previousProductId !== productId;
+        const settings = options || {};
 
         if (!row) {
             return;
@@ -194,6 +210,9 @@
 
         if (!productId) {
             updateInvoiceRow(row, {});
+            if (field) {
+                field.dataset.invoiceLastProductId = "";
+            }
             return;
         }
 
@@ -202,7 +221,10 @@
                 return response.json();
             })
             .then(function (data) {
-                updateInvoiceRow(row, data);
+                updateInvoiceRow(row, data, {
+                    forceDefaultPrice: settings.forceDefaultPrice === true || (productChanged && settings.preserveUnitPrice !== true),
+                });
+                field.dataset.invoiceLastProductId = productId;
             })
             .catch(function () {
                 updateInvoiceRow(row, {});
@@ -226,15 +248,16 @@
         field.dataset.invoiceProductBound = "true";
 
         field.addEventListener("change", function () {
-            fetchProductInfoForField(field);
+            fetchProductInfoForField(field, { preserveUnitPrice: true });
         });
 
         field.addEventListener("input", function () {
-            fetchProductInfoForField(field);
+            fetchProductInfoForField(field, { preserveUnitPrice: true });
         });
 
         if (field.value) {
-            fetchProductInfoForField(field);
+            field.dataset.invoiceLastProductId = field.value;
+            fetchProductInfoForField(field, { preserveUnitPrice: true });
         }
     }
 
@@ -302,11 +325,19 @@
         if (window.django && window.django.jQuery) {
             const $ = window.django.jQuery;
 
-            $(document).on("select2:select select2:close", 'select[name$="-product"]', function () {
+            $(document).on("select2:select", 'select[name$="-product"]', function () {
                 const field = this;
 
                 window.setTimeout(function () {
-                    fetchProductInfoForField(field);
+                    fetchProductInfoForField(field, { forceDefaultPrice: true });
+                }, 0);
+            });
+
+            $(document).on("select2:close", 'select[name$="-product"]', function () {
+                const field = this;
+
+                window.setTimeout(function () {
+                    fetchProductInfoForField(field, { preserveUnitPrice: true });
                 }, 0);
             });
 

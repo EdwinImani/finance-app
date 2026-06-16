@@ -228,6 +228,22 @@ class ProformaConversionTests(TestCase):
 
         self.assertEqual(commercial.vat_percent, Decimal("7.50"))
 
+    def test_proforma_item_price_change_does_not_update_product_sale_price(self):
+        proforma = ProformaInvoice.objects.create(importer=self.importer)
+        item = ProformaInvoiceItem.objects.create(
+            invoice=proforma,
+            product=self.product,
+            quantity=1,
+            unit_price=Decimal("25.00"),
+        )
+
+        item.unit_price = Decimal("42.00")
+        item.save()
+        self.product.refresh_from_db()
+
+        self.assertEqual(item.unit_price, Decimal("42.00"))
+        self.assertEqual(self.product.sale_price, Decimal("25.00"))
+
 
 class InvoiceFormVatDefaultTests(TestCase):
 
@@ -340,6 +356,22 @@ class CommercialInvoiceStockTests(TestCase):
 
         self.assertEqual(self.product.unit_qty, 20)
 
+    def test_item_price_change_does_not_update_product_sale_price(self):
+        item = CommercialInvoiceItem.objects.create(
+            invoice=self.invoice,
+            product=self.product,
+            quantity=4,
+            unit_price=Decimal("15.00"),
+        )
+
+        item.unit_price = Decimal("21.00")
+        item.save()
+        self.product.refresh_from_db()
+
+        self.assertEqual(item.unit_price, Decimal("21.00"))
+        self.assertEqual(self.product.sale_price, Decimal("15.00"))
+        self.assertEqual(self.product.unit_qty, 16)
+
 
 @override_settings(ALLOWED_HOSTS=["testserver", "localhost", "127.0.0.1"])
 class CommercialInvoiceAdminDraftTests(TestCase):
@@ -436,3 +468,65 @@ class CommercialInvoiceAdminDraftTests(TestCase):
 
         self.assertIn(response.status_code, {200, 400})
         self.assertEqual(invoice.items.count(), 0)
+
+    def test_autosave_updates_existing_item_price_without_updating_product_default_price(self):
+        importer = Partner.objects.create(
+            description="Client Autosave Price",
+            partner_type="importer",
+        )
+        product = Product.objects.create(
+            description="Produit Prix Autosave",
+            part_number="PRICE-001",
+            hs_code="8403.21",
+            unit_qty=20,
+            sale_price=Decimal("58.00"),
+            purchase_price=Decimal("30.00"),
+        )
+        invoice = CommercialInvoice.objects.create(importer=importer, vat_percent=Decimal("20.00"))
+        item = CommercialInvoiceItem.objects.create(
+            invoice=invoice,
+            product=product,
+            hs_code=product.hs_code,
+            part_number=product.part_number,
+            quantity=5,
+            unit_price=Decimal("58.00"),
+        )
+
+        response = self.client.post(
+            reverse("admin:invoices_commercialinvoice_autosave", args=[invoice.pk]),
+            {
+                "invoice_date": invoice.invoice_date.strftime("%Y-%m-%d"),
+                "importer": str(importer.pk),
+                "end_user": "",
+                "our_order_no": "",
+                "our_reference": "",
+                "dispatching_note": "",
+                "packing_specification": "",
+                "freight": "0.00",
+                "discount": "0.00",
+                "vat_percent": "20.00",
+                "items-TOTAL_FORMS": "1",
+                "items-INITIAL_FORMS": "1",
+                "items-MIN_NUM_FORMS": "0",
+                "items-MAX_NUM_FORMS": "1000",
+                "items-0-id": str(item.pk),
+                "items-0-invoice": str(invoice.pk),
+                "items-0-product": str(product.pk),
+                "items-0-hs_code": product.hs_code,
+                "items-0-part_number": product.part_number,
+                "items-0-quantity": "5",
+                "items-0-unit_price": "72.50",
+                "packing_entries-TOTAL_FORMS": "0",
+                "packing_entries-INITIAL_FORMS": "0",
+                "packing_entries-MIN_NUM_FORMS": "0",
+                "packing_entries-MAX_NUM_FORMS": "1000",
+            },
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+        )
+
+        item.refresh_from_db()
+        product.refresh_from_db()
+
+        self.assertEqual(response.status_code, 200, response.content)
+        self.assertEqual(item.unit_price, Decimal("72.50"))
+        self.assertEqual(product.sale_price, Decimal("58.00"))

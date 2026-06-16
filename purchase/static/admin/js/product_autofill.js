@@ -1,12 +1,19 @@
-function updatePurchaseOrderItemRow(row, refreshProduct) {
+function updatePurchaseOrderItemRow(row, refreshProduct, options) {
     if (!row) return;
+    const settings = options || {};
+
+    function toNumber(value) {
+        const normalized = String(value || "0").replace(",", ".");
+        const parsed = parseFloat(normalized);
+        return Number.isNaN(parsed) ? 0 : parsed;
+    }
 
     function defaultQuantityToOne() {
         const qtyInput = row.querySelector("input[name$='quantity']") || row.querySelector("input[name$='-quantity']");
 
         if (!qtyInput) return;
 
-        const qty = parseFloat(qtyInput.value || "0");
+        const qty = toNumber(qtyInput.value);
         if (!qtyInput.value || qty === 0) {
             qtyInput.value = "1";
             qtyInput.dispatchEvent(new Event("change", { bubbles: true }));
@@ -18,8 +25,8 @@ function updatePurchaseOrderItemRow(row, refreshProduct) {
         const unitPriceInput = row.querySelector("input[name$='unit_price']");
         if (!qtyInput || !unitPriceInput) return;
 
-        const qty = parseFloat(qtyInput.value || "0");
-        const price = parseFloat(unitPriceInput.value || "0");
+        const qty = toNumber(qtyInput.value);
+        const price = toNumber(unitPriceInput.value);
         const total = qty * price;
 
         const totalField = row.querySelector("input[name$='total_line']") || row.querySelector("td.field-total_line") || row.querySelector("div.field-total_line");
@@ -42,7 +49,12 @@ function updatePurchaseOrderItemRow(row, refreshProduct) {
         row.querySelector("input.vForeignKeyRawIdAdminField[name$='product']") ||
         row.querySelector("input[name$='-product']");
     const productId = productField ? productField.value : "";
+    const previousProductId = productField ? productField.dataset.purchaseLastProductId || "" : "";
+    const productChanged = Boolean(productId) && previousProductId !== productId;
     if (!productId) {
+        if (productField) {
+            productField.dataset.purchaseLastProductId = "";
+        }
         updateTotal();
         return;
     }
@@ -75,8 +87,11 @@ function updatePurchaseOrderItemRow(row, refreshProduct) {
             if (partNumberDisplay) {
                 partNumberDisplay.textContent = data.part_number || "-";
             }
-            if (unitPriceInput) {
+            if (unitPriceInput && (settings.forceDefaultPrice === true || (productChanged && settings.preserveUnitPrice !== true) || !unitPriceInput.value || toNumber(unitPriceInput.value) === 0)) {
                 unitPriceInput.value = data.purchase_price || "0";
+            }
+            if (productField) {
+                productField.dataset.purchaseLastProductId = productId;
             }
             updateTotal();
         })
@@ -114,7 +129,7 @@ document.addEventListener("change", function(e) {
     if (!row) return;
 
     if (target.name.includes("product")) {
-        updatePurchaseOrderItemRow(row, true);
+        updatePurchaseOrderItemRow(row, true, { preserveUnitPrice: true });
     }
 
     if (target.name.includes("quantity") || target.name.includes("unit_price")) {
@@ -123,16 +138,28 @@ document.addEventListener("change", function(e) {
 });
 
 if (window.django && django.jQuery) {
-    django.jQuery(document).on("select2:select select2:close", ".inline-group .field-product select", function() {
+    django.jQuery(document).on("select2:select", ".inline-group .field-product select", function() {
         const row = this.closest("tr");
         window.setTimeout(function() {
-            updatePurchaseOrderItemRow(row, true);
+            updatePurchaseOrderItemRow(row, true, { forceDefaultPrice: true });
+        }, 0);
+    });
+
+    django.jQuery(document).on("select2:close", ".inline-group .field-product select", function() {
+        const row = this.closest("tr");
+        window.setTimeout(function() {
+            updatePurchaseOrderItemRow(row, true, { preserveUnitPrice: true });
         }, 0);
     });
 }
 
 document.addEventListener("DOMContentLoaded", function() {
     document.querySelectorAll(".inline-group tr").forEach(fillMissingPurchaseHsCode);
+    document.querySelectorAll("select[name$='product'], select[name$='-product'], input.vForeignKeyRawIdAdminField[name$='product'], input[name$='-product']").forEach(function(field) {
+        if (field.value) {
+            field.dataset.purchaseLastProductId = field.value;
+        }
+    });
 });
 
 document.body.addEventListener("formset:added", function(event) {
