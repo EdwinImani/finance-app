@@ -642,11 +642,11 @@ def _build_purchase_order_details(purchase_order, company, styles):
 
 def _build_purchase_order_context_blocks(seller, requester, purchase_order, company, styles, requester_is_explicit=False):
     order_details_box, _ = _build_purchase_order_detail_boxes(purchase_order, company, styles)
-    seller_card = _partner_card("Seller", seller, styles)
+    seller_card = _partner_card("Seller", seller, styles, left_padding=0, top_padding=0, bottom_padding=1 * mm)
     order_info_table = _build_purchase_order_info_table(purchase_order, requester, styles)
     note_currency_box = _build_purchase_note_currency_box(company, styles)
     rows = [
-        [[order_details_box, Spacer(1, 2 * mm), note_currency_box], Spacer(1, 0)],
+        [[order_details_box, Spacer(1, 0.5 * mm), note_currency_box], Spacer(1, 0)],
         [seller_card, Spacer(1, 0)],
         [order_info_table, ""],
     ]
@@ -663,7 +663,7 @@ def _build_purchase_order_context_blocks(seller, requester, purchase_order, comp
                 ("LEFTPADDING", (0, 0), (-1, -1), 0),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 0),
                 ("TOPPADDING", (0, 0), (-1, -1), 0),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 2 * mm),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 0.5 * mm),
                 ("SPAN", (0, 2), (1, 2)),
             ]
         )
@@ -743,9 +743,9 @@ def _build_purchase_order_info_table(purchase_order, requester, styles):
         [
             Paragraph(
                 purchase_order.purchase_date.strftime("%d-%b-%Y") if purchase_order.purchase_date else "-",
-                styles["table_cell"],
+                styles["table_cell_center"],
             ),
-            Paragraph(requester_text, styles["table_cell"]),
+            Paragraph(requester_text, styles["body_left"]),
             Paragraph(_format_preserving_layout(getattr(purchase_order, "sent_by", "") or "-"), styles["table_cell"]),
             Paragraph(_format_preserving_layout(getattr(purchase_order, "shipment", "") or "-"), styles["table_cell"]),
             Paragraph(_format_preserving_layout(getattr(purchase_order, "sales_condition", "") or "-"), styles["table_cell"]),
@@ -753,7 +753,7 @@ def _build_purchase_order_info_table(purchase_order, requester, styles):
     ]
     table = Table(
         rows,
-        colWidths=[20 * mm, 84 * mm, 24 * mm, 25 * mm, 31 * mm],
+        colWidths=[24 * mm, 80 * mm, 24 * mm, 25 * mm, 31 * mm],
         hAlign="LEFT",
     )
     table.setStyle(
@@ -762,10 +762,13 @@ def _build_purchase_order_info_table(purchase_order, requester, styles):
                 ("LINEABOVE", (0, 0), (-1, 0), 0.5, colors.HexColor("#D9D9D9")),
                 ("LINEBELOW", (0, -1), (-1, -1), 0.5, colors.HexColor("#D9D9D9")),
                 ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ("VALIGN", (0, 1), (0, 1), "MIDDLE"),
                 ("LEFTPADDING", (0, 0), (-1, -1), 4),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 4),
                 ("TOPPADDING", (0, 0), (-1, -1), 5),
                 ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+                ("TOPPADDING", (1, 1), (1, 1), 4),
+                ("BOTTOMPADDING", (1, 1), (1, 1), 4),
             ]
         )
     )
@@ -775,7 +778,9 @@ def _build_purchase_order_info_table(purchase_order, requester, styles):
 def _build_purchase_order_detail_boxes(purchase_order, company, styles):
     left_lines = []
     if getattr(company, "company_name", ""):
-        left_lines.append(f"<b>{_format_preserving_layout(company.company_name)}</b>")
+        left_lines.append(
+            f'<font color="#C2410C"><b>{_format_preserving_layout(company.company_name)}</b></font>'
+        )
     if getattr(company, "siren", ""):
         left_lines.append(f"<b>SIREN:</b> {_format_preserving_layout(company.siren)}")
     if getattr(company, "company_email", ""):
@@ -787,9 +792,25 @@ def _build_purchase_order_detail_boxes(purchase_order, company, styles):
     if not left_lines:
         left_lines = ["-"]
 
-    left_box = _info_box("", "<br/>".join(left_lines), styles)
+    left_box = _purchase_order_company_contact_box("<br/>".join(left_lines), styles)
     right_box = _build_purchase_order_commercial_terms_box(purchase_order, company, styles)
     return left_box, right_box
+
+
+def _purchase_order_company_contact_box(text, styles):
+    box = Table([[Paragraph(text, styles.get("body_left", styles["body"]))]], colWidths=[89 * mm])
+    box.setStyle(
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, -1), colors.white),
+                ("LEFTPADDING", (0, 0), (-1, -1), 0),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 5 * mm),
+                ("TOPPADDING", (0, 0), (-1, -1), 0),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 2 * mm),
+            ]
+        )
+    )
+    return box
 
 
 def _two_column_table_style():
@@ -815,10 +836,14 @@ def _build_purchase_company_address(company, styles):
     ]
 
 
-def _partner_card(title, partner, styles):
+def _partner_card(title, partner, styles, left_padding=None, top_padding=None, bottom_padding=None):
+    left_padding = 5 * mm if left_padding is None else left_padding
+    top_padding = 2 * mm if top_padding is None else top_padding
+    bottom_padding = 4 * mm if bottom_padding is None else bottom_padding
+
     lines = []
     if title:
-        lines.extend([Paragraph(title, styles["section_title"]), Spacer(1, 1 * mm)])
+        lines.extend([Paragraph(title, styles["section_title"]), Spacer(1, 0.2 * mm)])
 
     name = partner.get("name") or "-"
     info_lines = [f"<b>{_escape(name)}</b>"]
@@ -840,10 +865,10 @@ def _partner_card(title, partner, styles):
         TableStyle(
             [
                 ("BACKGROUND", (0, 0), (-1, -1), colors.white),
-                ("LEFTPADDING", (0, 0), (-1, -1), 5 * mm),
+                ("LEFTPADDING", (0, 0), (-1, -1), left_padding),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 5 * mm),
-                ("TOPPADDING", (0, 0), (-1, -1), 2 * mm),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 4 * mm),
+                ("TOPPADDING", (0, 0), (-1, -1), top_padding),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), bottom_padding),
             ]
         )
     )
@@ -1285,7 +1310,7 @@ def _draw_report_page_frame(canvas, document, *, company, report_title, styles, 
         None,
         company,
         styles,
-        hide_contact_details=(report_title == "COMMAND / ORDER"),
+        hide_contact_details=False,
     )
     canvas.restoreState()
 
@@ -1792,7 +1817,8 @@ def _build_purchase_order_items_table(items, currency, styles, amount_from_last_
 
     table = Table(
         rows,
-        colWidths=[10 * mm, 46 * mm, 34 * mm, 20 * mm, 12 * mm, 28 * mm, 25 * mm, 15 * mm],
+        colWidths=[10 * mm, 44 * mm, 32 * mm, 20 * mm, 12 * mm, 26 * mm, 25 * mm, 15 * mm],
+        hAlign="LEFT",
         repeatRows=1,
     )
     table.setStyle(
@@ -1867,7 +1893,7 @@ def _build_purchase_order_totals_flowable(page_index, purchase_order, currency, 
         )
         if len(page_totals) == 1:
             return totals_table
-        wrapper = Table([[[detail_table, Spacer(1, 2 * mm), totals_table]]], colWidths=[190 * mm], hAlign="LEFT")
+        wrapper = Table([[[detail_table, Spacer(1, 2 * mm), totals_table]]], colWidths=[184 * mm], hAlign="LEFT")
         wrapper.setStyle(
             TableStyle(
                 [
@@ -1927,19 +1953,20 @@ def _build_purchase_order_payment_table(*, gross_value, vat_amount, total_amount
         "",
         "",
         "",
+        "",
         Paragraph(f"<b>{_format_money(gross_value, currency)}</b>", styles["body_right"]),
         Paragraph(f"<b>{_format_plain_decimal(vat_amount)}</b>", styles["body_right"]),
     ]]
     table = Table(
         rows,
-        colWidths=[12 * mm, 55 * mm, 32 * mm, 20 * mm, 30 * mm, 27 * mm, 14 * mm],
+        colWidths=[10 * mm, 44 * mm, 32 * mm, 20 * mm, 12 * mm, 26 * mm, 25 * mm, 15 * mm],
         hAlign="LEFT",
     )
     table.setStyle(
         TableStyle(
             [
-                ("SPAN", (0, 0), (4, 0)),
-                ("ALIGN", (0, 0), (4, 0), "LEFT"),
+                ("SPAN", (0, 0), (5, 0)),
+                ("ALIGN", (0, 0), (5, 0), "LEFT"),
                 ("LEFTPADDING", (0, 0), (-1, -1), 3),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 3),
                 ("TOPPADDING", (0, 0), (-1, -1), 4),
