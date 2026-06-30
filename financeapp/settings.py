@@ -178,3 +178,6 @@ if not DEBUG:
     SESSION_COOKIE_SECURE = env_bool("DJANGO_SESSION_COOKIE_SECURE", True)
     CSRF_COOKIE_SECURE = env_bool("DJANGO_CSRF_COOKIE_SECURE", True)
     X_FRAME_OPTIONS = "DENY"
+
+
+DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
