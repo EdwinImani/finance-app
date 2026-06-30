@@ -1,6 +1,7 @@
 from decimal import Decimal
 from io import BytesIO
 from pathlib import Path
+import re
 
 pdf_canvas = None
 PDF_FIRST_PAGE_ITEM_LIMIT = 6
@@ -282,7 +283,7 @@ def build_purchase_order_pdf(*, purchase_order, company, items, seller, requeste
         title=purchase_order.purchase_number or document_title,
     )
 
-    styles = _build_styles()
+    styles = _build_purchase_order_styles()
     story = [
         Spacer(1, 0),
         *_build_purchase_company_address(company, styles),
@@ -433,6 +434,15 @@ def _build_styles():
             alignment=TA_CENTER,
             textColor=colors.HexColor("#C2410C"),
         ),
+        "table_head_amount": ParagraphStyle(
+            "TableHeadAmount",
+            parent=base["BodyText"],
+            fontName="Helvetica-Bold",
+            fontSize=8,
+            leading=9,
+            alignment=TA_RIGHT,
+            textColor=colors.HexColor("#C2410C"),
+        ),
         "table_cell": ParagraphStyle(
             "TableCell",
             parent=base["BodyText"],
@@ -476,7 +486,7 @@ def _build_styles():
             fontName="Helvetica",
             fontSize=8.3,
             leading=9.4,
-            alignment=TA_LEFT,
+            alignment=TA_RIGHT,
             textColor=colors.HexColor("#431407"),
         ),
         "footer": ParagraphStyle(
@@ -516,6 +526,31 @@ def _build_styles():
             textColor=colors.black,
         ),
     }
+
+
+def _build_purchase_order_styles():
+    styles = _build_styles()
+    for style in styles.values():
+        if hasattr(style, "fontSize"):
+            style.fontSize = max(1, style.fontSize - 1)
+        if hasattr(style, "leading"):
+            style.leading = max(1, style.leading - 1)
+    return styles
+
+
+def _build_invoice_item_table_styles(styles):
+    adjusted = dict(styles)
+    for key in ("table_head", "table_cell", "table_cell_part_number", "table_cell_amount", "table_cell_right"):
+        style = styles.get(key)
+        if not style:
+            continue
+        adjusted[key] = ParagraphStyle(
+            f"InvoiceItems{style.name}",
+            parent=style,
+            fontSize=max(1, style.fontSize - 1),
+            leading=max(1, style.leading - 1),
+        )
+    return adjusted
 
 
 def _build_document_info(invoice, styles):
@@ -747,7 +782,7 @@ def _build_purchase_order_info_table(purchase_order, requester, styles):
             ),
             Paragraph(requester_text, styles["body_left"]),
             Paragraph(_format_preserving_layout(getattr(purchase_order, "sent_by", "") or "-"), styles["table_cell"]),
-            Paragraph(_format_preserving_layout(getattr(purchase_order, "shipment", "") or "-"), styles["table_cell"]),
+            Paragraph(_format_preserving_layout(getattr(purchase_order, "shipment", "") or "-"), styles["body_left"]),
             Paragraph(_format_preserving_layout(getattr(purchase_order, "sales_condition", "") or "-"), styles["table_cell"]),
         ],
     ]
@@ -953,15 +988,16 @@ def _meta_table(rows, styles, align_right=False):
 
 
 def _build_items_table(items, currency, styles, amount_from_last_page=None):
+    styles = _build_invoice_item_table_styles(styles)
     rows = [
         [
             Paragraph("Item", styles["table_head"]),
             Paragraph("Description", styles["table_head"]),
             Paragraph("Part No", styles["table_head"]),
             Paragraph("HS Code", styles["table_head"]),
-            Paragraph("Qty", styles["table_head"]),
-            Paragraph("Unit Price", styles["table_head"]),
-            Paragraph("Amount", styles["table_head"]),
+            Paragraph("Qty", styles["table_head_amount"]),
+            Paragraph("Unit Price", styles["table_head_amount"]),
+            Paragraph("Amount", styles["table_head_amount"]),
         ]
     ]
     if amount_from_last_page is not None:
@@ -973,7 +1009,7 @@ def _build_items_table(items, currency, styles, amount_from_last_page=None):
                 Paragraph("", styles["table_cell"]),
                 Paragraph("", styles["table_cell_amount"]),
                 Paragraph("", styles["table_cell_amount"]),
-                Paragraph(_format_money(amount_from_last_page, currency), styles["table_cell_amount"]),
+                _build_money_split_cell(amount_from_last_page, currency, styles, 17 * mm),
             ]
         )
 
@@ -985,8 +1021,8 @@ def _build_items_table(items, currency, styles, amount_from_last_page=None):
                 Paragraph(_escape(item["part_number"]), styles["table_cell_part_number"]),
                 Paragraph(_escape(item["hs_code"]), styles["table_cell"]),
                 Paragraph(str(item["quantity"]), styles["table_cell_amount"]),
-                Paragraph(_format_money(item["unit_price"], currency), styles["table_cell_amount"]),
-                Paragraph(_format_money(item["total_amount"], currency), styles["table_cell_amount"]),
+                _build_money_split_cell(item["unit_price"], currency, styles, 17 * mm),
+                _build_money_split_cell(item["total_amount"], currency, styles, 17 * mm),
             ]
         )
 
@@ -1005,7 +1041,7 @@ def _build_items_table(items, currency, styles, amount_from_last_page=None):
 
     table = Table(
         rows,
-        colWidths=[10 * mm, 58 * mm, 34 * mm, 20 * mm, 8 * mm, 25 * mm, 25 * mm],
+        colWidths=[10 * mm, 54 * mm, 31 * mm, 18 * mm, 12 * mm, 27 * mm, 28 * mm],
         repeatRows=1,
     )
     table.setStyle(
@@ -1013,7 +1049,7 @@ def _build_items_table(items, currency, styles, amount_from_last_page=None):
             [
                 ("BACKGROUND", (0, 0), (-1, 0), colors.white),
                 ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-                ("ALIGN", (4, 1), (-1, -1), "LEFT"),
+                ("ALIGN", (4, 0), (-1, -1), "RIGHT"),
                 ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.white]),
                 ("LEFTPADDING", (0, 0), (-1, -1), 4),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 4),
@@ -1179,7 +1215,7 @@ def _build_totals_table_from_values(*, gross_value, freight, vat_amount, discoun
         [Paragraph(_escape(label), styles["label"]), Paragraph(_escape(value), styles["body_right"])]
         for label, value in rows
     ]
-    table = Table(cells, colWidths=[35 * mm, 35 * mm], hAlign="RIGHT")
+    table = Table(cells, colWidths=[50 * mm, 35 * mm], hAlign="RIGHT")
     table.setStyle(
         TableStyle(
             [
@@ -1224,9 +1260,27 @@ def _build_footer_left_text(invoice, company):
     return "<br/>".join(_escape(part) for part in footer_parts)
 
 
+def format_footer_invoice_lines(footer_invoice):
+    text = str(footer_invoice or "").strip()
+    if not text:
+        return []
+
+    parts = [part.strip() for part in text.split("_") if part.strip()]
+    if len(parts) != 1 or "_" in text:
+        return parts
+
+    match = re.search(r"\d+", parts[0])
+    if not match:
+        return parts
+
+    first_line = parts[0][: match.start()].strip()
+    second_line = parts[0][match.start() :].strip()
+    return [part for part in (first_line, second_line) if part]
+
+
 def _build_footer_center_text(invoice, company, hide_contact_details=False):
     footer_invoice = getattr(company, "footer_invoice", "") or ""
-    parts = [part.strip() for part in str(footer_invoice).split("_") if part.strip()]
+    parts = format_footer_invoice_lines(footer_invoice)
     if not hide_contact_details:
         return "<br/>".join(_escape(part) for part in parts)
 
@@ -1410,7 +1464,7 @@ def _build_page_totals_flowable(page_index, invoice, currency, styles, page_tota
         if len(page_totals) == 1:
             return totals_table
 
-        wrapper = Table([[[detail_table, Spacer(1, 2 * mm), totals_table]]], colWidths=[70 * mm], hAlign="RIGHT")
+        wrapper = Table([[[detail_table, Spacer(1, 2 * mm), totals_table]]], colWidths=[85 * mm], hAlign="RIGHT")
         wrapper.setStyle(
             TableStyle(
                 [
@@ -1428,8 +1482,60 @@ def _build_page_totals_flowable(page_index, invoice, currency, styles, page_tota
 
 
 def _format_money(value, currency):
+    return f"{_format_decimal_comma(value)} {currency}"
+
+
+def _format_decimal_comma(value):
     amount = Decimal(value or 0).quantize(Decimal("0.01"))
-    return f"{amount:,.2f} {currency}"
+    return f"{amount:.2f}".replace(".", ",")
+
+
+def _build_money_split_cell(value, currency, styles, width, bold=False):
+    total_width = max(width, 25 * mm)
+    amount_text = f"{_format_decimal_comma(value)} {_escape(currency)}"
+    if bold:
+        amount_text = f"<b>{amount_text}</b>"
+    table = Table(
+        [[
+            Paragraph(amount_text, styles["table_cell_amount"]),
+        ]],
+        colWidths=[total_width],
+        hAlign="LEFT",
+    )
+    table.setStyle(
+        TableStyle(
+            [
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                ("LEFTPADDING", (0, 0), (-1, -1), 0),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+                ("TOPPADDING", (0, 0), (-1, -1), 0),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
+            ]
+        )
+    )
+    return table
+
+
+def _build_purchase_order_total_money_cell(value, currency, styles):
+    table = Table(
+        [[
+            Paragraph(f"<b>{_format_decimal_comma(value)} {_escape(currency)}</b>", styles["table_cell_amount"]),
+        ]],
+        colWidths=[43 * mm],
+        hAlign="LEFT",
+    )
+    table.setStyle(
+        TableStyle(
+            [
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                ("LEFTPADDING", (0, 0), (-1, -1), 0),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+                ("TOPPADDING", (0, 0), (-1, -1), 0),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
+            ]
+        )
+    )
+    return table
 
 
 def _has_amount(value):
@@ -1437,8 +1543,7 @@ def _has_amount(value):
 
 
 def _format_plain_decimal(value):
-    amount = Decimal(value or 0).quantize(Decimal("0.01"))
-    return f"{amount:,.2f}"
+    return _format_decimal_comma(value)
 
 
 def _format_weight_kg(value):
@@ -1527,7 +1632,7 @@ def _build_page_gross_value_table(*, page_number, total_pages, page_amount, subt
         Paragraph(_escape(label), styles["label"]),
         Paragraph(_format_money(value, currency), styles["body_right"]),
     ]]
-    table = Table(rows, colWidths=[35 * mm, 35 * mm], hAlign="RIGHT")
+    table = Table(rows, colWidths=[50 * mm, 35 * mm], hAlign="RIGHT")
     table.setStyle(
         TableStyle(
             [
@@ -1669,12 +1774,12 @@ def _build_commercial_report_table(*, invoices, currency, styles):
         Paragraph("Number", styles["table_head"]),
         Paragraph("Importer", styles["table_head"]),
         Paragraph("End User", styles["table_head"]),
-        Paragraph("Qty", styles["table_cell_center"]),
-        Paragraph("Subtotal", styles["table_head"]),
-        Paragraph("VAT", styles["table_head"]),
-        Paragraph("Freight", styles["table_head"]),
-        Paragraph("Discount", styles["table_head"]),
-        Paragraph("Total", styles["table_head"]),
+        Paragraph("Qty", styles["table_head_amount"]),
+        Paragraph("Subtotal", styles["table_head_amount"]),
+        Paragraph("VAT", styles["table_head_amount"]),
+        Paragraph("Freight", styles["table_head_amount"]),
+        Paragraph("Discount", styles["table_head_amount"]),
+        Paragraph("Total", styles["table_head_amount"]),
     ]]
 
     for invoice in invoices:
@@ -1698,7 +1803,7 @@ def _build_commercial_report_table(*, invoices, currency, styles):
 
     table = Table(
         rows,
-        colWidths=[18 * mm, 23 * mm, 31 * mm, 31 * mm, 8 * mm, 17 * mm, 14 * mm, 14 * mm, 14 * mm, 14 * mm],
+        colWidths=[17 * mm, 21 * mm, 22 * mm, 22 * mm, 8 * mm, 18 * mm, 18 * mm, 18 * mm, 18 * mm, 18 * mm],
         hAlign="LEFT",
         repeatRows=1,
     )
@@ -1724,11 +1829,11 @@ def _build_purchase_report_table(*, purchase_orders, currency, styles):
         Paragraph("Number", styles["table_head"]),
         Paragraph("Seller", styles["table_head"]),
         Paragraph("Requester", styles["table_head"]),
-        Paragraph("Qty", styles["table_head_center"]),
-        Paragraph("Gross", styles["table_head"]),
-        Paragraph("VAT", styles["table_head"]),
-        Paragraph("Freight", styles["table_head"]),
-        Paragraph("Total", styles["table_head"]),
+        Paragraph("Qty", styles["table_head_amount"]),
+        Paragraph("Gross", styles["table_head_amount"]),
+        Paragraph("VAT", styles["table_head_amount"]),
+        Paragraph("Freight", styles["table_head_amount"]),
+        Paragraph("Total", styles["table_head_amount"]),
     ]]
 
     for po in purchase_orders:
@@ -1751,7 +1856,7 @@ def _build_purchase_report_table(*, purchase_orders, currency, styles):
 
     table = Table(
         rows,
-        colWidths=[18 * mm, 27 * mm, 32 * mm, 32 * mm, 8 * mm, 18 * mm, 15 * mm, 15 * mm, 19 * mm],
+        colWidths=[18 * mm, 27 * mm, 29 * mm, 29 * mm, 8 * mm, 18 * mm, 18 * mm, 18 * mm, 19 * mm],
         hAlign="LEFT",
         repeatRows=1,
     )
@@ -1777,10 +1882,10 @@ def _build_purchase_order_items_table(items, currency, styles, amount_from_last_
         Paragraph("Description", styles["table_head"]),
         Paragraph("Part Number", styles["table_head"]),
         Paragraph("HS Code", styles["table_head"]),
-        Paragraph("Quantity", styles["table_head"]),
-        Paragraph("Unit Price Without VAT", styles["table_head"]),
-        Paragraph("Total Without VAT", styles["table_head"]),
-        Paragraph("VAT", styles["table_head"]),
+        Paragraph("Quantity", styles["table_head_amount"]),
+        Paragraph("Unit Price Without VAT", styles["table_head_amount"]),
+        Paragraph("Total Without VAT", styles["table_head_amount"]),
+        Paragraph("VAT", styles["table_head_amount"]),
     ]]
 
     if amount_from_last_page is not None:
@@ -1806,8 +1911,8 @@ def _build_purchase_order_items_table(items, currency, styles, amount_from_last_
                 Paragraph(_escape(item["part_number"]), styles["table_cell_part_number"]),
                 Paragraph(_escape(item["hs_code"]), styles["table_cell"]),
                 Paragraph(_format_plain_decimal(item["quantity"]), styles["table_cell_amount"]),
-                Paragraph(_format_money(item["unit_price"], currency), styles["table_cell_amount"]),
-                Paragraph(_format_money(item["total_amount"], currency), styles["table_cell_amount"]),
+                _build_money_split_cell(item["unit_price"], currency, styles, 18 * mm),
+                _build_money_split_cell(item["total_amount"], currency, styles, 17 * mm),
                 Paragraph(_format_plain_decimal(vat_amount), styles["table_cell_amount"]),
             ]
         )
@@ -1817,7 +1922,7 @@ def _build_purchase_order_items_table(items, currency, styles, amount_from_last_
 
     table = Table(
         rows,
-        colWidths=[10 * mm, 44 * mm, 32 * mm, 20 * mm, 12 * mm, 26 * mm, 25 * mm, 15 * mm],
+        colWidths=[10 * mm, 48 * mm, 29 * mm, 18 * mm, 13 * mm, 25 * mm, 27 * mm, 14 * mm],
         hAlign="LEFT",
         repeatRows=1,
     )
@@ -1826,11 +1931,15 @@ def _build_purchase_order_items_table(items, currency, styles, amount_from_last_
             [
                 ("BACKGROUND", (0, 0), (-1, 0), colors.white),
                 ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                ("ALIGN", (4, 0), (-1, -1), "RIGHT"),
                 ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.white]),
                 ("LEFTPADDING", (0, 0), (-1, -1), 4),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 4),
                 ("TOPPADDING", (0, 0), (-1, -1), 5),
+                ("TOPPADDING", (1, 1), (1, -1), 6),
                 ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+                ("LEFTPADDING", (4, 0), (-1, -1), 2),
+                ("RIGHTPADDING", (4, 0), (-1, -1), 4),
             ]
         )
     )
@@ -1915,33 +2024,20 @@ def _build_purchase_order_page_gross_values_table(page_number, page_gross_value,
         if page_number == 1
         else f"Sub Total of Page 1 to {page_number}"
     )
-    rows = [
-        [
-            Paragraph(_escape(label), styles["label"]),
-            "",
-            "",
-            "",
-            "",
-            Paragraph(_format_money(page_gross_value, currency), styles["body_right"]),
-            "",
-        ]
-    ]
-
-    table = Table(
-        rows,
-        colWidths=[12 * mm, 55 * mm, 32 * mm, 20 * mm, 30 * mm, 27 * mm, 14 * mm],
-        hAlign="LEFT",
-    )
-    style_commands = [
-        ("ALIGN", (0, 0), (4, -1), "RIGHT"),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
-        ("TOPPADDING", (0, 0), (-1, -1), 3),
-        ("LEFTPADDING", (0, 0), (-1, -1), 4),
-        ("RIGHTPADDING", (0, 0), (-1, -1), 4),
-    ]
-    style_commands.extend(("SPAN", (0, row_index), (4, row_index)) for row_index in range(len(rows)))
+    rows = [[
+        Paragraph(_escape(label), styles["label"]),
+        Paragraph(_format_money(page_gross_value, currency), styles["body_right"]),
+    ]]
+    table = Table(rows, colWidths=[50 * mm, 35 * mm], hAlign="RIGHT")
     table.setStyle(
-        TableStyle(style_commands)
+        TableStyle(
+            [
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
+                ("TOPPADDING", (0, 0), (-1, -1), 3),
+                ("LEFTPADDING", (0, 0), (-1, -1), 6),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 6),
+            ]
+        )
     )
     return table
 
@@ -1953,22 +2049,27 @@ def _build_purchase_order_payment_table(*, gross_value, vat_amount, total_amount
         "",
         "",
         "",
+        _build_purchase_order_total_money_cell(gross_value, currency, styles),
         "",
-        Paragraph(f"<b>{_format_money(gross_value, currency)}</b>", styles["body_right"]),
-        Paragraph(f"<b>{_format_plain_decimal(vat_amount)}</b>", styles["body_right"]),
+        Paragraph(f"<b>{_format_plain_decimal(vat_amount)}</b>", styles["table_cell_amount"]),
     ]]
     table = Table(
         rows,
-        colWidths=[10 * mm, 44 * mm, 32 * mm, 20 * mm, 12 * mm, 26 * mm, 25 * mm, 15 * mm],
+        colWidths=[10 * mm, 48 * mm, 29 * mm, 18 * mm, 13 * mm, 25 * mm, 27 * mm, 14 * mm],
         hAlign="LEFT",
     )
     table.setStyle(
         TableStyle(
             [
-                ("SPAN", (0, 0), (5, 0)),
-                ("ALIGN", (0, 0), (5, 0), "LEFT"),
-                ("LEFTPADDING", (0, 0), (-1, -1), 3),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 3),
+                ("SPAN", (0, 0), (4, 0)),
+                ("SPAN", (5, 0), (6, 0)),
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                ("ALIGN", (0, 0), (4, 0), "LEFT"),
+                ("ALIGN", (5, 0), (-1, -1), "RIGHT"),
+                ("LEFTPADDING", (0, 0), (-1, -1), 4),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+                ("LEFTPADDING", (4, 0), (-1, -1), 2),
+                ("RIGHTPADDING", (4, 0), (-1, -1), 4),
                 ("TOPPADDING", (0, 0), (-1, -1), 4),
                 ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
             ]

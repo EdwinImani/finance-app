@@ -858,6 +858,7 @@
 <script>
     (function() {
         let activeAutocomplete = null;
+        let autocompleteObserver = null;
 
         function getBodyZoom() {
             const zoom = window.getComputedStyle(document.body).zoom;
@@ -866,7 +867,8 @@
         }
 
         function getOpenDropdownContainer() {
-            const dropdown = document.querySelector(".select2-container--open .select2-dropdown");
+            const dropdowns = document.querySelectorAll(".select2-container--open .select2-dropdown");
+            const dropdown = dropdowns.length ? dropdowns[dropdowns.length - 1] : null;
             return dropdown ? dropdown.parentElement : null;
         }
 
@@ -921,6 +923,39 @@
             }
         }
 
+        function refreshSoon() {
+            window.requestAnimationFrame(refreshPosition);
+            window.setTimeout(refreshPosition, 30);
+            window.setTimeout(refreshPosition, 120);
+        }
+
+        function installAutocompleteObserver() {
+            if (autocompleteObserver) {
+                return;
+            }
+
+            autocompleteObserver = new MutationObserver(function(mutations) {
+                if (!activeAutocomplete) {
+                    return;
+                }
+
+                const hasSelect2Mutation = mutations.some(function(mutation) {
+                    const target = mutation.target;
+                    return target && target.closest && target.closest(".select2-container--open");
+                });
+
+                if (hasSelect2Mutation) {
+                    refreshSoon();
+                }
+            });
+
+            autocompleteObserver.observe(document.body, {
+                childList: true,
+                subtree: true,
+                characterData: true
+            });
+        }
+
         function installAutocompletePositioning() {
             const $ = window.django && window.django.jQuery;
 
@@ -932,6 +967,7 @@
             $(document).on("select2:open", "select.admin-autocomplete", function() {
                 activeAutocomplete = this;
                 keepPositioned(this);
+                installAutocompleteObserver();
             });
 
             $(document).on("select2:close", "select.admin-autocomplete", function() {
@@ -939,6 +975,9 @@
                     activeAutocomplete = null;
                 }
             });
+
+            $(document).on("input keyup", ".select2-container--open .select2-search__field", refreshSoon);
+            $(document).on("results:all results:append", "select.admin-autocomplete", refreshSoon);
 
             window.addEventListener("scroll", refreshPosition, true);
             window.addEventListener("resize", refreshPosition);

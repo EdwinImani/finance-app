@@ -149,6 +149,11 @@
             text-align: right;
         }
 
+        .money-cell {
+            min-width: 78px;
+            white-space: nowrap;
+        }
+
         .summary-wrap {
             width: 100%;
             border-collapse: collapse;
@@ -302,10 +307,10 @@
                     <th style="width: 16%;">Number</th>
                     <th style="width: 28%;">Seller</th>
                     <th class="text-right" style="width: 8%;">Qty</th>
-                    <th class="text-right" style="width: 12%;">Gross Value</th>
-                    <th class="text-right" style="width: 8%;">VAT</th>
-                    <th class="text-right" style="width: 8%;">Freight</th>
-                    <th class="text-right" style="width: 16%;">Total Amount</th>
+                    <th class="text-right money-cell" style="width: 14%;">Gross Value</th>
+                    <th class="text-right money-cell" style="width: 10%;">VAT</th>
+                    <th class="text-right money-cell" style="width: 10%;">Freight</th>
+                    <th class="text-right money-cell" style="width: 16%;">Total Amount</th>
                 </tr>
             </thead>
             <tbody>
@@ -315,10 +320,10 @@
                     <td>{{ po.purchase_number }}</td>
                     <td>{{ po.seller }}</td>
                     <td class="text-right">{{ po.qty_total }}</td>
-                    <td class="text-right">{{ po.gross_value_db|floatformat:2 }} {{ company.currency|default:"EUR" }}</td>
-                    <td class="text-right">{{ po.vat_amount|floatformat:2 }} {{ company.currency|default:"EUR" }}</td>
-                    <td class="text-right">{{ po.freight|floatformat:2 }} {{ company.currency|default:"EUR" }}</td>
-                    <td class="text-right">{{ po.total_amount|floatformat:2 }} {{ company.currency|default:"EUR" }}</td>
+                    <td class="text-right money-cell">{{ po.gross_value_db|floatformat:2 }} {{ company.currency|default:"EUR" }}</td>
+                    <td class="text-right money-cell">{{ po.vat_amount|floatformat:2 }} {{ company.currency|default:"EUR" }}</td>
+                    <td class="text-right money-cell">{{ po.freight|floatformat:2 }} {{ company.currency|default:"EUR" }}</td>
+                    <td class="text-right money-cell">{{ po.total_amount|floatformat:2 }} {{ company.currency|default:"EUR" }}</td>
                 </tr>
                 {% empty %}
                 <tr>

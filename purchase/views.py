@@ -1,7 +1,9 @@
+from django.contrib.admin.views.decorators import staff_member_required
 from django.http import JsonResponse
 from products.models import Product
 
 
+@staff_member_required
 def product_info(request, product_id):
 
     try:

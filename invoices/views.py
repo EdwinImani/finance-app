@@ -1,7 +1,9 @@
+from django.contrib.admin.views.decorators import staff_member_required
 from django.shortcuts import render, redirect
 from .forms import ProformaInvoiceForm, CommercialInvoiceForm
 
 
+@staff_member_required
 def create_proforma_invoice(request):
     if request.method == 'POST':
         form = ProformaInvoiceForm(request.POST)
@@ -16,6 +18,7 @@ def create_proforma_invoice(request):
     })
 
 
+@staff_member_required
 def create_commercial_invoice(request):
     if request.method == 'POST':
         form = CommercialInvoiceForm(request.POST)

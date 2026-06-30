@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.exceptions import ValidationError
 
 
 class CompanySetting(models.Model):
@@ -69,6 +70,9 @@ class CompanySetting(models.Model):
     )
 
     def save(self, *args, **kwargs):
+        if not self.pk and CompanySetting.objects.exists():
+            raise ValidationError("Only one company setting can exist.")
+
         old_logo_name = None
 
         if self.pk:

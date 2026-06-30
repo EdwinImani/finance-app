@@ -16,7 +16,7 @@ from financeapp.admin_mixins import PageSizeAdminMixin
 from company.models import CompanySetting
 from partners.models import Partner
 from products.models import Product
-from .pdf_builder import build_commercial_report_pdf, build_invoice_pdf
+from .pdf_builder import build_commercial_report_pdf, build_invoice_pdf, format_footer_invoice_lines
 from .models import (
     ProformaInvoice,
     CommercialInvoice,
@@ -389,8 +389,16 @@ class InvoiceAdminMixin:
 
         obj = get_object_or_404(self.model, pk=object_id)
         form_class = self.get_form(request, obj, change=True)
-        form = form_class(request.POST, request.FILES, instance=obj)
-        formsets, inline_instances = self._create_formsets(request, form.instance, change=True)
+        post_data = request.POST.copy()
+        self._remove_new_inline_forms_from_autosave(post_data)
+        form = form_class(post_data, request.FILES, instance=obj)
+
+        original_post = request.POST
+        request.POST = post_data
+        try:
+            formsets, inline_instances = self._create_formsets(request, form.instance, change=True)
+        finally:
+            request.POST = original_post
 
         if form.is_valid() and all_valid(formsets):
             new_object = self.save_form(request, form, change=True)
@@ -418,6 +426,35 @@ class InvoiceAdminMixin:
                 )
         errors["inlines"] = inline_errors
         return JsonResponse({"ok": False, "errors": errors}, status=400)
+
+    def _remove_new_inline_forms_from_autosave(self, post_data):
+        prefixes = [
+            key[:-len("-TOTAL_FORMS")]
+            for key in post_data.keys()
+            if key.endswith("-TOTAL_FORMS")
+        ]
+
+        for prefix in prefixes:
+            total_key = f"{prefix}-TOTAL_FORMS"
+            initial_key = f"{prefix}-INITIAL_FORMS"
+            if initial_key not in post_data:
+                continue
+
+            try:
+                total_forms = int(post_data.get(total_key) or 0)
+                initial_forms = int(post_data.get(initial_key) or 0)
+            except (TypeError, ValueError):
+                continue
+
+            if total_forms <= initial_forms:
+                continue
+
+            for index in range(initial_forms, total_forms):
+                form_prefix = f"{prefix}-{index}-"
+                for key in list(post_data.keys()):
+                    if key.startswith(form_prefix):
+                        post_data.pop(key, None)
+            post_data[total_key] = str(initial_forms)
 
 
 # ----------------------
@@ -977,7 +1014,7 @@ class CommercialInvoiceAdmin(InvoiceAdminMixin, PageSizeAdminMixin, admin.ModelA
     def _build_report_footer_center(self, company):
         if not company or not getattr(company, "footer_invoice", ""):
             return []
-        return [part.strip() for part in str(company.footer_invoice).split("_") if part.strip()]
+        return format_footer_invoice_lines(company.footer_invoice)
 
     def _build_report_footer_right(self, company):
         if not company:

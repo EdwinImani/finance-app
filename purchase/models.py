@@ -3,6 +3,7 @@ from django.utils import timezone
 from decimal import Decimal
 from partners.models import Partner
 from products.models import Product
+import re
 
 
 # ----------------------
@@ -89,15 +90,17 @@ class PurchaseOrder(models.Model):
         if not self.purchase_number:
             year = self.purchase_date.year
 
-            last_po = PurchaseOrder.objects.filter(
+            purchase_numbers = PurchaseOrder.objects.filter(
                 purchase_number__startswith=f"PO/{year}"
-            ).order_by("-id").first()
+            ).values_list("purchase_number", flat=True)
 
-            if last_po:
-                last_number = int(last_po.purchase_number.split("-")[-1])
-                new_number = last_number + 1
-            else:
-                new_number = 1
+            last_number = 0
+            for purchase_number in purchase_numbers:
+                match = re.search(r"(\d+)$", str(purchase_number))
+                if match:
+                    last_number = max(last_number, int(match.group(1)))
+
+            new_number = last_number + 1
 
             self.purchase_number = f"PO/{year}-{new_number:04d}"
 

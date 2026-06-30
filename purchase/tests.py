@@ -14,6 +14,11 @@ from purchase.models import PurchaseOrder, PurchaseOrderItem
 class ProductInfoViewTests(TestCase):
 
     def test_product_info_returns_invoice_and_purchase_fields(self):
+        user = get_user_model().objects.create_user(
+            username="staff",
+            password="password123",
+            is_staff=True,
+        )
         product = Product.objects.create(
             description="Produit API",
             part_number="API-001",
@@ -24,6 +29,10 @@ class ProductInfoViewTests(TestCase):
             sale_price=Decimal("9.90"),
         )
 
+        anonymous_response = self.client.get(reverse("product_info", args=[product.id]))
+        self.assertEqual(anonymous_response.status_code, 302)
+
+        self.client.force_login(user)
         response = self.client.get(reverse("product_info", args=[product.id]))
 
         self.assertEqual(response.status_code, 200)
@@ -169,3 +178,45 @@ class PurchaseOrderAdminAutosaveTests(TestCase):
         self.assertEqual(response.status_code, 200, response.content)
         self.assertEqual(item.unit_price, Decimal("18.75"))
         self.assertEqual(product.purchase_price, Decimal("12.50"))
+
+    def test_autosave_does_not_create_new_inline_items(self):
+        product = Product.objects.create(
+            description="Produit Nouveau PO Autosave",
+            part_number="PO-AUTO-NEW",
+            hs_code="8504.40",
+            purchase_price=Decimal("12.50"),
+            sale_price=Decimal("20.00"),
+        )
+        purchase_order = PurchaseOrder.objects.create(vat_percent=Decimal("20.00"))
+
+        response = self.client.post(
+            reverse("admin:purchase_purchaseorder_autosave", args=[purchase_order.pk]),
+            {
+                "purchase_number": purchase_order.purchase_number,
+                "purchase_date": purchase_order.purchase_date.strftime("%Y-%m-%d"),
+                "seller": "",
+                "requester": "",
+                "sent_by": "",
+                "shipment": "",
+                "freight": "0.00",
+                "vat_percent": "20.00",
+                "sales_condition": "",
+                "payment_condition": "",
+                "delivery_terms": "",
+                "items-TOTAL_FORMS": "1",
+                "items-INITIAL_FORMS": "0",
+                "items-MIN_NUM_FORMS": "0",
+                "items-MAX_NUM_FORMS": "1000",
+                "items-0-id": "",
+                "items-0-purchase_order": str(purchase_order.pk),
+                "items-0-product": str(product.pk),
+                "items-0-hs_code": product.hs_code,
+                "items-0-part_number": product.part_number,
+                "items-0-quantity": "2",
+                "items-0-unit_price": "12.50",
+            },
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+        )
+
+        self.assertEqual(response.status_code, 200, response.content)
+        self.assertEqual(purchase_order.items.count(), 0)
