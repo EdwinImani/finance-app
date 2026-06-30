@@ -1629,17 +1629,26 @@ def _build_page_gross_value_table(*, page_number, total_pages, page_amount, subt
     label = _page_gross_value_label(page_number, total_pages)
     value = page_amount if page_number == 1 else subtotal_amount
     rows = [[
-        Paragraph(_escape(label), styles["label"]),
+        Paragraph(_escape(label), styles["table_head_amount"]),
+        "",
+        "",
+        "",
+        "",
+        "",
         Paragraph(_format_money(value, currency), styles["body_right"]),
     ]]
-    table = Table(rows, colWidths=[50 * mm, 35 * mm], hAlign="RIGHT")
+    table = Table(
+        rows,
+        colWidths=[10 * mm, 54 * mm, 31 * mm, 18 * mm, 12 * mm, 27 * mm, 28 * mm],
+    )
     table.setStyle(
         TableStyle(
             [
+                ("SPAN", (0, 0), (5, 0)),
                 ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
                 ("TOPPADDING", (0, 0), (-1, -1), 3),
-                ("LEFTPADDING", (0, 0), (-1, -1), 6),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 6),
+                ("LEFTPADDING", (0, 0), (-1, -1), 4),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 4),
             ]
         )
     )
@@ -1648,10 +1657,8 @@ def _build_page_gross_value_table(*, page_number, total_pages, page_amount, subt
 
 def _page_gross_value_label(page_number, total_pages):
     if page_number == 1:
-        return f"Amount of page 1 of {total_pages}"
-    if page_number == total_pages:
-        return f"Sub total from Page 1 to {page_number}"
-    return f"Sub Total of Page 1 to {page_number}"
+        return f"Amount of Page 1 to {total_pages}"
+    return f"Sub Total of Page {page_number} to {total_pages}"
 
 
 def _build_report_summary_table(*, currency, total_qty, total_subtotal, total_vat, total_freight, total_discount, total_amount, styles):
@@ -2020,22 +2027,33 @@ def _build_purchase_order_totals_flowable(page_index, purchase_order, currency, 
 
 def _build_purchase_order_page_gross_values_table(page_number, page_gross_value, total_pages, currency, styles):
     label = (
-        f"Amount of page 1 of {total_pages}"
+        f"Amount of Page 1 to {total_pages}"
         if page_number == 1
-        else f"Sub Total of Page 1 to {page_number}"
+        else f"Sub Total of Page {page_number} to {total_pages}"
     )
     rows = [[
-        Paragraph(_escape(label), styles["label"]),
+        Paragraph(_escape(label), styles["table_head_amount"]),
+        "",
+        "",
+        "",
+        "",
+        "",
         Paragraph(_format_money(page_gross_value, currency), styles["body_right"]),
+        "",
     ]]
-    table = Table(rows, colWidths=[50 * mm, 35 * mm], hAlign="RIGHT")
+    table = Table(
+        rows,
+        colWidths=[10 * mm, 48 * mm, 29 * mm, 18 * mm, 13 * mm, 25 * mm, 27 * mm, 14 * mm],
+        hAlign="LEFT",
+    )
     table.setStyle(
         TableStyle(
             [
+                ("SPAN", (0, 0), (5, 0)),
                 ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
                 ("TOPPADDING", (0, 0), (-1, -1), 3),
-                ("LEFTPADDING", (0, 0), (-1, -1), 6),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 6),
+                ("LEFTPADDING", (0, 0), (-1, -1), 4),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 4),
             ]
         )
     )
