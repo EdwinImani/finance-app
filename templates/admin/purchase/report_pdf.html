@@ -320,10 +320,10 @@
                     <td>{{ po.purchase_number }}</td>
                     <td>{{ po.seller }}</td>
                     <td class="text-right">{{ po.qty_total }}</td>
-                    <td class="text-right money-cell">{{ po.gross_value_db|floatformat:2 }} {{ company.currency|default:"EUR" }}</td>
-                    <td class="text-right money-cell">{{ po.vat_amount|floatformat:2 }} {{ company.currency|default:"EUR" }}</td>
-                    <td class="text-right money-cell">{{ po.freight|floatformat:2 }} {{ company.currency|default:"EUR" }}</td>
-                    <td class="text-right money-cell">{{ po.total_amount|floatformat:2 }} {{ company.currency|default:"EUR" }}</td>
+                    <td class="text-right money-cell">{{ po.gross_value_db|floatformat:2 }} €</td>
+                    <td class="text-right money-cell">{{ po.vat_amount|floatformat:2 }} €</td>
+                    <td class="text-right money-cell">{{ po.freight|floatformat:2 }} €</td>
+                    <td class="text-right money-cell">{{ po.total_amount|floatformat:2 }} €</td>
                 </tr>
                 {% empty %}
                 <tr>
@@ -358,19 +358,19 @@
                             </tr>
                             <tr>
                                 <td class="summary-label">Gross Value</td>
-                                <td class="summary-value">{{ total_gross|floatformat:2 }} {{ company.currency|default:"EUR" }}</td>
+                                <td class="summary-value">{{ total_gross|floatformat:2 }} €</td>
                             </tr>
                             <tr>
                                 <td class="summary-label">VAT</td>
-                                <td class="summary-value">{{ total_vat|floatformat:2 }} {{ company.currency|default:"EUR" }}</td>
+                                <td class="summary-value">{{ total_vat|floatformat:2 }} €</td>
                             </tr>
                             <tr>
                                 <td class="summary-label">Freight</td>
-                                <td class="summary-value">{{ total_freight|floatformat:2 }} {{ company.currency|default:"EUR" }}</td>
+                                <td class="summary-value">{{ total_freight|floatformat:2 }} €</td>
                             </tr>
                             <tr class="summary-total">
                                 <td class="summary-label">Total Amount</td>
-                                <td class="summary-value">{{ total_amount|floatformat:2 }} {{ company.currency|default:"EUR" }}</td>
+                                <td class="summary-value">{{ total_amount|floatformat:2 }} €</td>
                             </tr>
                         </table>
                     </div>

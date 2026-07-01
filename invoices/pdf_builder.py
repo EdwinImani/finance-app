@@ -711,7 +711,7 @@ def _build_purchase_note_currency_box(company, styles):
     currency = getattr(company, "currency", "") or "-"
     return [
         Paragraph(_format_preserving_layout(note), styles["body"]),
-        Paragraph(f"<b>Currency:</b> {_escape(currency)}", styles["body"]),
+        Paragraph(f"<b>Currency:</b> {_escape(_format_currency_symbol(currency))}", styles["body"]),
     ]
 
 
@@ -934,7 +934,7 @@ def _info_box(title, text, styles):
 def _build_meta_section(invoice, company, styles):
     left_rows = [
         ["Order No", getattr(invoice, "our_order_no", "") or "-"],
-        ["Currency", getattr(company, "currency", "") or "EUR"],
+        ["Currency", _format_currency_symbol(getattr(company, "currency", "") or "EUR")],
     ]
 
     if hasattr(invoice, "ready_for_report"):
@@ -1463,26 +1463,17 @@ def _build_page_totals_flowable(page_index, invoice, currency, styles, page_tota
         )
         if len(page_totals) == 1:
             return totals_table
-
-        wrapper = Table([[[detail_table, Spacer(1, 2 * mm), totals_table]]], colWidths=[85 * mm], hAlign="RIGHT")
-        wrapper.setStyle(
-            TableStyle(
-                [
-                    ("VALIGN", (0, 0), (-1, -1), "TOP"),
-                    ("LEFTPADDING", (0, 0), (-1, -1), 0),
-                    ("RIGHTPADDING", (0, 0), (-1, -1), 0),
-                    ("TOPPADDING", (0, 0), (-1, -1), 0),
-                    ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
-                ]
-            )
-        )
-        return wrapper
+        return totals_table
 
     return detail_table
 
 
 def _format_money(value, currency):
-    return f"{_format_decimal_comma(value)} {currency}"
+    return f"{_format_decimal_comma(value)} {_format_currency_symbol(currency)}"
+
+
+def _format_currency_symbol(currency):
+    return "€" if str(currency or "").upper() == "EUR" else str(currency or "")
 
 
 def _format_decimal_comma(value):
@@ -1492,7 +1483,7 @@ def _format_decimal_comma(value):
 
 def _build_money_split_cell(value, currency, styles, width, bold=False):
     total_width = max(width, 25 * mm)
-    amount_text = f"{_format_decimal_comma(value)} {_escape(currency)}"
+    amount_text = f"{_format_decimal_comma(value)} {_escape(_format_currency_symbol(currency))}"
     if bold:
         amount_text = f"<b>{amount_text}</b>"
     table = Table(
@@ -1519,7 +1510,7 @@ def _build_money_split_cell(value, currency, styles, width, bold=False):
 def _build_purchase_order_total_money_cell(value, currency, styles):
     table = Table(
         [[
-            Paragraph(f"<b>{_format_decimal_comma(value)} {_escape(currency)}</b>", styles["table_cell_amount"]),
+            Paragraph(f"<b>{_format_decimal_comma(value)} {_escape(_format_currency_symbol(currency))}</b>", styles["table_cell_amount"]),
         ]],
         colWidths=[43 * mm],
         hAlign="LEFT",
@@ -1657,8 +1648,8 @@ def _build_page_gross_value_table(*, page_number, total_pages, page_amount, subt
 
 def _page_gross_value_label(page_number, total_pages):
     if page_number == 1:
-        return f"Amount of Page 1 to {total_pages}"
-    return f"Sub Total of Page {page_number} to {total_pages}"
+        return f"Amount of Page 1 of {total_pages}"
+    return f"Sub Total of Page {page_number} of {total_pages}"
 
 
 def _build_report_summary_table(*, currency, total_qty, total_subtotal, total_vat, total_freight, total_discount, total_amount, styles):
@@ -1889,9 +1880,9 @@ def _build_purchase_order_items_table(items, currency, styles, amount_from_last_
         Paragraph("Description", styles["table_head"]),
         Paragraph("Part Number", styles["table_head"]),
         Paragraph("HS Code", styles["table_head"]),
-        Paragraph("Quantity", styles["table_head_amount"]),
-        Paragraph("Unit Price Without VAT", styles["table_head_amount"]),
-        Paragraph("Total Without VAT", styles["table_head_amount"]),
+        Paragraph("Qty", styles["table_head_amount"]),
+        Paragraph("Unit Price", styles["table_head_amount"]),
+        Paragraph("Total Amount", styles["table_head_amount"]),
         Paragraph("VAT", styles["table_head_amount"]),
     ]]
 
@@ -2009,27 +2000,15 @@ def _build_purchase_order_totals_flowable(page_index, purchase_order, currency, 
         )
         if len(page_totals) == 1:
             return totals_table
-        wrapper = Table([[[detail_table, Spacer(1, 2 * mm), totals_table]]], colWidths=[184 * mm], hAlign="LEFT")
-        wrapper.setStyle(
-            TableStyle(
-                [
-                    ("VALIGN", (0, 0), (-1, -1), "TOP"),
-                    ("LEFTPADDING", (0, 0), (-1, -1), 0),
-                    ("RIGHTPADDING", (0, 0), (-1, -1), 0),
-                    ("TOPPADDING", (0, 0), (-1, -1), 0),
-                    ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
-                ]
-            )
-        )
-        return wrapper
+        return totals_table
     return detail_table
 
 
 def _build_purchase_order_page_gross_values_table(page_number, page_gross_value, total_pages, currency, styles):
     label = (
-        f"Amount of Page 1 to {total_pages}"
+        f"Amount of Page 1 of {total_pages}"
         if page_number == 1
-        else f"Sub Total of Page {page_number} to {total_pages}"
+        else f"Sub Total of Page {page_number} of {total_pages}"
     )
     rows = [[
         Paragraph(_escape(label), styles["table_head_amount"]),
