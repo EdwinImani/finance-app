@@ -18,7 +18,7 @@ from django.utils import timezone
 from django.utils.html import format_html
 from financeapp.admin_mixins import PageSizeAdminMixin
 from financeapp.pdf_rendering import get_pdf_fallback_reason, should_try_weasyprint
-from invoices.pdf_builder import build_purchase_order_pdf, build_purchase_report_pdf
+from invoices.pdf_builder import build_purchase_order_pdf, build_purchase_report_pdf, format_currency_symbol
 
 from company.models import CompanySetting
 from partners.models import Partner
@@ -572,7 +572,8 @@ class PurchaseOrderAdmin(PageSizeAdminMixin, admin.ModelAdmin):
             from_date=date_from,
             to_date=date_to,
             chart_rows=self._build_pdf_chart_rows(chart_labels, chart_totals),
-            chart_svg=self._build_pdf_chart_svg(chart_labels, chart_totals, company.currency if company else "EUR"),
+            currency_symbol=format_currency_symbol(company.currency if company else "EUR"),
+            chart_svg=self._build_pdf_chart_svg(chart_labels, chart_totals, format_currency_symbol(company.currency if company else "EUR")),
             purchase_report_pdf_url=self.get_purchase_report_pdf_url(request),
         )
 

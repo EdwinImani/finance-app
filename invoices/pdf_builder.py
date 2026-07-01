@@ -1469,11 +1469,24 @@ def _build_page_totals_flowable(page_index, invoice, currency, styles, page_tota
 
 
 def _format_money(value, currency):
-    return f"{_format_decimal_comma(value)} {_format_currency_symbol(currency)}"
+    return f"{_format_decimal_comma(value)} {format_currency_symbol(currency)}"
+
+
+def format_currency_symbol(currency):
+    symbols = {
+        "EUR": "\u20ac",
+        "USD": "$",
+        "CNY": "\u00a5",
+        "MAD": "DH",
+        "LBP": "L\u00a3",
+        "IRR": "Rls",
+    }
+    code = str(currency or "").upper()
+    return symbols.get(code, str(currency or ""))
 
 
 def _format_currency_symbol(currency):
-    return "€" if str(currency or "").upper() == "EUR" else str(currency or "")
+    return format_currency_symbol(currency)
 
 
 def _format_decimal_comma(value):
