@@ -16,7 +16,7 @@ from django.urls import path
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import format_html
-from financeapp.admin_mixins import PageSizeAdminMixin
+from financeapp.admin_mixins import PageSizeAdminMixin, SaveRedirectToWelcomeMixin
 from financeapp.pdf_rendering import get_pdf_fallback_reason, should_try_weasyprint
 from invoices.pdf_builder import build_purchase_order_pdf, build_purchase_report_pdf, format_currency_symbol
 
@@ -92,7 +92,7 @@ class PurchaseOrderAdminForm(forms.ModelForm):
 # ----------------------
 
 @admin.register(PurchaseOrder)
-class PurchaseOrderAdmin(PageSizeAdminMixin, admin.ModelAdmin):
+class PurchaseOrderAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.ModelAdmin):
     changelist_template = "admin/purchase/purchaseorder/change_list.html"
     change_form_template = "admin/purchase/purchaseorder/change_form.html"
     list_max_show_all = 100

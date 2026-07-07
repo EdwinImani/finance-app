@@ -1198,6 +1198,84 @@
 
 {% block extrahead %}
 {{ block.super }}
+{% if user.is_authenticated %}
+<script>
+(function() {
+    const INACTIVITY_LIMIT_MS = 15 * 60 * 1000;
+    const ACTIVITY_KEY = "finance_admin_last_activity";
+    let timeoutId = null;
+
+    function now() {
+        return Date.now();
+    }
+
+    function logoutDueToInactivity() {
+        const logoutForm = document.getElementById("logout-form");
+
+        if (logoutForm) {
+            logoutForm.submit();
+            return;
+        }
+
+        window.location.href = "{% url 'admin:logout' %}";
+    }
+
+    function scheduleCheck() {
+        window.clearTimeout(timeoutId);
+
+        const lastActivity = Number(window.localStorage.getItem(ACTIVITY_KEY)) || now();
+        const remaining = INACTIVITY_LIMIT_MS - (now() - lastActivity);
+
+        if (remaining <= 0) {
+            logoutDueToInactivity();
+            return;
+        }
+
+        timeoutId = window.setTimeout(scheduleCheck, remaining + 250);
+    }
+
+    function recordActivity() {
+        window.localStorage.setItem(ACTIVITY_KEY, String(now()));
+        scheduleCheck();
+    }
+
+    function installInactivityTimer() {
+        recordActivity();
+
+        [
+            "click",
+            "keydown",
+            "mousemove",
+            "mousedown",
+            "pointerdown",
+            "touchstart",
+            "wheel",
+            "scroll"
+        ].forEach(function(eventName) {
+            window.addEventListener(eventName, recordActivity, { passive: true, capture: true });
+        });
+
+        window.addEventListener("storage", function(event) {
+            if (event.key === ACTIVITY_KEY) {
+                scheduleCheck();
+            }
+        });
+
+        document.addEventListener("visibilitychange", function() {
+            if (!document.hidden) {
+                scheduleCheck();
+            }
+        });
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", installInactivityTimer);
+    } else {
+        installInactivityTimer();
+    }
+})();
+</script>
+{% endif %}
 <script>
 document.addEventListener("DOMContentLoaded", function() {
     document.querySelectorAll('#changelist-form .actions select[name="action"]').forEach(function(select) {
@@ -1297,7 +1375,7 @@ document.addEventListener("DOMContentLoaded", function() {
 {% if user.is_authenticated %}
 <div id="user-tools">
   <span class="username-only">{{ user.get_username }}</span>
-  <a href="{% url 'admin:index' %}" class="header-action">{% translate "Welcome page" %}</a>
+  <a href="{% url 'admin:index' %}" class="header-action">{% translate "Admin home" %}</a>
   <form id="logout-form" class="logout-form" method="post" action="{% url 'admin:logout' %}">
     {% csrf_token %}
     <input type="hidden" name="next" value="{% url 'admin:login' %}">

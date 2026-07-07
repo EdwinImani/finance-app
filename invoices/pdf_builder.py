@@ -1924,7 +1924,7 @@ def _build_purchase_order_items_table(items, currency, styles, amount_from_last_
                 Paragraph(_format_plain_decimal(item["quantity"]), styles["table_cell_amount"]),
                 _build_money_split_cell(item["unit_price"], currency, styles, 18 * mm),
                 _build_money_split_cell(item["total_amount"], currency, styles, 17 * mm),
-                Paragraph(_format_plain_decimal(vat_amount), styles["table_cell_amount"]),
+                Paragraph(_format_money(vat_amount, currency), styles["table_cell_amount"]),
             ]
         )
 
@@ -2061,7 +2061,7 @@ def _build_purchase_order_payment_table(*, gross_value, vat_amount, total_amount
         "",
         _build_purchase_order_total_money_cell(gross_value, currency, styles),
         "",
-        Paragraph(f"<b>{_format_plain_decimal(vat_amount)}</b>", styles["table_cell_amount"]),
+        Paragraph(f"<b>{_format_money(vat_amount, currency)}</b>", styles["table_cell_amount"]),
     ]]
     table = Table(
         rows,

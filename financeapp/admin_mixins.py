@@ -1,4 +1,23 @@
 from django.contrib.admin.views.main import ChangeList
+from django.contrib.admin.options import IS_POPUP_VAR
+from django.shortcuts import redirect
+
+
+class SaveRedirectToWelcomeMixin:
+    save_redirect_url = "/admin/"
+
+    def _redirect_after_save(self, request):
+        return redirect(self.save_redirect_url)
+
+    def response_add(self, request, obj, post_url_continue=None):
+        if IS_POPUP_VAR in request.POST:
+            return super().response_add(request, obj, post_url_continue=post_url_continue)
+        return self._redirect_after_save(request)
+
+    def response_change(self, request, obj):
+        if IS_POPUP_VAR in request.POST:
+            return super().response_change(request, obj)
+        return self._redirect_after_save(request)
 
 
 class PageSizeChangeList(ChangeList):

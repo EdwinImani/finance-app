@@ -1,17 +1,25 @@
 from decimal import Decimal
+from django.contrib import admin
 from django.shortcuts import render
 from .models import PurchaseOrder
 from .forms import PurchaseReportForm
 
 
+def purchase_admin_context(request, extra_context=None):
+    context = admin.site.each_context(request)
+    if extra_context:
+        context.update(extra_context)
+    return context
+
+
 def purchase_home(request):
     orders = PurchaseOrder.objects.all().prefetch_related("items", "seller").order_by("-purchase_date")
-    return render(request, "purchase/home.html", {"orders": orders})
+    return render(request, "purchase/home.html", purchase_admin_context(request, {"orders": orders}))
 
 
 def purchase_report_filter(request):
     form = PurchaseReportForm(request.GET or None)
-    return render(request, "purchase/report_filter.html", {"form": form})
+    return render(request, "purchase/report_filter.html", purchase_admin_context(request, {"form": form}))
 
 
 def purchase_report_result(request):
@@ -92,4 +100,4 @@ def purchase_report_result(request):
         "date_to": request.GET.get("date_to", ""),
     }
 
-    return render(request, "purchase/report_result.html", context)
+    return render(request, "purchase/report_result.html", purchase_admin_context(request, context))

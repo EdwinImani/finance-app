@@ -17,7 +17,6 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path
 from django.views.generic import RedirectView
-from django.views.generic import TemplateView
 
 from django.conf import settings
 from django.conf.urls.static import static
@@ -25,7 +24,6 @@ from financeapp import views
 
 urlpatterns = [
     path('', RedirectView.as_view(url='/admin/login/', permanent=False), name='home'),
-    path('welcome/', TemplateView.as_view(template_name='main_index.html')),
     path(
         'admin/related-object-label/<str:app_label>/<str:model_name>/<str:object_id>/',
         views.related_object_label,
@@ -34,12 +32,10 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('purchase/', include('purchase.urls')),
     path('invoices/', include('invoices.urls')),
-    # Option alternative si tu veux une page d'accueil statique :
-    # path('', TemplateView.as_view(template_name='main_index.html'), name='home'),
 ]
 
-# servir les fichiers media (logo etc.)
-urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 
 

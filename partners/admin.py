@@ -4,7 +4,7 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import path, reverse
 from django.utils import timezone
-from financeapp.admin_mixins import PageSizeAdminMixin
+from financeapp.admin_mixins import PageSizeAdminMixin, SaveRedirectToWelcomeMixin
 from .models import Partner, PartnerAddress, PartnerPhone
 
 
@@ -33,7 +33,7 @@ class PartnerPhoneInline(admin.TabularInline):
 # ----------------------
 
 @admin.register(Partner)
-class PartnerAdmin(PageSizeAdminMixin, admin.ModelAdmin):
+class PartnerAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.ModelAdmin):
     changelist_template = "admin/partners/partner/change_list.html"
     change_form_template = "admin/partners/partner/change_form.html"
 

@@ -2,11 +2,12 @@ from django.contrib import admin
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.html import format_html
+from financeapp.admin_mixins import SaveRedirectToWelcomeMixin
 from .models import CompanySetting
 
 
 @admin.register(CompanySetting)
-class CompanySettingAdmin(admin.ModelAdmin):
+class CompanySettingAdmin(SaveRedirectToWelcomeMixin, admin.ModelAdmin):
     change_form_template = "admin/company/companysetting/change_form.html"
 
     list_display = (

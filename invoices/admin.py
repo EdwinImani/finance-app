@@ -12,7 +12,7 @@ from django.urls import reverse
 from django.urls import NoReverseMatch
 from django.utils.html import format_html
 from django.utils import timezone
-from financeapp.admin_mixins import PageSizeAdminMixin
+from financeapp.admin_mixins import PageSizeAdminMixin, SaveRedirectToWelcomeMixin
 from company.models import CompanySetting
 from partners.models import Partner
 from products.models import Product
@@ -462,7 +462,7 @@ class InvoiceAdminMixin:
 # ----------------------
 
 @admin.register(ProformaInvoice)
-class ProformaInvoiceAdmin(InvoiceAdminMixin, PageSizeAdminMixin, admin.ModelAdmin):
+class ProformaInvoiceAdmin(InvoiceAdminMixin, SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.ModelAdmin):
     changelist_template = "admin/invoices/change_list.html"
 
     fieldsets = (
@@ -690,7 +690,7 @@ class CommercialPackingInline(admin.TabularInline):
 # ----------------------
 
 @admin.register(CommercialInvoice)
-class CommercialInvoiceAdmin(InvoiceAdminMixin, PageSizeAdminMixin, admin.ModelAdmin):
+class CommercialInvoiceAdmin(InvoiceAdminMixin, SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.ModelAdmin):
     changelist_template = "admin/invoices/change_list.html"
     commercial_document_titles = {
         "default": "Commercial Invoice",

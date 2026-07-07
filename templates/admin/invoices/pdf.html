@@ -437,7 +437,7 @@
                 </tr>
                 <tr>
                     <td class="summary-label">VAT Amount</td>
-                    <td class="summary-value">{{ vat_amount|floatformat:2 }}</td>
+                    <td class="summary-value">{{ vat_amount|floatformat:2 }} {{ currency_symbol|default:"€" }}</td>
                 </tr>
                 {% if invoice.discount %}
                 <tr>

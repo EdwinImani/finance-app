@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.db.models import Sum, Q
 from django.utils.html import format_html
-from financeapp.admin_mixins import PageSizeAdminMixin
+from financeapp.admin_mixins import PageSizeAdminMixin, SaveRedirectToWelcomeMixin
 from .models import Product
 
 
@@ -86,7 +86,7 @@ class LowStockFilter(admin.SimpleListFilter):
 # ----------------------
 
 @admin.register(Product)
-class ProductAdmin(PageSizeAdminMixin, admin.ModelAdmin):
+class ProductAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.ModelAdmin):
     changelist_template = "admin/products/product/change_list.html"
     change_form_template = "admin/products/product/change_form.html"
 
