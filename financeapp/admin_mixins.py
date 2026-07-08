@@ -1,6 +1,7 @@
 from django.contrib.admin.views.main import ChangeList
 from django.contrib.admin.options import IS_POPUP_VAR
 from django.shortcuts import redirect
+from django.urls import reverse
 
 
 class SaveRedirectToWelcomeMixin:
@@ -9,14 +10,36 @@ class SaveRedirectToWelcomeMixin:
     def _redirect_after_save(self, request):
         return redirect(self.save_redirect_url)
 
+    def _redirect_to_add_form(self, request):
+        opts = self.model._meta
+        add_url = reverse(
+            f"admin:{opts.app_label}_{opts.model_name}_add",
+            current_app=self.admin_site.name,
+        )
+        return redirect(add_url)
+
+    def changeform_view(self, request, object_id=None, form_url="", extra_context=None):
+        extra_context = extra_context or {}
+        extra_context["show_save_and_continue"] = False
+        return super().changeform_view(
+            request,
+            object_id=object_id,
+            form_url=form_url,
+            extra_context=extra_context,
+        )
+
     def response_add(self, request, obj, post_url_continue=None):
         if IS_POPUP_VAR in request.POST:
             return super().response_add(request, obj, post_url_continue=post_url_continue)
+        if "_addanother" in request.POST:
+            return self._redirect_to_add_form(request)
         return self._redirect_after_save(request)
 
     def response_change(self, request, obj):
         if IS_POPUP_VAR in request.POST:
             return super().response_change(request, obj)
+        if "_addanother" in request.POST:
+            return self._redirect_to_add_form(request)
         return self._redirect_after_save(request)
 
 

@@ -530,3 +530,83 @@ class CommercialInvoiceAdminDraftTests(TestCase):
         self.assertEqual(response.status_code, 200, response.content)
         self.assertEqual(item.unit_price, Decimal("72.50"))
         self.assertEqual(product.sale_price, Decimal("58.00"))
+
+    def test_proforma_save_and_add_another_redirects_to_new_proforma_form(self):
+        proforma = ProformaInvoice.objects.create(vat_percent=Decimal("20.00"))
+
+        response = self.client.post(
+            reverse("admin:invoices_proformainvoice_change", args=[proforma.pk]),
+            {
+                "invoice_date": proforma.invoice_date.strftime("%Y-%m-%d"),
+                "importer": "",
+                "end_user": "",
+                "our_reference": "",
+                "price_for": "",
+                "freight": "0.00",
+                "discount": "0.00",
+                "vat_percent": "20.00",
+                "items-TOTAL_FORMS": "0",
+                "items-INITIAL_FORMS": "0",
+                "items-MIN_NUM_FORMS": "0",
+                "items-MAX_NUM_FORMS": "1000",
+                "_addanother": "Save and add another",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], reverse("admin:invoices_proformainvoice_add"))
+
+    def test_commercial_save_and_add_another_redirects_to_new_commercial_form(self):
+        invoice = CommercialInvoice.objects.create(vat_percent=Decimal("20.00"))
+
+        response = self.client.post(
+            reverse("admin:invoices_commercialinvoice_change", args=[invoice.pk]),
+            {
+                "invoice_date": invoice.invoice_date.strftime("%Y-%m-%d"),
+                "importer": "",
+                "end_user": "",
+                "our_order_no": "",
+                "our_reference": "",
+                "dispatching_note": "",
+                "packing_specification": "",
+                "freight": "0.00",
+                "discount": "0.00",
+                "vat_percent": "20.00",
+                "items-TOTAL_FORMS": "0",
+                "items-INITIAL_FORMS": "0",
+                "items-MIN_NUM_FORMS": "0",
+                "items-MAX_NUM_FORMS": "1000",
+                "packing_entries-TOTAL_FORMS": "0",
+                "packing_entries-INITIAL_FORMS": "0",
+                "packing_entries-MIN_NUM_FORMS": "0",
+                "packing_entries-MAX_NUM_FORMS": "1000",
+                "_addanother": "Save and add another",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], reverse("admin:invoices_commercialinvoice_add"))
+
+    def test_proforma_form_shows_add_another_without_save_and_continue(self):
+        proforma = ProformaInvoice.objects.create(vat_percent=Decimal("20.00"))
+
+        response = self.client.get(
+            reverse("admin:invoices_proformainvoice_change", args=[proforma.pk])
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'name="_addanother"')
+        self.assertNotContains(response, 'name="_continue"')
+        self.assertNotContains(response, "Save and continue editing")
+
+    def test_commercial_form_shows_add_another_without_save_and_continue(self):
+        invoice = CommercialInvoice.objects.create(vat_percent=Decimal("20.00"))
+
+        response = self.client.get(
+            reverse("admin:invoices_commercialinvoice_change", args=[invoice.pk])
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'name="_addanother"')
+        self.assertNotContains(response, 'name="_continue"')
+        self.assertNotContains(response, "Save and continue editing")
