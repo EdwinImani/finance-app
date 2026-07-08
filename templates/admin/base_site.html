@@ -854,6 +854,182 @@
         margin: 0;
         padding: 0;
     }
+
+    body.change-form .aligned .form-row {
+        align-items: flex-start !important;
+        gap: 10px 18px !important;
+        overflow: visible !important;
+    }
+
+    body.change-form fieldset.module.aligned > .form-row > div,
+    body.change-form fieldset.module.aligned > .form-row .flex-container {
+        align-items: flex-start !important;
+        gap: 10px 14px !important;
+        min-width: 0 !important;
+        width: 100% !important;
+    }
+
+    body.change-form .aligned .form-row label {
+        flex: 0 0 220px !important;
+        width: 220px !important;
+        max-width: 100% !important;
+        padding-top: 12px !important;
+        line-height: 1.35 !important;
+        white-space: normal !important;
+        overflow-wrap: normal !important;
+        word-break: normal !important;
+    }
+
+    body.change-form .form-row .help,
+    body.change-form .form-row div.help,
+    body.change-form .form-row p.help,
+    body.change-form .form-row ul.help {
+        flex-basis: 100% !important;
+        margin: 8px 0 0 238px !important;
+        max-width: min(900px, calc(100% - 238px)) !important;
+        color: var(--global-admin-muted) !important;
+        font-size: 16px !important;
+        line-height: 1.45 !important;
+        white-space: normal !important;
+        overflow-wrap: normal !important;
+        word-break: normal !important;
+        hyphens: none !important;
+    }
+
+    body.change-form .selector {
+        display: grid !important;
+        grid-template-columns: minmax(360px, 1fr) 92px minmax(360px, 1fr) !important;
+        gap: 16px !important;
+        align-items: stretch !important;
+        width: min(1120px, 100%) !important;
+        max-width: 100% !important;
+        margin: 8px 0 !important;
+        padding: 16px !important;
+        box-sizing: border-box !important;
+        overflow: visible !important;
+    }
+
+    body.change-form .selector-available,
+    body.change-form .selector-chosen {
+        float: none !important;
+        width: auto !important;
+        min-width: 0 !important;
+        max-width: none !important;
+        margin: 0 !important;
+        overflow: hidden !important;
+        border-radius: 14px !important;
+        box-sizing: border-box !important;
+    }
+
+    body.change-form .selector-available h2,
+    body.change-form .selector-chosen h2 {
+        margin: 0 !important;
+        padding: 12px 14px !important;
+        line-height: 1.3 !important;
+    }
+
+    body.change-form .selector select {
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: none !important;
+        height: 320px !important;
+        min-height: 320px !important;
+        box-sizing: border-box !important;
+        font-size: 15px !important;
+        line-height: 1.35 !important;
+    }
+
+    body.change-form .selector-filter {
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 12px 14px !important;
+        box-sizing: border-box !important;
+        border-bottom: 1px solid rgba(217, 119, 6, 0.10) !important;
+        white-space: nowrap !important;
+    }
+
+    body.change-form .selector-filter label {
+        flex: 0 0 auto !important;
+        width: auto !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        line-height: 1 !important;
+    }
+
+    body.change-form .selector-filter input {
+        flex: 1 1 auto !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        min-height: 40px !important;
+        padding: 8px 12px !important;
+        box-sizing: border-box !important;
+        font-size: 15px !important;
+    }
+
+    body.change-form .selector-chooser {
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: center !important;
+        align-items: center !important;
+        gap: 12px !important;
+        float: none !important;
+        width: 92px !important;
+        min-width: 92px !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        list-style: none !important;
+        box-sizing: border-box !important;
+    }
+
+    body.change-form .selector-chooser li {
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    body.change-form .selector-chooser a {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 44px !important;
+        height: 44px !important;
+        border-radius: 999px !important;
+        box-sizing: border-box !important;
+    }
+
+    body.change-form .selector .help,
+    body.change-form .selector p.help {
+        margin: 8px 0 0 !important;
+        max-width: 100% !important;
+        font-size: 14px !important;
+        line-height: 1.4 !important;
+        white-space: normal !important;
+        overflow-wrap: normal !important;
+        word-break: normal !important;
+    }
+
+    @media (max-width: 1100px) {
+        body.change-form .selector {
+            grid-template-columns: 1fr !important;
+            margin-left: 0 !important;
+        }
+
+        body.change-form .selector-chooser {
+            flex-direction: row !important;
+            width: 100% !important;
+            min-width: 0 !important;
+        }
+
+        body.change-form .form-row .help,
+        body.change-form .form-row div.help,
+        body.change-form .form-row p.help,
+        body.change-form .form-row ul.help {
+            margin-left: 0 !important;
+            max-width: 100% !important;
+        }
+    }
 </style>
 <script>
     (function() {
