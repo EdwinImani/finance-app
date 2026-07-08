@@ -4,8 +4,7 @@ from django.db import models
 class Product(models.Model):
 
     description = models.CharField(
-        max_length=255,
-        unique=True
+        max_length=255
     )
 
     part_number = models.CharField(
