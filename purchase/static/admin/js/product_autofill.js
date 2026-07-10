@@ -94,6 +94,7 @@ function updatePurchaseOrderItemRow(row, refreshProduct, options) {
                 productField.dataset.purchaseLastProductId = productId;
             }
             updateTotal();
+            document.dispatchEvent(new CustomEvent("invoice:inline-product-updated"));
         })
         .catch(() => {
             updateTotal();

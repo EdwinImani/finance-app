@@ -426,7 +426,7 @@ class CommercialInvoiceAdminDraftTests(TestCase):
             reverse("admin:invoices_commercialinvoice_draft_add"),
         )
 
-    def test_autosave_does_not_create_inline_items(self):
+    def test_autosave_does_not_create_new_inline_item(self):
         importer = Partner.objects.create(
             description="Client Autosave",
             partner_type="importer",
@@ -444,11 +444,13 @@ class CommercialInvoiceAdminDraftTests(TestCase):
         response = self.client.post(
             reverse("admin:invoices_commercialinvoice_autosave", args=[invoice.pk]),
             {
-                "invoice_date": invoice.invoice_date.strftime("%d/%m/%Y"),
+                "invoice_date": invoice.invoice_date.strftime("%Y-%m-%d"),
                 "importer": str(importer.pk),
                 "end_user": "",
                 "our_order_no": "",
                 "our_reference": "",
+                "dispatching_note": "",
+                "packing_specification": "",
                 "freight": "0.00",
                 "discount": "0.00",
                 "vat_percent": "20.00",
@@ -460,14 +462,20 @@ class CommercialInvoiceAdminDraftTests(TestCase):
                 "items-0-invoice": str(invoice.pk),
                 "items-0-product": str(product.pk),
                 "items-0-hs_code": product.hs_code,
+                "items-0-part_number": product.part_number,
                 "items-0-quantity": "5",
                 "items-0-unit_price": "58.00",
+                "packing_entries-TOTAL_FORMS": "0",
+                "packing_entries-INITIAL_FORMS": "0",
+                "packing_entries-MIN_NUM_FORMS": "0",
+                "packing_entries-MAX_NUM_FORMS": "1000",
             },
             HTTP_X_REQUESTED_WITH="XMLHttpRequest",
         )
 
-        self.assertIn(response.status_code, {200, 400})
+        self.assertEqual(response.status_code, 200, response.content)
         self.assertEqual(invoice.items.count(), 0)
+        self.assertEqual(response.json()["inline_objects"], [])
 
     def test_autosave_updates_existing_item_price_without_updating_product_default_price(self):
         importer = Partner.objects.create(
@@ -531,6 +539,152 @@ class CommercialInvoiceAdminDraftTests(TestCase):
         self.assertEqual(item.unit_price, Decimal("72.50"))
         self.assertEqual(product.sale_price, Decimal("58.00"))
 
+    def test_commercial_autosave_deletes_only_checked_item(self):
+        product_one = Product.objects.create(
+            description="Produit Delete One",
+            part_number="DEL-COM-001",
+            hs_code="8504.40",
+            unit_qty=20,
+            sale_price=Decimal("10.00"),
+        )
+        product_two = Product.objects.create(
+            description="Produit Keep One",
+            part_number="KEEP-COM-001",
+            hs_code="8504.50",
+            unit_qty=20,
+            sale_price=Decimal("12.00"),
+        )
+        invoice = CommercialInvoice.objects.create(vat_percent=Decimal("20.00"))
+        item_delete = CommercialInvoiceItem.objects.create(
+            invoice=invoice,
+            product=product_one,
+            hs_code=product_one.hs_code,
+            part_number=product_one.part_number,
+            quantity=1,
+            unit_price=Decimal("10.00"),
+        )
+        item_keep = CommercialInvoiceItem.objects.create(
+            invoice=invoice,
+            product=product_two,
+            hs_code=product_two.hs_code,
+            part_number=product_two.part_number,
+            quantity=2,
+            unit_price=Decimal("12.00"),
+        )
+
+        response = self.client.post(
+            reverse("admin:invoices_commercialinvoice_autosave", args=[invoice.pk]),
+            {
+                "invoice_date": invoice.invoice_date.strftime("%Y-%m-%d"),
+                "importer": "",
+                "end_user": "",
+                "our_order_no": "",
+                "our_reference": "",
+                "dispatching_note": "",
+                "packing_specification": "",
+                "freight": "0.00",
+                "discount": "0.00",
+                "vat_percent": "20.00",
+                "items-TOTAL_FORMS": "2",
+                "items-INITIAL_FORMS": "2",
+                "items-MIN_NUM_FORMS": "0",
+                "items-MAX_NUM_FORMS": "1000",
+                "items-0-id": str(item_delete.pk),
+                "items-0-invoice": str(invoice.pk),
+                "items-0-product": str(product_one.pk),
+                "items-0-hs_code": product_one.hs_code,
+                "items-0-part_number": product_one.part_number,
+                "items-0-quantity": "1",
+                "items-0-unit_price": "10.00",
+                "items-0-DELETE": "on",
+                "items-1-id": str(item_keep.pk),
+                "items-1-invoice": str(invoice.pk),
+                "items-1-product": str(product_two.pk),
+                "items-1-hs_code": product_two.hs_code,
+                "items-1-part_number": product_two.part_number,
+                "items-1-quantity": "2",
+                "items-1-unit_price": "12.00",
+                "packing_entries-TOTAL_FORMS": "0",
+                "packing_entries-INITIAL_FORMS": "0",
+                "packing_entries-MIN_NUM_FORMS": "0",
+                "packing_entries-MAX_NUM_FORMS": "1000",
+            },
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+        )
+
+        self.assertEqual(response.status_code, 200, response.content)
+        self.assertFalse(CommercialInvoiceItem.objects.filter(pk=item_delete.pk).exists())
+        self.assertTrue(CommercialInvoiceItem.objects.filter(pk=item_keep.pk).exists())
+
+    def test_proforma_autosave_deletes_only_checked_item(self):
+        product_one = Product.objects.create(
+            description="Produit Delete Proforma",
+            part_number="DEL-PRO-001",
+            hs_code="8504.40",
+            sale_price=Decimal("10.00"),
+        )
+        product_two = Product.objects.create(
+            description="Produit Keep Proforma",
+            part_number="KEEP-PRO-001",
+            hs_code="8504.50",
+            sale_price=Decimal("12.00"),
+        )
+        proforma = ProformaInvoice.objects.create(vat_percent=Decimal("20.00"))
+        item_delete = ProformaInvoiceItem.objects.create(
+            invoice=proforma,
+            product=product_one,
+            hs_code=product_one.hs_code,
+            part_number=product_one.part_number,
+            quantity=1,
+            unit_price=Decimal("10.00"),
+        )
+        item_keep = ProformaInvoiceItem.objects.create(
+            invoice=proforma,
+            product=product_two,
+            hs_code=product_two.hs_code,
+            part_number=product_two.part_number,
+            quantity=2,
+            unit_price=Decimal("12.00"),
+        )
+
+        response = self.client.post(
+            reverse("admin:invoices_proformainvoice_autosave", args=[proforma.pk]),
+            {
+                "invoice_date": proforma.invoice_date.strftime("%Y-%m-%d"),
+                "importer": "",
+                "end_user": "",
+                "our_reference": "",
+                "price_for": "",
+                "freight": "0.00",
+                "discount": "0.00",
+                "vat_percent": "20.00",
+                "items-TOTAL_FORMS": "2",
+                "items-INITIAL_FORMS": "2",
+                "items-MIN_NUM_FORMS": "0",
+                "items-MAX_NUM_FORMS": "1000",
+                "items-0-id": str(item_delete.pk),
+                "items-0-invoice": str(proforma.pk),
+                "items-0-product": str(product_one.pk),
+                "items-0-hs_code": product_one.hs_code,
+                "items-0-part_number": product_one.part_number,
+                "items-0-quantity": "1",
+                "items-0-unit_price": "10.00",
+                "items-0-DELETE": "on",
+                "items-1-id": str(item_keep.pk),
+                "items-1-invoice": str(proforma.pk),
+                "items-1-product": str(product_two.pk),
+                "items-1-hs_code": product_two.hs_code,
+                "items-1-part_number": product_two.part_number,
+                "items-1-quantity": "2",
+                "items-1-unit_price": "12.00",
+            },
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+        )
+
+        self.assertEqual(response.status_code, 200, response.content)
+        self.assertFalse(ProformaInvoiceItem.objects.filter(pk=item_delete.pk).exists())
+        self.assertTrue(ProformaInvoiceItem.objects.filter(pk=item_keep.pk).exists())
+
     def test_proforma_save_and_add_another_redirects_to_new_proforma_form(self):
         proforma = ProformaInvoice.objects.create(vat_percent=Decimal("20.00"))
 
@@ -586,6 +740,55 @@ class CommercialInvoiceAdminDraftTests(TestCase):
 
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response["Location"], reverse("admin:invoices_commercialinvoice_add"))
+
+    def test_save_and_pdf_saves_new_inline_item_then_redirects_to_pdf(self):
+        product = Product.objects.create(
+            description="Produit PDF Save",
+            part_number="PDF-SAVE-001",
+            hs_code="8403.21",
+            unit_qty=20,
+            sale_price=Decimal("58.00"),
+            purchase_price=Decimal("30.00"),
+        )
+        invoice = CommercialInvoice.objects.create(vat_percent=Decimal("20.00"))
+        pdf_url = reverse("admin:invoices_commercialinvoice_pdf", args=[invoice.pk])
+
+        response = self.client.post(
+            reverse("admin:invoices_commercialinvoice_change", args=[invoice.pk]),
+            {
+                "invoice_date": invoice.invoice_date.strftime("%Y-%m-%d"),
+                "importer": "",
+                "end_user": "",
+                "our_order_no": "",
+                "our_reference": "",
+                "dispatching_note": "",
+                "packing_specification": "",
+                "freight": "0.00",
+                "discount": "0.00",
+                "vat_percent": "20.00",
+                "items-TOTAL_FORMS": "1",
+                "items-INITIAL_FORMS": "0",
+                "items-MIN_NUM_FORMS": "0",
+                "items-MAX_NUM_FORMS": "1000",
+                "items-0-id": "",
+                "items-0-invoice": str(invoice.pk),
+                "items-0-product": str(product.pk),
+                "items-0-hs_code": product.hs_code,
+                "items-0-part_number": product.part_number,
+                "items-0-quantity": "2",
+                "items-0-unit_price": "58.00",
+                "packing_entries-TOTAL_FORMS": "0",
+                "packing_entries-INITIAL_FORMS": "0",
+                "packing_entries-MIN_NUM_FORMS": "0",
+                "packing_entries-MAX_NUM_FORMS": "1000",
+                "_save_and_pdf": "1",
+                "_save_and_pdf_url": pdf_url,
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], pdf_url)
+        self.assertEqual(invoice.items.count(), 1)
 
     def test_proforma_form_shows_add_another_without_save_and_continue(self):
         proforma = ProformaInvoice.objects.create(vat_percent=Decimal("20.00"))

@@ -1,5 +1,5 @@
 {% extends "admin/base.html" %}
-{% load i18n %}
+{% load i18n static %}
 
 {% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
 
@@ -1010,6 +1010,126 @@
         word-break: normal !important;
     }
 
+    body.app-auth.model-group.change-form #content {
+        width: min(100%, 1760px);
+    }
+
+    body.app-auth.model-group.change-form #content-main,
+    body.app-auth.model-group.change-form form,
+    body.app-auth.model-group.change-form fieldset.module {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    body.app-auth.model-group.change-form .form-row.field-permissions {
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        padding: 24px 18px 34px !important;
+    }
+
+    body.app-auth.model-group.change-form .form-row.field-permissions > div,
+    body.app-auth.model-group.change-form .form-row.field-permissions .flex-container {
+        width: 100% !important;
+        justify-content: center !important;
+    }
+
+    body.app-auth.model-group.change-form .form-row.field-permissions > div > label,
+    body.app-auth.model-group.change-form .form-row.field-permissions .flex-container > label,
+    body.app-auth.model-group.change-form .form-row.field-permissions > label,
+    body.app-auth.model-group.change-form .form-row.field-permissions > .help,
+    body.app-auth.model-group.change-form .form-row.field-permissions > div > .help,
+    body.app-auth.model-group.change-form .form-row.field-permissions .flex-container > .help {
+        display: none !important;
+    }
+
+    body.app-auth.model-group.change-form .selector {
+        grid-template-columns: minmax(520px, 1fr) 112px minmax(520px, 1fr) !important;
+        gap: 28px !important;
+        width: min(1500px, 100%) !important;
+        margin: 0 auto !important;
+        padding: 22px !important;
+    }
+
+    body.app-auth.model-group.change-form .selector-available,
+    body.app-auth.model-group.change-form .selector-chosen {
+        min-height: 620px !important;
+        border-radius: 18px !important;
+    }
+
+    body.app-auth.model-group.change-form .selector-available h2,
+    body.app-auth.model-group.change-form .selector-chosen h2 {
+        min-height: 76px !important;
+        padding: 18px 20px !important;
+        font-size: 20px !important;
+    }
+
+    body.app-auth.model-group.change-form .selector h2 .help,
+    body.app-auth.model-group.change-form .selector .help,
+    body.app-auth.model-group.change-form .selector p.help {
+        display: none !important;
+    }
+
+    body.app-auth.model-group.change-form .selector-filter {
+        padding: 14px 18px !important;
+    }
+
+    body.app-auth.model-group.change-form .selector-filter input {
+        min-height: 46px !important;
+        font-size: 17px !important;
+    }
+
+    body.app-auth.model-group.change-form .selector select {
+        height: 460px !important;
+        min-height: 460px !important;
+        font-size: 17px !important;
+        line-height: 1.45 !important;
+    }
+
+    body.app-auth.model-group.change-form .selector-chooser {
+        width: 112px !important;
+        min-width: 112px !important;
+    }
+
+    body.app-auth.model-group.change-form .selector-chooser a {
+        width: 56px !important;
+        height: 56px !important;
+    }
+
+    body.app-auth.model-user.change-form .form-row.field-usable_password {
+        align-items: flex-start !important;
+    }
+
+    body.app-auth.model-user.change-form .form-row.field-usable_password > div,
+    body.app-auth.model-user.change-form .form-row.field-usable_password .flex-container {
+        display: flex !important;
+        align-items: flex-start !important;
+        gap: 16px 18px !important;
+        flex-wrap: wrap !important;
+    }
+
+    body.app-auth.model-user.change-form .form-row.field-usable_password .help,
+    body.app-auth.model-user.change-form .form-row.field-usable_password p.help,
+    body.app-auth.model-user.change-form .form-row.field-usable_password div.help {
+        flex: 0 1 520px !important;
+        flex-basis: 520px !important;
+        width: min(520px, 100%) !important;
+        max-width: min(520px, 100%) !important;
+        margin: 0 !important;
+        padding: 12px 14px !important;
+        border: 1px solid rgba(217, 119, 6, 0.14) !important;
+        border-radius: 12px !important;
+        background: rgba(255, 247, 237, 0.92) !important;
+        color: #5f6c7b !important;
+        font-size: 15px !important;
+        line-height: 1.4 !important;
+        white-space: normal !important;
+        overflow-wrap: normal !important;
+        word-break: normal !important;
+        hyphens: none !important;
+        box-shadow: 0 8px 18px rgba(120, 53, 15, 0.07) !important;
+    }
+
     @media (max-width: 1100px) {
         body.change-form .selector {
             grid-template-columns: 1fr !important;
@@ -1029,6 +1149,388 @@
             margin-left: 0 !important;
             max-width: 100% !important;
         }
+    }
+
+    body.dashboard .app-list a.changelink,
+    body.dashboard .module a.changelink,
+    body.dashboard a.changelink,
+    body.dashboard a[href$="/change/"],
+    body.dashboard a.admin-manage-link,
+    body.dashboard #content-main .app-list tr > td:last-child a:not(.addlink),
+    body.dashboard #content-main .module table td:last-child a:not(.addlink),
+    body.dashboard #content-main .module table td a.changelink,
+    body.dashboard .finance-chip.secondary {
+        display: none !important;
+    }
+
+    #container,
+    #main,
+    .main,
+    #content,
+    #content-main,
+    .admin-main,
+    .admin-content {
+        max-width: none !important;
+        box-sizing: border-box !important;
+    }
+
+    #main,
+    .main {
+        width: 100% !important;
+    }
+
+    #content {
+        width: 100% !important;
+        max-width: none !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        padding: 22px clamp(16px, 1.8vw, 34px) 34px !important;
+    }
+
+    #content-main,
+    .admin-main,
+    .admin-content {
+        width: 100% !important;
+        min-width: 0 !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+
+    #content-main .module,
+    .module,
+    .results,
+    #changelist,
+    .change-list,
+    .change-list #content-main,
+    .change-list #changelist,
+    .change-list .module,
+    .change-list .results,
+    .dashboard #content,
+    .dashboard #content-main,
+    .dashboard .module,
+    body.dashboard #main,
+    body.dashboard .main,
+    body.dashboard #content,
+    body.dashboard #content-main {
+        max-width: none !important;
+    }
+
+    body.change-list #content {
+        padding-left: clamp(14px, 1.4vw, 26px) !important;
+        padding-right: clamp(14px, 1.4vw, 26px) !important;
+    }
+
+    body.change-list #content,
+    body.change-list #content-main,
+    body.change-list .admin-content,
+    body.change-list .admin-main,
+    body.change-list #changelist {
+        width: 100% !important;
+        max-width: none !important;
+        box-sizing: border-box !important;
+    }
+
+    body.change-list #changelist {
+        width: 100% !important;
+        max-width: none !important;
+        min-width: 0 !important;
+        box-sizing: border-box !important;
+        overflow: visible !important;
+    }
+
+    body.change-list #changelist.filtered {
+        width: 100% !important;
+        max-width: none !important;
+    }
+
+    body.change-list #changelist .changelist-form-container {
+        width: 100% !important;
+        max-width: none !important;
+        min-width: 0 !important;
+        box-sizing: border-box !important;
+    }
+
+    body.change-list #changelist .changelist-form-container:has(#changelist-filter) {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) 300px !important;
+        gap: 16px !important;
+        align-items: start !important;
+        overflow: visible !important;
+    }
+
+    body.change-list #changelist .changelist-form-container:has(#changelist-filter) > div {
+        grid-column: 1 !important;
+        width: 100% !important;
+        max-width: none !important;
+        min-width: 0 !important;
+        margin-right: 0 !important;
+        padding-right: 0 !important;
+        overflow-x: auto !important;
+        box-sizing: border-box !important;
+    }
+
+    body.change-list #changelist-form,
+    body.change-list .results,
+    body.change-list .results table,
+    body.change-list #result_list {
+        width: 100% !important;
+        max-width: none !important;
+        box-sizing: border-box !important;
+    }
+
+    body.change-list #changelist.filtered #changelist-form,
+    body.change-list #changelist.filtered .changelist-form-container {
+        margin-right: 0 !important;
+        padding-right: 0 !important;
+    }
+
+    body.change-list #result_list {
+        table-layout: auto !important;
+    }
+
+    body.change-list #changelist-filter {
+        position: relative !important;
+        grid-column: 2 !important;
+        grid-row: 1 / span 20 !important;
+        float: none !important;
+        order: initial !important;
+        right: auto !important;
+        left: auto !important;
+        top: auto !important;
+        flex: none !important;
+        width: 300px !important;
+        min-width: 300px !important;
+        max-width: 300px !important;
+        margin: 0 !important;
+        padding: 16px 18px !important;
+        font-size: 15px !important;
+        line-height: 1.6 !important;
+        box-sizing: border-box !important;
+    }
+
+    body.change-list #changelist-filter h2,
+    body.change-list #changelist-filter h3,
+    body.change-list #changelist-filter li,
+    body.change-list #changelist-filter a {
+        font-size: 15px !important;
+        line-height: 1.6 !important;
+    }
+
+    body.change-list .results table th,
+    body.change-list .results table td,
+    body.change-list #result_list th,
+    body.change-list #result_list td {
+        font-size: 14px !important;
+        line-height: 1.45 !important;
+        padding: 14px 16px !important;
+    }
+
+    body.change-list #toolbar,
+    body.change-list .actions {
+        width: 100% !important;
+        max-width: none !important;
+        padding: 16px 18px !important;
+        box-sizing: border-box !important;
+    }
+
+    body.change-list #toolbar input[type="text"],
+    body.change-list #toolbar input[name="q"] {
+        width: min(480px, 100%) !important;
+        height: 42px !important;
+        font-size: 15px !important;
+        box-sizing: border-box !important;
+    }
+
+    body.change-list .button,
+    body.change-list input[type="submit"],
+    body.change-list .object-tools a {
+        font-size: 14px !important;
+        padding: 10px 18px !important;
+    }
+
+    body.dashboard #content {
+        width: 100% !important;
+        padding-left: clamp(16px, 1.6vw, 30px) !important;
+        padding-right: clamp(16px, 1.6vw, 30px) !important;
+    }
+
+    body.dashboard .finance-dashboard,
+    body.dashboard .finance-frame {
+        width: 100% !important;
+        max-width: none !important;
+    }
+
+    body.dashboard .finance-frame {
+        grid-template-columns: minmax(250px, 300px) minmax(0, 1fr) !important;
+    }
+
+    @media (min-width: 1700px) {
+        #content {
+            padding-left: 38px !important;
+            padding-right: 38px !important;
+        }
+
+        body.change-list #changelist .changelist-form-container:has(#changelist-filter) {
+            grid-template-columns: minmax(0, 1fr) 320px !important;
+        }
+
+        body.change-list #changelist-filter {
+            width: 320px !important;
+            min-width: 320px !important;
+            max-width: 320px !important;
+        }
+    }
+
+    @media (max-width: 1300px) {
+        #content {
+            padding-left: 14px !important;
+            padding-right: 14px !important;
+        }
+
+        body.change-list #changelist .changelist-form-container:has(#changelist-filter) {
+            grid-template-columns: 1fr !important;
+        }
+
+        body.change-list #changelist-filter {
+            grid-column: 1 !important;
+            grid-row: auto !important;
+            width: 100% !important;
+            min-width: 0 !important;
+            max-width: none !important;
+            margin-top: 16px !important;
+        }
+
+        body.dashboard .finance-frame {
+            grid-template-columns: 1fr !important;
+        }
+    }
+
+    body.change-form .inline-group {
+        width: 100% !important;
+        max-width: none !important;
+        box-sizing: border-box !important;
+    }
+
+    body.change-form .inline-group .tabular {
+        overflow-x: auto !important;
+        width: 100% !important;
+        max-width: none !important;
+    }
+
+    body.change-form .inline-group .tabular table {
+        min-width: 1200px !important;
+        width: 100% !important;
+        max-width: none !important;
+        table-layout: auto !important;
+        border-collapse: collapse !important;
+    }
+
+    body.change-form .inline-group .tabular th,
+    body.change-form .inline-group .tabular td {
+        white-space: nowrap !important;
+        vertical-align: middle !important;
+    }
+
+    body.change-form .inline-group .tabular td.field-product,
+    body.change-form .inline-group .tabular th.column-product {
+        min-width: 420px !important;
+    }
+
+    body.change-form .inline-group .tabular td.field-product select,
+    body.change-form .inline-group .tabular td.field-product .select2-container,
+    body.change-form .inline-group .tabular td.field-product .related-widget-wrapper {
+        min-width: 400px !important;
+        width: 400px !important;
+        max-width: none !important;
+        box-sizing: border-box !important;
+    }
+
+    body.change-form .inline-group .tabular td.field-product .select2-selection {
+        width: 100% !important;
+        max-width: none !important;
+        box-sizing: border-box !important;
+    }
+
+    body.change-form .inline-group .tabular td.field-product .select2-selection__rendered {
+        max-width: none !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        line-height: 40px !important;
+    }
+
+    body.change-form .inline-group .tabular td.field-part_number,
+    body.change-form .inline-group .tabular th.column-part_number {
+        min-width: 220px !important;
+    }
+
+    body.change-form .inline-group .tabular td.field-hs_code,
+    body.change-form .inline-group .tabular th.column-hs_code {
+        min-width: 170px !important;
+    }
+
+    body.change-form .inline-group .tabular td.field-quantity,
+    body.change-form .inline-group .tabular th.column-quantity,
+    body.change-form .inline-group .tabular td.field-unit_price,
+    body.change-form .inline-group .tabular th.column-unit_price {
+        min-width: 150px !important;
+    }
+
+    body.change-form .inline-group .tabular td.field-total_line,
+    body.change-form .inline-group .tabular th.column-total_line,
+    body.change-form .inline-group .tabular td.field-total_amount,
+    body.change-form .inline-group .tabular th.column-total_amount {
+        min-width: 150px !important;
+    }
+
+    body.change-form .inline-group .tabular th.column-DELETE,
+    body.change-form .inline-group .tabular td.delete,
+    body.change-form .inline-group .tabular th.delete {
+        min-width: 170px !important;
+        width: 170px !important;
+        text-align: center !important;
+        display: table-cell !important;
+        visibility: visible !important;
+        font-size: 18px !important;
+        font-weight: 900 !important;
+    }
+
+    body.change-form .inline-group .tabular td.delete input,
+    body.change-form .inline-group .tabular td.delete button,
+    body.change-form .inline-group .tabular td.delete a,
+    body.change-form .inline-deletelink,
+    body.change-form .deletelink {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        visibility: visible !important;
+    }
+
+    body.change-form .inline-group .tabular td.delete input[type="checkbox"] {
+        width: 48px !important;
+        height: 48px !important;
+        min-width: 48px !important;
+        margin: 0 auto !important;
+        accent-color: #d97706 !important;
+        cursor: pointer !important;
+    }
+
+    body.change-form .inline-group .tabular td.delete button,
+    body.change-form .inline-group .tabular td.delete a,
+    body.change-form .inline-deletelink {
+        min-height: 54px !important;
+        min-width: 132px !important;
+        padding: 0 22px !important;
+        border-radius: 10px !important;
+        font-size: 18px !important;
+        font-weight: 800 !important;
+        line-height: 1 !important;
+        box-sizing: border-box !important;
+    }
+
+    body.change-form .related-widget-wrapper-link {
+        display: inline-flex !important;
+        visibility: visible !important;
     }
 </style>
 <script>
@@ -1374,6 +1876,7 @@
 
 {% block extrahead %}
 {{ block.super }}
+<script src="{% static 'admin/js/auto_search.js' %}" defer></script>
 {% if user.is_authenticated %}
 <script>
 (function() {
@@ -1477,6 +1980,67 @@
 })();
 </script>
 {% endif %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    if (!document.body.classList.contains("dashboard")) {
+        return;
+    }
+
+    function removeDashboardManageButtons() {
+        document.querySelectorAll("body.dashboard #content-main .app-list tr, body.dashboard #content-main .module table tr").forEach(function(row) {
+            const addLink = row.querySelector("a.addlink, a[href$='/add/']");
+            const cells = row.querySelectorAll("td");
+
+            if (addLink && cells.length && addLink.parentElement !== cells[cells.length - 1]) {
+                cells[cells.length - 1].appendChild(addLink);
+            }
+        });
+
+        document.querySelectorAll("body.dashboard a").forEach(function(link) {
+            const label = (link.textContent || "").replace(/\s+/g, " ").trim().toLowerCase();
+            const title = (link.getAttribute("title") || "").replace(/\s+/g, " ").trim().toLowerCase();
+            const ariaLabel = (link.getAttribute("aria-label") || "").replace(/\s+/g, " ").trim().toLowerCase();
+            const href = link.getAttribute("href") || "";
+            const isAdd = (
+                link.classList.contains("addlink") ||
+                href.endsWith("/add/") ||
+                label === "add" ||
+                title === "add" ||
+                ariaLabel === "add"
+            );
+            const isManage = (
+                label === "manage" ||
+                label === "gérer" ||
+                label === "gerer" ||
+                title === "manage" ||
+                title === "gérer" ||
+                title === "gerer" ||
+                ariaLabel === "manage" ||
+                ariaLabel === "gérer" ||
+                ariaLabel === "gerer" ||
+                link.classList.contains("changelink") ||
+                link.classList.contains("admin-manage-link") ||
+                link.classList.contains("secondary") ||
+                href.endsWith("/change/")
+            );
+
+            if (!isAdd && isManage) {
+                link.remove();
+            }
+        });
+    }
+
+    removeDashboardManageButtons();
+    window.setTimeout(removeDashboardManageButtons, 100);
+    window.setTimeout(removeDashboardManageButtons, 500);
+
+    const dashboardObserver = new MutationObserver(removeDashboardManageButtons);
+    dashboardObserver.observe(document.body, {
+        childList: true,
+        subtree: true
+    });
+});
+</script>
 <script>
 document.addEventListener("DOMContentLoaded", function() {
     const continueName = "_cont" + "inue";
@@ -1591,6 +2155,9 @@ document.addEventListener("DOMContentLoaded", function() {
 <div id="user-tools">
   <span class="username-only">{{ user.get_username }}</span>
   <a href="{% url 'admin:index' %}" class="header-action">{% translate "Admin home" %}</a>
+  {% if perms.admin.view_logentry %}
+  <a href="{% url 'admin:admin_logentry_changelist' %}" class="header-action">History</a>
+  {% endif %}
   <form id="logout-form" class="logout-form" method="post" action="{% url 'admin:logout' %}">
     {% csrf_token %}
     <input type="hidden" name="next" value="{% url 'admin:login' %}">

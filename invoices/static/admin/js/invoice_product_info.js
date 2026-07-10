@@ -15,63 +15,6 @@
         });
     }
 
-    function syncDeleteButton(row) {
-        if (!row) {
-            return;
-        }
-
-        const deleteCheckbox = row.querySelector('input[name$="-DELETE"]');
-        const deleteButton = row.querySelector(".invoice-line-delete");
-
-        if (!deleteButton) {
-            return;
-        }
-
-        const isMarked = deleteCheckbox && deleteCheckbox.checked;
-        deleteButton.classList.toggle("is-marked", Boolean(isMarked));
-        deleteButton.textContent = isMarked ? "Undo delete" : "Delete";
-        row.classList.toggle("invoice-row-marked-delete", Boolean(isMarked));
-    }
-
-    function decorateDeleteControls(root) {
-        (root || document).querySelectorAll("tr.form-row").forEach(function (row) {
-            const deleteCell = row.querySelector("td.delete");
-            const deleteCheckbox = row.querySelector('input[name$="-DELETE"]');
-            const inlineDeleteLink = row.querySelector(".inline-deletelink");
-
-            if (!deleteCell || (!deleteCheckbox && !inlineDeleteLink) || deleteCell.querySelector(".invoice-line-delete")) {
-                return;
-            }
-
-            deleteCell.querySelectorAll(".inline-deletelink").forEach(function (link) {
-                link.style.display = "none";
-            });
-
-            const button = document.createElement("button");
-            button.type = "button";
-            button.className = "invoice-line-delete";
-            button.addEventListener("click", function () {
-                if (!deleteCheckbox || !deleteCheckbox.checked) {
-                    if (!window.confirm("Are you sure you want to delete this item?")) {
-                        return;
-                    }
-                }
-
-                if (!deleteCheckbox && inlineDeleteLink) {
-                    inlineDeleteLink.click();
-                    return;
-                }
-
-                deleteCheckbox.checked = !deleteCheckbox.checked;
-                syncDeleteButton(row);
-                updateSummary();
-            });
-
-            deleteCell.appendChild(button);
-            syncDeleteButton(row);
-        });
-    }
-
     function updateText(row, fieldName, value) {
         const cell = row.querySelector('[data-product-field="' + fieldName + '"]');
 
@@ -225,6 +168,7 @@
                     forceDefaultPrice: settings.forceDefaultPrice === true || (productChanged && settings.preserveUnitPrice !== true),
                 });
                 field.dataset.invoiceLastProductId = productId;
+                document.dispatchEvent(new CustomEvent("invoice:inline-product-updated"));
             })
             .catch(function () {
                 updateInvoiceRow(row, {});
@@ -291,7 +235,6 @@
                 bindMoneyField(field);
             });
 
-        decorateDeleteControls(root);
     }
 
     document.addEventListener("DOMContentLoaded", function () {
@@ -309,7 +252,6 @@
             if (
                 target.matches('input[name$="-quantity"], input[name$="-unit_price"], #id_freight, #id_discount, #id_vat_percent, input[name$="-DELETE"]')
             ) {
-                syncDeleteButton(getRowFromElement(target));
                 updateSummary();
             }
         });
@@ -344,7 +286,6 @@
             $(document).on("formset:added", function (_event, row) {
                 const root = row.get ? row.get(0) : row;
                 bindAllFields(root);
-                decorateDeleteControls(root);
                 updateSummary();
             });
         }
@@ -354,7 +295,6 @@
                 mutation.addedNodes.forEach(function (node) {
                     if (node.nodeType === 1) {
                         bindAllFields(node);
-                        decorateDeleteControls(node);
                         updateSummary();
                     }
                 });

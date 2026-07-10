@@ -179,7 +179,7 @@ class PurchaseOrderAdminAutosaveTests(TestCase):
         self.assertEqual(item.unit_price, Decimal("18.75"))
         self.assertEqual(product.purchase_price, Decimal("12.50"))
 
-    def test_autosave_does_not_create_new_inline_items(self):
+    def test_autosave_does_not_create_new_inline_item(self):
         product = Product.objects.create(
             description="Produit Nouveau PO Autosave",
             part_number="PO-AUTO-NEW",
@@ -220,6 +220,83 @@ class PurchaseOrderAdminAutosaveTests(TestCase):
 
         self.assertEqual(response.status_code, 200, response.content)
         self.assertEqual(purchase_order.items.count(), 0)
+        self.assertEqual(response.json()["inline_objects"], [])
+
+    def test_autosave_deletes_only_checked_item(self):
+        product_one = Product.objects.create(
+            description="Produit Delete PO",
+            part_number="DEL-PO-001",
+            hs_code="8504.40",
+            purchase_price=Decimal("12.50"),
+            sale_price=Decimal("20.00"),
+        )
+        product_two = Product.objects.create(
+            description="Produit Keep PO",
+            part_number="KEEP-PO-001",
+            hs_code="8504.50",
+            purchase_price=Decimal("15.50"),
+            sale_price=Decimal("25.00"),
+        )
+        purchase_order = PurchaseOrder.objects.create(vat_percent=Decimal("20.00"))
+        item_delete = PurchaseOrderItem.objects.create(
+            purchase_order=purchase_order,
+            product=product_one,
+            description=product_one.description,
+            part_number=product_one.part_number,
+            hs_code=product_one.hs_code,
+            quantity=1,
+            unit_price=Decimal("12.50"),
+        )
+        item_keep = PurchaseOrderItem.objects.create(
+            purchase_order=purchase_order,
+            product=product_two,
+            description=product_two.description,
+            part_number=product_two.part_number,
+            hs_code=product_two.hs_code,
+            quantity=2,
+            unit_price=Decimal("15.50"),
+        )
+
+        response = self.client.post(
+            reverse("admin:purchase_purchaseorder_autosave", args=[purchase_order.pk]),
+            {
+                "purchase_number": purchase_order.purchase_number,
+                "purchase_date": purchase_order.purchase_date.strftime("%Y-%m-%d"),
+                "seller": "",
+                "requester": "",
+                "sent_by": "",
+                "shipment": "",
+                "freight": "0.00",
+                "vat_percent": "20.00",
+                "sales_condition": "",
+                "payment_condition": "",
+                "delivery_terms": "",
+                "items-TOTAL_FORMS": "2",
+                "items-INITIAL_FORMS": "2",
+                "items-MIN_NUM_FORMS": "0",
+                "items-MAX_NUM_FORMS": "1000",
+                "items-0-id": str(item_delete.pk),
+                "items-0-purchase_order": str(purchase_order.pk),
+                "items-0-product": str(product_one.pk),
+                "items-0-hs_code": product_one.hs_code,
+                "items-0-part_number": product_one.part_number,
+                "items-0-quantity": "1",
+                "items-0-unit_price": "12.50",
+                "items-0-DELETE": "on",
+                "items-1-id": str(item_keep.pk),
+                "items-1-purchase_order": str(purchase_order.pk),
+                "items-1-product": str(product_two.pk),
+                "items-1-hs_code": product_two.hs_code,
+                "items-1-part_number": product_two.part_number,
+                "items-1-quantity": "2",
+                "items-1-unit_price": "15.50",
+            },
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+        )
+
+        self.assertEqual(response.status_code, 200, response.content)
+        self.assertFalse(PurchaseOrderItem.objects.filter(pk=item_delete.pk).exists())
+        self.assertTrue(PurchaseOrderItem.objects.filter(pk=item_keep.pk).exists())
 
     def test_save_and_add_another_redirects_to_new_purchase_order_form(self):
         purchase_order = PurchaseOrder.objects.create(vat_percent=Decimal("20.00"))
@@ -246,3 +323,47 @@ class PurchaseOrderAdminAutosaveTests(TestCase):
 
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response["Location"], reverse("admin:purchase_purchaseorder_add"))
+
+    def test_save_and_pdf_saves_new_inline_item_then_redirects_to_pdf(self):
+        product = Product.objects.create(
+            description="Produit PDF PO",
+            part_number="PO-PDF-001",
+            hs_code="8504.40",
+            purchase_price=Decimal("12.50"),
+            sale_price=Decimal("20.00"),
+        )
+        purchase_order = PurchaseOrder.objects.create(vat_percent=Decimal("20.00"))
+        pdf_url = reverse("admin:purchase_purchaseorder_pdf", args=[purchase_order.pk])
+
+        response = self.client.post(
+            reverse("admin:purchase_purchaseorder_change", args=[purchase_order.pk]),
+            {
+                "purchase_date": purchase_order.purchase_date.strftime("%Y-%m-%d"),
+                "seller": "",
+                "requester": "",
+                "sent_by": "",
+                "shipment": "",
+                "freight": "0.00",
+                "vat_percent": "20.00",
+                "sales_condition": "",
+                "payment_condition": "",
+                "delivery_terms": "",
+                "items-TOTAL_FORMS": "1",
+                "items-INITIAL_FORMS": "0",
+                "items-MIN_NUM_FORMS": "0",
+                "items-MAX_NUM_FORMS": "1000",
+                "items-0-id": "",
+                "items-0-purchase_order": str(purchase_order.pk),
+                "items-0-product": str(product.pk),
+                "items-0-hs_code": product.hs_code,
+                "items-0-part_number": product.part_number,
+                "items-0-quantity": "2",
+                "items-0-unit_price": "12.50",
+                "_save_and_pdf": "1",
+                "_save_and_pdf_url": pdf_url,
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], pdf_url)
+        self.assertEqual(purchase_order.items.count(), 1)

@@ -620,6 +620,9 @@
                 </div>
                 <div class="finance-topbar-actions">
                     <a href="#" class="finance-back-button" onclick="history.back(); return false;">{% translate "Back" %}</a>
+                    {% if perms.admin.view_logentry %}
+                    <a href="{% url 'admin:admin_logentry_changelist' %}" class="finance-back-button">History</a>
+                    {% endif %}
                     <div class="finance-year">{{ company_year|default:"-" }} Overview</div>
                 </div>
             </section>
@@ -726,9 +729,6 @@
                                 <div class="finance-model-actions">
                                     {% if model.add_url %}
                                     <a href="{{ model.add_url }}" class="finance-chip primary">{% translate "Add" %}</a>
-                                    {% endif %}
-                                    {% if model.admin_url %}
-                                    <a href="{{ model.admin_url }}" class="finance-chip secondary">{% translate "Manage" %}</a>
                                     {% endif %}
                                 </div>
                             </div>

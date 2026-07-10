@@ -15,6 +15,8 @@ try:
     from reportlab.lib.units import mm
     from reportlab.graphics.charts.barcharts import VerticalBarChart
     from reportlab.graphics.shapes import Drawing, Rect, String
+    from reportlab.pdfbase import pdfmetrics
+    from reportlab.pdfbase.ttfonts import TTFont
     from reportlab.pdfgen import canvas as pdf_canvas
     from reportlab.platypus import (
         PageBreak,
@@ -27,6 +29,52 @@ try:
     REPORTLAB_IMPORT_ERROR = None
 except ImportError as exc:
     REPORTLAB_IMPORT_ERROR = exc
+
+
+PDF_FONT_REGULAR = "Helvetica"
+PDF_FONT_BOLD = "Helvetica-Bold"
+PDF_FONTS_REGISTERED = False
+
+
+def _register_pdf_fonts():
+    global PDF_FONT_REGULAR, PDF_FONT_BOLD, PDF_FONTS_REGISTERED
+
+    if PDF_FONTS_REGISTERED or REPORTLAB_IMPORT_ERROR is not None:
+        return
+
+    # Use a Unicode TrueType font so Turkish characters render correctly in PDFs.
+    font_candidates = [
+        (
+            "FinanceArial",
+            "FinanceArial-Bold",
+            Path("C:/Windows/Fonts/arial.ttf"),
+            Path("C:/Windows/Fonts/arialbd.ttf"),
+        ),
+        (
+            "FinanceDejaVuSans",
+            "FinanceDejaVuSans-Bold",
+            Path("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"),
+            Path("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"),
+        ),
+        (
+            "FinanceLiberationSans",
+            "FinanceLiberationSans-Bold",
+            Path("/usr/share/fonts/truetype/liberation2/LiberationSans-Regular.ttf"),
+            Path("/usr/share/fonts/truetype/liberation2/LiberationSans-Bold.ttf"),
+        ),
+    ]
+
+    for regular_name, bold_name, regular_path, bold_path in font_candidates:
+        if not regular_path.exists() or not bold_path.exists():
+            continue
+
+        pdfmetrics.registerFont(TTFont(regular_name, str(regular_path)))
+        pdfmetrics.registerFont(TTFont(bold_name, str(bold_path)))
+        PDF_FONT_REGULAR = regular_name
+        PDF_FONT_BOLD = bold_name
+        break
+
+    PDF_FONTS_REGISTERED = True
 
 
 def build_invoice_pdf(*, invoice, company, items, importer, end_user, invoice_title, currency, document_type="default", packing_entries=None, **_ignored):
@@ -332,12 +380,13 @@ def build_purchase_order_pdf(*, purchase_order, company, items, seller, requeste
 
 
 def _build_styles():
+    _register_pdf_fonts()
     base = getSampleStyleSheet()
     return {
         "title": ParagraphStyle(
             "InvoiceTitle",
             parent=base["Heading1"],
-            fontName="Helvetica-Bold",
+            fontName=PDF_FONT_BOLD,
             fontSize=20.5,
             leading=22.5,
             textColor=colors.HexColor("#9A3412"),
@@ -346,7 +395,7 @@ def _build_styles():
         "section_title": ParagraphStyle(
             "SectionTitle",
             parent=base["Heading4"],
-            fontName="Helvetica-Bold",
+            fontName=PDF_FONT_BOLD,
             fontSize=8.5,
             leading=9.5,
             textColor=colors.HexColor("#C2410C"),
@@ -355,7 +404,7 @@ def _build_styles():
         "document_type_title": ParagraphStyle(
             "DocumentTypeTitle",
             parent=base["Heading4"],
-            fontName="Helvetica-Bold",
+            fontName=PDF_FONT_BOLD,
             fontSize=11,
             leading=12.5,
             textColor=colors.HexColor("#C2410C"),
@@ -364,7 +413,7 @@ def _build_styles():
         "label": ParagraphStyle(
             "Label",
             parent=base["BodyText"],
-            fontName="Helvetica-Bold",
+            fontName=PDF_FONT_BOLD,
             fontSize=8,
             leading=9,
             textColor=colors.HexColor("#7C2D12"),
@@ -372,7 +421,7 @@ def _build_styles():
         "body": ParagraphStyle(
             "Body",
             parent=base["BodyText"],
-            fontName="Helvetica",
+            fontName=PDF_FONT_REGULAR,
             fontSize=9,
             leading=10.2,
             alignment=TA_JUSTIFY,
@@ -381,7 +430,7 @@ def _build_styles():
         "body_left": ParagraphStyle(
             "BodyLeft",
             parent=base["BodyText"],
-            fontName="Helvetica",
+            fontName=PDF_FONT_REGULAR,
             fontSize=9,
             leading=10.2,
             alignment=TA_LEFT,
@@ -390,7 +439,7 @@ def _build_styles():
         "body_compact": ParagraphStyle(
             "BodyCompact",
             parent=base["BodyText"],
-            fontName="Helvetica",
+            fontName=PDF_FONT_REGULAR,
             fontSize=9,
             leading=9.7,
             spaceBefore=0,
@@ -401,7 +450,7 @@ def _build_styles():
         "body_small": ParagraphStyle(
             "BodySmall",
             parent=base["BodyText"],
-            fontName="Helvetica",
+            fontName=PDF_FONT_REGULAR,
             fontSize=8,
             leading=9,
             alignment=TA_JUSTIFY,
@@ -410,7 +459,7 @@ def _build_styles():
         "body_right": ParagraphStyle(
             "BodyRight",
             parent=base["BodyText"],
-            fontName="Helvetica",
+            fontName=PDF_FONT_REGULAR,
             fontSize=9,
             leading=10.2,
             alignment=TA_RIGHT,
@@ -419,7 +468,7 @@ def _build_styles():
         "table_head": ParagraphStyle(
             "TableHead",
             parent=base["BodyText"],
-            fontName="Helvetica-Bold",
+            fontName=PDF_FONT_BOLD,
             fontSize=8,
             leading=9,
             alignment=TA_LEFT,
@@ -428,7 +477,7 @@ def _build_styles():
         "table_head_center": ParagraphStyle(
             "TableHeadCenter",
             parent=base["BodyText"],
-            fontName="Helvetica-Bold",
+            fontName=PDF_FONT_BOLD,
             fontSize=8,
             leading=9,
             alignment=TA_CENTER,
@@ -437,7 +486,7 @@ def _build_styles():
         "table_head_amount": ParagraphStyle(
             "TableHeadAmount",
             parent=base["BodyText"],
-            fontName="Helvetica-Bold",
+            fontName=PDF_FONT_BOLD,
             fontSize=8,
             leading=9,
             alignment=TA_RIGHT,
@@ -446,7 +495,7 @@ def _build_styles():
         "table_cell": ParagraphStyle(
             "TableCell",
             parent=base["BodyText"],
-            fontName="Helvetica",
+            fontName=PDF_FONT_REGULAR,
             fontSize=8.3,
             leading=9.4,
             alignment=TA_JUSTIFY,
@@ -455,7 +504,7 @@ def _build_styles():
         "table_cell_part_number": ParagraphStyle(
             "TableCellPartNumber",
             parent=base["BodyText"],
-            fontName="Helvetica",
+            fontName=PDF_FONT_REGULAR,
             fontSize=7.2,
             leading=8,
             alignment=TA_LEFT,
@@ -465,7 +514,7 @@ def _build_styles():
         "table_cell_right": ParagraphStyle(
             "TableCellRight",
             parent=base["BodyText"],
-            fontName="Helvetica",
+            fontName=PDF_FONT_REGULAR,
             fontSize=8.3,
             leading=9.4,
             alignment=TA_RIGHT,
@@ -474,16 +523,25 @@ def _build_styles():
         "table_cell_center": ParagraphStyle(
             "TableCellCenter",
             parent=base["BodyText"],
-            fontName="Helvetica",
+            fontName=PDF_FONT_REGULAR,
             fontSize=8.3,
             leading=9.4,
             alignment=TA_CENTER,
             textColor=colors.HexColor("#431407"),
         ),
+        "purchase_order_date_value": ParagraphStyle(
+            "PurchaseOrderDateValue",
+            parent=base["BodyText"],
+            fontName=PDF_FONT_REGULAR,
+            fontSize=8.3,
+            leading=9.4,
+            alignment=TA_LEFT,
+            textColor=colors.HexColor("#431407"),
+        ),
         "table_cell_amount": ParagraphStyle(
             "TableCellAmount",
             parent=base["BodyText"],
-            fontName="Helvetica",
+            fontName=PDF_FONT_REGULAR,
             fontSize=8.3,
             leading=9.4,
             alignment=TA_RIGHT,
@@ -492,7 +550,7 @@ def _build_styles():
         "footer": ParagraphStyle(
             "Footer",
             parent=base["BodyText"],
-            fontName="Helvetica-Bold",
+            fontName=PDF_FONT_BOLD,
             fontSize=10,
             leading=11,
             alignment=TA_RIGHT,
@@ -501,7 +559,7 @@ def _build_styles():
         "footer_left_small": ParagraphStyle(
             "FooterLeftSmall",
             parent=base["BodyText"],
-            fontName="Helvetica-Bold",
+            fontName=PDF_FONT_BOLD,
             fontSize=9,
             leading=10,
             alignment=TA_LEFT,
@@ -510,7 +568,7 @@ def _build_styles():
         "footer_center_small": ParagraphStyle(
             "FooterCenterSmall",
             parent=base["BodyText"],
-            fontName="Helvetica-Bold",
+            fontName=PDF_FONT_BOLD,
             fontSize=9,
             leading=10,
             alignment=TA_CENTER,
@@ -519,7 +577,7 @@ def _build_styles():
         "footer_right_small": ParagraphStyle(
             "FooterRightSmall",
             parent=base["BodyText"],
-            fontName="Helvetica-Bold",
+            fontName=PDF_FONT_BOLD,
             fontSize=9,
             leading=10,
             alignment=TA_RIGHT,
@@ -778,7 +836,7 @@ def _build_purchase_order_info_table(purchase_order, requester, styles):
         [
             Paragraph(
                 purchase_order.purchase_date.strftime("%d-%b-%Y") if purchase_order.purchase_date else "-",
-                styles["table_cell_center"],
+                styles["purchase_order_date_value"],
             ),
             Paragraph(requester_text, styles["body_left"]),
             Paragraph(_format_preserving_layout(getattr(purchase_order, "sent_by", "") or "-"), styles["table_cell"]),
@@ -1734,10 +1792,10 @@ def _build_report_histogram(*, chart_labels, chart_totals, title):
     chart.categoryAxis.categoryNames = [str(label) for label in chart_labels]
     chart.categoryAxis.labels.angle = 0
     chart.categoryAxis.labels.boxAnchor = "n"
-    chart.categoryAxis.labels.fontName = "Helvetica"
+    chart.categoryAxis.labels.fontName = PDF_FONT_REGULAR
     chart.categoryAxis.labels.fontSize = 9.5
     chart.categoryAxis.labels.dy = -6
-    chart.valueAxis.labels.fontName = "Helvetica"
+    chart.valueAxis.labels.fontName = PDF_FONT_REGULAR
     chart.valueAxis.labels.fontSize = 9.5
     chart.valueAxis.valueMin = 0
     chart.valueAxis.visibleGrid = True
@@ -1765,9 +1823,9 @@ def _build_report_histogram(*, chart_labels, chart_totals, title):
         chart.bars[(0, index)].strokeWidth = 0.8
 
     drawing.add(chart)
-    drawing.add(String(0, 70 * mm, title, fontName="Helvetica-Bold", fontSize=15, fillColor=colors.HexColor("#9A3412")))
-    drawing.add(String(0, 64 * mm, "Metric: Total Amount", fontName="Helvetica-Bold", fontSize=10, fillColor=colors.HexColor("#5F6368")))
-    drawing.add(String(90 * mm, 4 * mm, "Month", fontName="Helvetica", fontSize=10, fillColor=colors.HexColor("#5F6368"), textAnchor="middle"))
+    drawing.add(String(0, 70 * mm, title, fontName=PDF_FONT_BOLD, fontSize=15, fillColor=colors.HexColor("#9A3412")))
+    drawing.add(String(0, 64 * mm, "Metric: Total Amount", fontName=PDF_FONT_BOLD, fontSize=10, fillColor=colors.HexColor("#5F6368")))
+    drawing.add(String(90 * mm, 4 * mm, "Month", fontName=PDF_FONT_REGULAR, fontSize=10, fillColor=colors.HexColor("#5F6368"), textAnchor="middle"))
     return drawing
 
 
@@ -2157,7 +2215,7 @@ if pdf_canvas is not None:
             for index, state in enumerate(page_states[:-1], start=1):
                 self.__dict__.update(state)
                 self.page_count = total_pages
-                self.setFont("Helvetica", 10)
+                self.setFont(PDF_FONT_REGULAR, 10)
                 self.setFillColor(colors.HexColor("#6C7682"))
                 self.drawCentredString(
                     self._pagesize[0] / 2,

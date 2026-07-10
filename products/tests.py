@@ -12,7 +12,7 @@ from .models import Product
 
 class ProductModelTests(TestCase):
 
-    def test_admin_label_uses_description_even_when_part_number_exists(self):
+    def test_admin_label_includes_part_number_when_it_exists(self):
         product = Product.objects.create(
             description="Produit A",
             part_number="REF-123",
@@ -20,16 +20,16 @@ class ProductModelTests(TestCase):
             sale_price=Decimal("19.90"),
         )
 
-        self.assertEqual(str(product), "Produit A")
+        self.assertEqual(str(product), "Produit A - REF-123")
 
-    def test_admin_label_uses_description_when_part_number_is_missing(self):
+    def test_admin_label_uses_product_id_when_part_number_is_missing(self):
         product = Product.objects.create(
             description="Produit Sans Reference",
             unit_qty=8,
             sale_price=Decimal("19.90"),
         )
 
-        self.assertEqual(str(product), "Produit Sans Reference")
+        self.assertEqual(str(product), f"Produit Sans Reference - Product #{product.pk}")
 
     def test_description_can_be_used_by_multiple_products(self):
         Product.objects.create(description="JOINT", part_number="K-39228")

@@ -131,7 +131,6 @@ class InvoiceAdminMixin:
     class Media:
         js = (
             "admin/js/invoice_product_info.js",
-            "admin/js/invoice_autosave.js",
             "admin/js/raw_id_label_display.js",
         )
 
@@ -224,6 +223,11 @@ class InvoiceAdminMixin:
         except NoReverseMatch:
             extra_context["draft_add_url"] = ""
         return super().changelist_view(request, extra_context=extra_context)
+
+    def response_change(self, request, obj):
+        if "_save_and_pdf" in request.POST:
+            return redirect(request.POST.get("_save_and_pdf_url") or self.get_invoice_pdf_url(obj))
+        return super().response_change(request, obj)
 
     def add_view(self, request, form_url="", extra_context=None):
         if request.method == "GET" and not request.GET.get("_popup"):
@@ -410,6 +414,7 @@ class InvoiceAdminMixin:
                     "ok": True,
                     "saved_at": timezone.localtime().strftime("%d/%m/%Y %H:%M:%S"),
                     "invoice_number": new_object.invoice_number or "",
+                    "inline_objects": self._collect_saved_inline_objects(formsets),
                 }
             )
 
@@ -455,6 +460,25 @@ class InvoiceAdminMixin:
                     if key.startswith(form_prefix):
                         post_data.pop(key, None)
             post_data[total_key] = str(initial_forms)
+
+    def _collect_saved_inline_objects(self, formsets):
+        inline_objects = []
+        for formset in formsets:
+            for child_form in formset.forms:
+                instance = getattr(child_form, "instance", None)
+                if not instance or not instance.pk:
+                    continue
+                cleaned_data = getattr(child_form, "cleaned_data", None) or {}
+                if cleaned_data.get("DELETE"):
+                    continue
+                inline_objects.append(
+                    {
+                        "prefix": formset.prefix,
+                        "form_prefix": child_form.prefix,
+                        "id": str(instance.pk),
+                    }
+                )
+        return inline_objects
 
 
 # ----------------------

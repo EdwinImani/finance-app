@@ -242,10 +242,6 @@
         background: #ffedd5;
     }
 
-    .change-form .related-widget-wrapper a.related-widget-wrapper-link.delete-related {
-        display: none;
-    }
-
     .inline-group .add-row {
         padding: 16px 18px;
     }
@@ -482,22 +478,9 @@
         text-align: left;
     }
 
-    .inline-group.invoice-commercial-items .invoice-line-delete {
-        min-height: 30px;
-        padding: 0 9px;
-        font-size: 11px;
-        max-width: 100%;
-    }
-
     .inline-group.invoice-commercial-items .tabular td.original p,
     .inline-group.invoice-commercial-items .tabular td.original .inline_label {
         display: none !important;
-    }
-
-    .inline-group.invoice-commercial-packings .invoice-line-delete {
-        min-height: 30px;
-        padding: 0 10px;
-        font-size: 11px;
     }
 
     .inline-group.invoice-commercial-packings .tabular table {
@@ -546,40 +529,6 @@
     .inline-group td.delete {
         text-align: center;
         vertical-align: middle;
-    }
-
-    .inline-group td.delete input[type="checkbox"],
-    .inline-group td.delete .inline-deletelink {
-        display: none !important;
-    }
-
-    .invoice-line-delete {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        min-height: 34px;
-        padding: 0 12px;
-        border-radius: 999px;
-        border: 1px solid #fdba74;
-        background: #fff7ed;
-        color: #9a3412;
-        font-weight: 700;
-        cursor: pointer;
-        white-space: nowrap;
-    }
-
-    .invoice-line-delete:hover {
-        background: #ffedd5;
-    }
-
-    .invoice-line-delete.is-marked {
-        background: #9a3412;
-        border-color: #9a3412;
-        color: #fff;
-    }
-
-    .invoice-row-marked-delete td {
-        opacity: 0.55;
     }
 
     .change-form .module h2,
@@ -642,10 +591,7 @@
 
     .invoice-hero p,
     .invoice-badge,
-    .invoice-autosave-status,
-    .invoice-line-delete,
-    .inline-group.invoice-commercial-items .invoice-line-delete,
-    .inline-group.invoice-commercial-packings .invoice-line-delete {
+    .invoice-autosave-status {
         font-size: 21px;
     }
 
@@ -667,74 +613,50 @@
 </style>
 <script>
 document.addEventListener("DOMContentLoaded", function() {
-    function setupInlineDeleteButtons(root) {
-        (root || document).querySelectorAll(".inline-group td.delete").forEach(function(deleteCell) {
-            if (deleteCell.querySelector(".invoice-line-delete")) {
+    function setHiddenValue(form, name, value) {
+        var input = form.querySelector('input[name="' + name + '"]');
+        if (!input) {
+            input = document.createElement("input");
+            input.type = "hidden";
+            input.name = name;
+            form.appendChild(input);
+        }
+        input.value = value;
+    }
+
+    function bindSaveAndPdfButtons() {
+        document.querySelectorAll("[data-save-and-pdf-url]").forEach(function(link) {
+            if (link.dataset.saveAndPdfBound === "true") {
                 return;
             }
-
-            var row = deleteCell.closest("tr");
-            var deleteCheckbox = row ? row.querySelector('input[name$="-DELETE"]') : null;
-            var inlineDeleteLink = row ? row.querySelector(".inline-deletelink") : null;
-
-            if (!deleteCheckbox && !inlineDeleteLink) {
-                return;
-            }
-
-            deleteCell.querySelectorAll(".inline-deletelink").forEach(function(link) {
-                link.style.display = "none";
-            });
-
-            var button = document.createElement("button");
-            button.type = "button";
-            button.className = "invoice-line-delete";
-            button.textContent = "Delete";
-
-            button.addEventListener("click", function() {
-                if (!deleteCheckbox || !deleteCheckbox.checked) {
-                    var confirmed = window.confirm("Are you sure you want to delete this item?");
-                    if (!confirmed) {
-                        return;
-                    }
-                }
-
-                if (!deleteCheckbox && inlineDeleteLink) {
-                    inlineDeleteLink.click();
+            link.dataset.saveAndPdfBound = "true";
+            link.addEventListener("click", function(event) {
+                var form = document.querySelector("#content-main form");
+                if (!form) {
                     return;
                 }
-
-                deleteCheckbox.checked = !deleteCheckbox.checked;
-                button.classList.toggle("is-marked", deleteCheckbox.checked);
-                button.textContent = deleteCheckbox.checked ? "Undo delete" : "Delete";
-
-                if (row) {
-                    row.classList.toggle("invoice-row-marked-delete", deleteCheckbox.checked);
+                event.preventDefault();
+                setHiddenValue(form, "_save_and_pdf", "1");
+                setHiddenValue(form, "_save_and_pdf_url", link.dataset.saveAndPdfUrl || link.href);
+                if (form.requestSubmit) {
+                    form.requestSubmit();
+                } else {
+                    form.submit();
                 }
             });
-
-            deleteCell.appendChild(button);
         });
     }
 
-    function productDescriptionOnly(label) {
-        var text = (label || "").trim();
-        var separator = " - ";
-        var separatorIndex = text.indexOf(separator);
-        return separatorIndex === -1 ? text : text.slice(separatorIndex + separator.length).trim();
-    }
-
-    function showOnlyProductDescription(root) {
+    function showFullProductLabel(root) {
         (root || document).querySelectorAll(".inline-group .field-product select").forEach(function(select) {
             var selectedOption = select.options[select.selectedIndex];
             var wrapper = select.closest(".related-widget-wrapper");
             var rendered = wrapper ? wrapper.querySelector(".select2-selection__rendered") : null;
-            var description = productDescriptionOnly(
-                selectedOption ? selectedOption.textContent : (rendered ? rendered.textContent : "")
-            );
+            var label = (selectedOption ? selectedOption.textContent : (rendered ? rendered.textContent : "")).trim();
 
-            if (rendered && description) {
-                rendered.textContent = description;
-                rendered.title = description;
+            if (rendered && label) {
+                rendered.textContent = label;
+                rendered.title = label;
             }
         });
     }
@@ -750,16 +672,14 @@ document.addEventListener("DOMContentLoaded", function() {
             inlineGroup.classList.add("invoice-commercial-packings");
         }
     });
-    setupInlineDeleteButtons(document);
-    showOnlyProductDescription(document);
+    showFullProductLabel(document);
     document.body.addEventListener("formset:added", function(event) {
-        setupInlineDeleteButtons(event.target);
-        showOnlyProductDescription(event.target);
+        showFullProductLabel(event.target);
     });
     document.addEventListener("change", function(event) {
         if (event.target.matches(".inline-group .field-product select")) {
             window.setTimeout(function() {
-                showOnlyProductDescription(document);
+                showFullProductLabel(document);
             }, 0);
         }
     }, true);
@@ -767,10 +687,12 @@ document.addEventListener("DOMContentLoaded", function() {
     if (window.django && django.jQuery) {
         django.jQuery(document).on("select2:select select2:close", ".inline-group .field-product select", function() {
             window.setTimeout(function() {
-                showOnlyProductDescription(document);
+                showFullProductLabel(document);
             }, 0);
         });
     }
+
+    bindSaveAndPdfButtons();
 
     var deleteButton = document.querySelector(".submit-row a.deletelink");
     if (!deleteButton) {
@@ -831,12 +753,12 @@ document.addEventListener("DOMContentLoaded", function() {
 {% if invoice_pdf_links %}
 {% for pdf_link in invoice_pdf_links %}
 <li>
-    <a href="{{ pdf_link.url }}" target="_blank">{{ pdf_link.label }}</a>
+    <a href="{{ pdf_link.url }}" data-save-and-pdf-url="{{ pdf_link.url }}">{{ pdf_link.label }}</a>
 </li>
 {% endfor %}
 {% elif invoice_pdf_url %}
 <li>
-    <a href="{{ invoice_pdf_url }}" target="_blank">Create PDF</a>
+    <a href="{{ invoice_pdf_url }}" data-save-and-pdf-url="{{ invoice_pdf_url }}">Create PDF</a>
 </li>
 {% endif %}
 {{ block.super }}

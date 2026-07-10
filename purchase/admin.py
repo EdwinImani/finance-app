@@ -152,7 +152,6 @@ class PurchaseOrderAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.M
         js = (
             "admin/js/product_autofill.js",
             "admin/js/purchase_partner_type.js",
-            "admin/js/invoice_autosave.js",
             "admin/js/raw_id_label_display.js",
         )
 
@@ -186,6 +185,11 @@ class PurchaseOrderAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.M
             draft = self.create_draft_purchase_order()
             return redirect(reverse("admin:purchase_purchaseorder_change", args=[draft.pk]))
         return super().add_view(request, form_url, extra_context)
+
+    def response_change(self, request, obj):
+        if "_save_and_pdf" in request.POST:
+            return redirect(request.POST.get("_save_and_pdf_url") or self.get_purchase_pdf_url(obj))
+        return super().response_change(request, obj)
 
     def get_purchase_autosave_url(self, obj):
         return reverse("admin:purchase_purchaseorder_autosave", args=[obj.pk])
@@ -307,6 +311,7 @@ class PurchaseOrderAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.M
                     "ok": True,
                     "saved_at": timezone.localtime().strftime("%d/%m/%Y %H:%M:%S"),
                     "purchase_number": new_object.purchase_number or "",
+                    "inline_objects": self._collect_saved_inline_objects(formsets),
                 }
             )
 
@@ -346,6 +351,25 @@ class PurchaseOrderAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.M
                 if key.startswith(form_prefix):
                     post_data.pop(key, None)
         post_data[total_key] = str(initial_forms)
+
+    def _collect_saved_inline_objects(self, formsets):
+        inline_objects = []
+        for formset in formsets:
+            for child_form in formset.forms:
+                instance = getattr(child_form, "instance", None)
+                if not instance or not instance.pk:
+                    continue
+                cleaned_data = getattr(child_form, "cleaned_data", None) or {}
+                if cleaned_data.get("DELETE"):
+                    continue
+                inline_objects.append(
+                    {
+                        "prefix": formset.prefix,
+                        "form_prefix": child_form.prefix,
+                        "id": str(instance.pk),
+                    }
+                )
+        return inline_objects
 
     def build_partner_context(self, partner):
         if not partner:

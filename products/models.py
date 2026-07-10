@@ -44,6 +44,10 @@ class Product(models.Model):
         ordering = ["description"]
 
     def admin_label(self):
+        if self.part_number:
+            return f"{self.description} - {self.part_number}"
+        if self.pk:
+            return f"{self.description} - Product #{self.pk}"
         return self.description
 
     def __str__(self):

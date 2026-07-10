@@ -1,9 +1,16 @@
 from django.contrib import admin
+from django.contrib.admin.models import LogEntry
 from django.contrib.auth.admin import GroupAdmin, UserAdmin
 from django.contrib.auth.models import Group, User
 from django.contrib.admin.sites import NotRegistered
+from django.urls import NoReverseMatch, reverse
+from django.utils.html import format_html
 
 from financeapp.admin_mixins import SaveRedirectToWelcomeMixin
+
+
+LogEntry._meta.verbose_name = "History"
+LogEntry._meta.verbose_name_plural = "History"
 
 
 class WelcomeRedirectUserAdmin(SaveRedirectToWelcomeMixin, UserAdmin):
@@ -99,6 +106,78 @@ class WelcomeRedirectGroupAdmin(SaveRedirectToWelcomeMixin, GroupAdmin):
         return obj.permissions.count()
 
     permissions_count.short_description = "Nombre de permissions"
+
+
+@admin.register(LogEntry)
+class AdminHistoryAdmin(admin.ModelAdmin):
+    list_display = (
+        "action_time",
+        "user",
+        "action_label",
+        "content_type",
+        "object_link",
+        "change_message",
+    )
+    list_filter = (
+        "action_flag",
+        "user",
+        "content_type",
+        "action_time",
+    )
+    search_fields = (
+        "user__username",
+        "user__email",
+        "object_repr",
+        "change_message",
+    )
+    date_hierarchy = "action_time"
+    ordering = ("-action_time",)
+    readonly_fields = (
+        "action_time",
+        "user",
+        "content_type",
+        "object_id",
+        "object_repr",
+        "action_flag",
+        "change_message",
+    )
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return request.user.has_perm("admin.view_logentry")
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def action_label(self, obj):
+        labels = {
+            1: "Added",
+            2: "Changed",
+            3: "Deleted",
+        }
+        return labels.get(obj.action_flag, obj.action_flag)
+
+    action_label.short_description = "Action"
+    action_label.admin_order_field = "action_flag"
+
+    def object_link(self, obj):
+        if not obj.content_type or not obj.object_id:
+            return obj.object_repr or "-"
+
+        url_name = (
+            f"admin:{obj.content_type.app_label}_"
+            f"{obj.content_type.model}_change"
+        )
+        try:
+            url = reverse(url_name, args=(obj.object_id,))
+        except NoReverseMatch:
+            return obj.object_repr or "-"
+
+        return format_html('<a href="{}">{}</a>', url, obj.object_repr or obj.object_id)
+
+    object_link.short_description = "Object"
 
 
 for model in (User, Group):

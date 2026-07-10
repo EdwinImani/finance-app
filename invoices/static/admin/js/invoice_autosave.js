@@ -31,6 +31,43 @@
         return new FormData(form);
     }
 
+    function hasCheckedDelete(form) {
+        return Boolean(form.querySelector('input[name$="-DELETE"]:checked'));
+    }
+
+    function syncSavedInlineIds(form, inlineObjects) {
+        const highestSavedIndexByPrefix = {};
+
+        (inlineObjects || []).forEach(function (item) {
+            if (!item || !item.form_prefix || !item.id) {
+                return;
+            }
+
+            Array.from(form.elements).forEach(function (field) {
+                if (field.name === item.form_prefix + "-id" && !field.value) {
+                    field.value = item.id;
+                }
+            });
+
+            const prefix = item.prefix;
+            const index = parseInt(item.form_prefix.slice(prefix.length + 1), 10);
+            if (!Number.isNaN(index)) {
+                highestSavedIndexByPrefix[prefix] = Math.max(highestSavedIndexByPrefix[prefix] || 0, index + 1);
+            }
+        });
+
+        Object.keys(highestSavedIndexByPrefix).forEach(function (prefix) {
+            Array.from(form.elements).forEach(function (field) {
+                if (field.name !== prefix + "-INITIAL_FORMS") {
+                    return;
+                }
+
+                const current = parseInt(field.value || "0", 10);
+                field.value = String(Math.max(current || 0, highestSavedIndexByPrefix[prefix]));
+            });
+        });
+    }
+
     document.addEventListener("DOMContentLoaded", function () {
         const config = getConfig();
         const form = getForm();
@@ -43,22 +80,28 @@
         let isSaving = false;
         let isSubmitting = false;
         let saveAgain = false;
+        let activeSavePromise = null;
 
-        function autosave() {
-            if (isSubmitting) {
-                return;
+        function autosave(options) {
+            const settings = options || {};
+
+            if (isSubmitting && !settings.force) {
+                return Promise.resolve(false);
             }
 
             if (isSaving) {
                 saveAgain = true;
-                return;
+                return activeSavePromise ? activeSavePromise.then(function () {
+                    return settings.force ? autosave(settings) : true;
+                }) : Promise.resolve(false);
             }
 
             isSaving = true;
             saveAgain = false;
+            const reloadAfterSave = hasCheckedDelete(form) && !settings.suppressReload;
             setStatus("Autosaving...", "is-saving");
 
-            fetch(config.url, {
+            activeSavePromise = fetch(config.url, {
                 method: "POST",
                 body: serializeForm(form),
                 credentials: "same-origin",
@@ -75,17 +118,25 @@
                     if (!result.ok || !result.data.ok) {
                         throw new Error("Autosave failed");
                     }
+                    syncSavedInlineIds(form, result.data.inline_objects);
                     setStatus("Saved " + (result.data.saved_at || ""), "");
+                    if (reloadAfterSave) {
+                        window.location.reload();
+                    }
                 })
                 .catch(function () {
                     setStatus("Autosave needs a valid form", "is-error");
+                    throw new Error("Autosave failed");
                 })
                 .finally(function () {
                     isSaving = false;
+                    activeSavePromise = null;
                     if (saveAgain && !isSubmitting) {
                         scheduleAutosave(250);
                     }
                 });
+
+            return activeSavePromise;
         }
 
         function scheduleAutosave(delay) {
@@ -116,6 +167,23 @@
             isSubmitting = true;
             window.clearTimeout(timer);
         });
+        document.addEventListener("click", function (event) {
+            const link = event.target && event.target.closest("[data-autosave-before-open]");
+            if (!link) {
+                return;
+            }
+
+            event.preventDefault();
+            window.clearTimeout(timer);
+
+            autosave({ force: true, suppressReload: true })
+                .then(function () {
+                    window.open(link.href, link.target || "_blank");
+                })
+                .catch(function () {
+                    window.alert("Autosave needs a valid form before opening the PDF.");
+                });
+        }, true);
         form.addEventListener("input", function (event) {
             scheduleAutosave();
         }, true);
@@ -141,6 +209,7 @@
 
         document.addEventListener("formset:added", scheduleAutosaveAfterDomUpdate);
         document.addEventListener("formset:removed", scheduleAutosaveAfterDomUpdate);
+        document.addEventListener("invoice:inline-product-updated", scheduleAutosaveAfterDomUpdate);
 
         if (window.django && window.django.jQuery) {
             const $ = window.django.jQuery;

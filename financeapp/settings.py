@@ -23,8 +23,24 @@ def env_list(name, default=None):
 
 def database_from_url(url):
     parsed = urlparse(url)
+    if parsed.scheme == "sqlite":
+        # SQLite is supported only for local development/testing.
+        database_path = url.removeprefix("sqlite:///")
+        if not database_path:
+            raise ImproperlyConfigured("sqlite DATABASE_URL must include a database file path")
+
+        database_name = database_path
+        if database_path != ":memory:":
+            path = Path(database_path)
+            database_name = str(path if path.is_absolute() else BASE_DIR / path)
+
+        return {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": database_name,
+        }
+
     if parsed.scheme not in {"postgres", "postgresql"}:
-        raise ImproperlyConfigured("DATABASE_URL must use postgres:// or postgresql://")
+        raise ImproperlyConfigured("DATABASE_URL must use postgres://, postgresql://, or sqlite:///")
 
     config = {
         "ENGINE": "django.db.backends.postgresql",
