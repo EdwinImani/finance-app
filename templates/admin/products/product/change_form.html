@@ -39,4 +39,19 @@
         padding: 0 18px !important;
     }
 </style>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    var params = new URLSearchParams(window.location.search);
+    var returnTo = params.get("_return_to");
+    var form = document.querySelector("#content-main form");
+
+    if (returnTo && form && !form.querySelector('input[name="_return_to"]')) {
+        var returnInput = document.createElement("input");
+        returnInput.type = "hidden";
+        returnInput.name = "_return_to";
+        returnInput.value = returnTo;
+        form.appendChild(returnInput);
+    }
+});
+</script>
 {% endblock %}

@@ -3,7 +3,9 @@ from django.forms.formsets import all_valid
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import path, reverse
+from django.utils.http import urlencode
 from django.utils import timezone
+from django.utils.http import url_has_allowed_host_and_scheme
 from financeapp.admin_mixins import PageSizeAdminMixin, SaveRedirectToWelcomeMixin
 from .models import Partner, PartnerAddress, PartnerPhone
 
@@ -85,9 +87,39 @@ class PartnerAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.ModelAd
     def add_view(self, request, form_url="", extra_context=None):
         if request.method == "GET" and not request.GET.get("_popup"):
             draft = self.create_draft_partner(request)
-            return redirect(reverse("admin:partners_partner_change", args=[draft.pk]))
+            change_url = reverse("admin:partners_partner_change", args=[draft.pk])
+            return_to = self._get_safe_return_url(request)
+            if return_to:
+                change_url = f"{change_url}?{urlencode({'_return_to': return_to})}"
+            return redirect(change_url)
 
         return super().add_view(request, form_url, extra_context)
+
+    def response_add(self, request, obj, post_url_continue=None):
+        return_to = self._get_safe_return_url(request)
+        if return_to:
+            return redirect(return_to)
+        return super().response_add(request, obj, post_url_continue=post_url_continue)
+
+    def response_change(self, request, obj):
+        return_to = self._get_safe_return_url(request)
+        if return_to:
+            return redirect(return_to)
+        return super().response_change(request, obj)
+
+    def _get_safe_return_url(self, request):
+        return_to = request.POST.get("_return_to") or request.GET.get("_return_to")
+        if not return_to:
+            return ""
+
+        if url_has_allowed_host_and_scheme(
+            return_to,
+            allowed_hosts={request.get_host()},
+            require_https=request.is_secure(),
+        ):
+            return return_to
+
+        return ""
 
     def get_urls(self):
         urls = super().get_urls()

@@ -1,5 +1,7 @@
 from django.contrib import admin
 from django.db.models import Sum, Q
+from django.shortcuts import redirect
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.html import format_html
 from financeapp.admin_mixins import PageSizeAdminMixin, SaveRedirectToWelcomeMixin
 from .models import Product
@@ -108,6 +110,32 @@ class ProductAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.ModelAd
     ordering = ("description",)
 
     list_filter = (LowStockFilter, PartNumberFilter, HSCodeFilter)
+
+    def response_add(self, request, obj, post_url_continue=None):
+        return_to = self._get_safe_return_url(request)
+        if return_to:
+            return redirect(return_to)
+        return super().response_add(request, obj, post_url_continue=post_url_continue)
+
+    def response_change(self, request, obj):
+        return_to = self._get_safe_return_url(request)
+        if return_to:
+            return redirect(return_to)
+        return super().response_change(request, obj)
+
+    def _get_safe_return_url(self, request):
+        return_to = request.POST.get("_return_to") or request.GET.get("_return_to")
+        if not return_to:
+            return ""
+
+        if url_has_allowed_host_and_scheme(
+            return_to,
+            allowed_hosts={request.get_host()},
+            require_https=request.is_secure(),
+        ):
+            return return_to
+
+        return ""
 
     # ----------------------
     # PART NUMBER DISPLAY

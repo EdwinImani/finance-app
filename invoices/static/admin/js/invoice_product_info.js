@@ -237,8 +237,50 @@
 
     }
 
+    function currentReturnUrl() {
+        return window.location.pathname + window.location.search;
+    }
+
+    function prepareProductLink(link) {
+        if (!link) {
+            return;
+        }
+
+        const url = new URL(link.href, window.location.origin);
+        url.searchParams.delete("_popup");
+        url.searchParams.set("_return_to", currentReturnUrl());
+        link.href = url.toString();
+    }
+
+    function prepareProductButtons(root) {
+        (root || document).querySelectorAll(".inline-group .field-product .related-widget-wrapper").forEach(function(wrapper) {
+            const addLink = wrapper.querySelector(".add-related");
+            const changeLink = wrapper.querySelector(".change-related");
+
+            wrapper.querySelector(".view-related")?.remove();
+            wrapper.querySelector(".delete-related")?.remove();
+
+            [addLink, changeLink].forEach(function(link) {
+                prepareProductLink(link);
+
+                if (!link || link.dataset.productSamePageBound === "true") {
+                    return;
+                }
+
+                link.dataset.productSamePageBound = "true";
+                link.addEventListener("click", function(event) {
+                    prepareProductLink(link);
+                    event.preventDefault();
+                    event.stopImmediatePropagation();
+                    window.location.href = link.href;
+                }, true);
+            });
+        });
+    }
+
     document.addEventListener("DOMContentLoaded", function () {
         bindAllFields(document);
+        prepareProductButtons(document);
         updateSummary();
 
         document.addEventListener("change", function (event) {
@@ -286,6 +328,7 @@
             $(document).on("formset:added", function (_event, row) {
                 const root = row.get ? row.get(0) : row;
                 bindAllFields(root);
+                prepareProductButtons(root);
                 updateSummary();
             });
         }
@@ -295,6 +338,7 @@
                 mutation.addedNodes.forEach(function (node) {
                     if (node.nodeType === 1) {
                         bindAllFields(node);
+                        prepareProductButtons(node);
                         updateSummary();
                     }
                 });

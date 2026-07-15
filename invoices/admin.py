@@ -131,6 +131,7 @@ class InvoiceAdminMixin:
     class Media:
         js = (
             "admin/js/invoice_product_info.js",
+            "admin/js/invoice_partner_type.js",
             "admin/js/raw_id_label_display.js",
         )
 

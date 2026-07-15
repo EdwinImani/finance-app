@@ -154,7 +154,49 @@ if (window.django && django.jQuery) {
     });
 }
 
+function currentReturnUrl() {
+    return window.location.pathname + window.location.search;
+}
+
+function prepareProductLink(link) {
+    if (!link) {
+        return;
+    }
+
+    const url = new URL(link.href, window.location.origin);
+    url.searchParams.delete("_popup");
+    url.searchParams.set("_return_to", currentReturnUrl());
+    link.href = url.toString();
+}
+
+function prepareProductButtons(root) {
+    (root || document).querySelectorAll(".inline-group .field-product .related-widget-wrapper").forEach(function(wrapper) {
+        const addLink = wrapper.querySelector(".add-related");
+        const changeLink = wrapper.querySelector(".change-related");
+
+        wrapper.querySelector(".view-related")?.remove();
+        wrapper.querySelector(".delete-related")?.remove();
+
+        [addLink, changeLink].forEach(function(link) {
+            prepareProductLink(link);
+
+            if (!link || link.dataset.productSamePageBound === "true") {
+                return;
+            }
+
+            link.dataset.productSamePageBound = "true";
+            link.addEventListener("click", function(event) {
+                prepareProductLink(link);
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                window.location.href = link.href;
+            }, true);
+        });
+    });
+}
+
 document.addEventListener("DOMContentLoaded", function() {
+    prepareProductButtons(document);
     document.querySelectorAll(".inline-group tr").forEach(fillMissingPurchaseHsCode);
     document.querySelectorAll("select[name$='product'], select[name$='-product'], input.vForeignKeyRawIdAdminField[name$='product'], input[name$='-product']").forEach(function(field) {
         if (field.value) {
@@ -164,5 +206,6 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 document.body.addEventListener("formset:added", function(event) {
+    prepareProductButtons(event.target);
     event.target.querySelectorAll(".inline-group tr, tr").forEach(fillMissingPurchaseHsCode);
 });
