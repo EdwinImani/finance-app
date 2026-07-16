@@ -11,7 +11,12 @@ from products.models import Product
 
 from .forms import CommercialInvoiceForm, ProformaInvoiceForm
 from .models import CommercialInvoice, CommercialInvoiceItem, ProformaInvoice, ProformaInvoiceItem
-from .pdf_builder import PDF_FIRST_PAGE_ITEM_LIMIT, PDF_OTHER_PAGE_ITEM_LIMIT, _split_items_for_pages
+from .pdf_builder import (
+    PDF_FIRST_PAGE_ITEM_LIMIT,
+    PDF_OTHER_PAGE_ITEM_LIMIT,
+    _split_items_for_pages,
+    format_footer_invoice_lines,
+)
 
 
 class PdfPaginationTests(TestCase):
@@ -26,6 +31,20 @@ class PdfPaginationTests(TestCase):
         )
 
         self.assertEqual([len(page) for page in pages], [6, 16, 16, 1])
+
+    def test_footer_invoice_city_country_moves_to_next_line(self):
+        lines = format_footer_invoice_lines(
+            "VERTEA SAS 23 route de Gisy - 91570 Bievres / France"
+        )
+
+        self.assertEqual(
+            lines,
+            [
+                "VERTEA SAS",
+                "23 route de Gisy - 91570",
+                "Bievres / France",
+            ],
+        )
 
 
 class ProformaConversionTests(TestCase):

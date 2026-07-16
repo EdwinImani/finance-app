@@ -33,6 +33,8 @@ from .models import (
 class ProformaItemInline(admin.TabularInline):
 
     model = ProformaInvoiceItem
+    verbose_name = "ligne"
+    verbose_name_plural = "lignes"
     extra = 1
 
     fields = (
@@ -122,7 +124,6 @@ class InvoiceAdminMixin:
     form = InvoiceAdminForm
 
     readonly_fields = (
-        "invoice_number",
         "subtotal_display",
         "vat_amount_display",
         "total_amount_display",
@@ -633,6 +634,8 @@ class ProformaInvoiceAdmin(InvoiceAdminMixin, SaveRedirectToWelcomeMixin, PageSi
 class CommercialItemInline(admin.TabularInline):
 
     model = CommercialInvoiceItem
+    verbose_name = "ligne"
+    verbose_name_plural = "lignes"
     extra = 1
 
     fields = (

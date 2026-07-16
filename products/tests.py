@@ -4,8 +4,10 @@ from tempfile import TemporaryDirectory
 
 from django.contrib.admin.sites import AdminSite
 from django.core.management import call_command
-from django.test import TestCase
+from django.test import RequestFactory, TestCase
 
+from invoices.models import ProformaInvoice
+from purchase.models import PurchaseOrder
 from .admin import ProductAdmin
 from .models import Product
 
@@ -75,6 +77,95 @@ class ProductAdminSearchTests(TestCase):
         self.assertNotIn("unit_price", form_class.base_fields)
         self.assertIn("sale_price", form_class.base_fields)
         self.assertIn("purchase_price", form_class.base_fields)
+
+
+class ProductAdminReturnTests(TestCase):
+
+    def setUp(self):
+        self.admin = ProductAdmin(Product, AdminSite())
+        self.factory = RequestFactory()
+
+    def _request(self, return_field, return_item_id=""):
+        data = {
+            "_return_to": "/admin/invoices/proformainvoice/1/change/",
+            "_return_field": return_field,
+        }
+        if return_item_id:
+            data["_return_item_id"] = return_item_id
+        request = self.factory.post("/admin/products/product/1/change/", data)
+        request.get_host = lambda: "127.0.0.1:8000"
+        request.is_secure = lambda: False
+        return request
+
+    def test_save_redirects_to_admin_return_url(self):
+        product = Product.objects.create(description="Return Save Product")
+        request = self.factory.post(
+            "/admin/products/product/1/change/",
+            {"admin_return_url": "/admin/products/product/"},
+        )
+        request.get_host = lambda: "127.0.0.1:8000"
+        request.is_secure = lambda: False
+
+        response = self.admin.response_change(request, product)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], "/admin/products/product/")
+
+    def test_save_without_return_url_falls_back_to_model_list(self):
+        product = Product.objects.create(description="Fallback Save Product")
+        request = self.factory.post("/admin/products/product/1/change/", {})
+        request.get_host = lambda: "127.0.0.1:8000"
+        request.is_secure = lambda: False
+
+        response = self.admin.response_change(request, product)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], "/admin/products/product/")
+
+    def test_return_from_product_creates_proforma_item(self):
+        product = Product.objects.create(
+            description="Returned Invoice Product",
+            part_number="RET-INV",
+            hs_code="8504.40",
+            sale_price=Decimal("12.30"),
+        )
+        invoice = ProformaInvoice.objects.create()
+        request = self._request("items-0-product")
+
+        self.admin._attach_product_to_return_item(
+            request,
+            product,
+            f"/admin/invoices/proformainvoice/{invoice.pk}/change/",
+        )
+
+        item = invoice.items.get()
+        self.assertEqual(item.product, product)
+        self.assertEqual(item.part_number, "RET-INV")
+        self.assertEqual(item.hs_code, "8504.40")
+        self.assertEqual(item.unit_price, Decimal("12.30"))
+
+    def test_return_from_product_creates_purchase_order_item(self):
+        product = Product.objects.create(
+            description="Returned Purchase Product",
+            part_number="RET-PO",
+            hs_code="8471.30",
+            purchase_price=Decimal("7.80"),
+        )
+        purchase_order = PurchaseOrder.objects.create()
+        request = self._request("items-0-product")
+
+        self.admin._attach_product_to_return_item(
+            request,
+            product,
+            f"/admin/purchase/purchaseorder/{purchase_order.pk}/change/",
+        )
+
+        item = purchase_order.items.get()
+        self.assertEqual(item.product, product)
+        self.assertEqual(item.description, "Returned Purchase Product")
+        self.assertEqual(item.part_number, "RET-PO")
+        self.assertEqual(item.hs_code, "8471.30")
+        self.assertEqual(item.unit_price, Decimal("7.80"))
 
 
 class ProductCsvImportTests(TestCase):

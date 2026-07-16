@@ -1,11 +1,14 @@
 from django.contrib import admin
+from django.apps import apps
+from django.core.exceptions import ObjectDoesNotExist
 from django.forms.formsets import all_valid
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
-from django.urls import path, reverse
+from django.urls import Resolver404, path, resolve, reverse
 from django.utils.http import urlencode
 from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
+from urllib.parse import parse_qsl, urlparse, urlunparse
 from financeapp.admin_mixins import PageSizeAdminMixin, SaveRedirectToWelcomeMixin
 from .models import Partner, PartnerAddress, PartnerPhone
 
@@ -90,7 +93,11 @@ class PartnerAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.ModelAd
             change_url = reverse("admin:partners_partner_change", args=[draft.pk])
             return_to = self._get_safe_return_url(request)
             if return_to:
-                change_url = f"{change_url}?{urlencode({'_return_to': return_to})}"
+                query = {"_return_to": return_to}
+                return_field = request.GET.get("_return_field")
+                if return_field:
+                    query["_return_field"] = return_field
+                change_url = f"{change_url}?{urlencode(query)}"
             return redirect(change_url)
 
         return super().add_view(request, form_url, extra_context)
@@ -98,13 +105,15 @@ class PartnerAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.ModelAd
     def response_add(self, request, obj, post_url_continue=None):
         return_to = self._get_safe_return_url(request)
         if return_to:
-            return redirect(return_to)
+            self._attach_partner_to_return_object(request, obj, return_to)
+            return redirect(self._return_url_with_partner(request, obj, return_to))
         return super().response_add(request, obj, post_url_continue=post_url_continue)
 
     def response_change(self, request, obj):
         return_to = self._get_safe_return_url(request)
         if return_to:
-            return redirect(return_to)
+            self._attach_partner_to_return_object(request, obj, return_to)
+            return redirect(self._return_url_with_partner(request, obj, return_to))
         return super().response_change(request, obj)
 
     def _get_safe_return_url(self, request):
@@ -120,6 +129,70 @@ class PartnerAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.ModelAd
             return return_to
 
         return ""
+
+    def _return_url_with_partner(self, request, partner, return_to):
+        return_field = request.POST.get("_return_field") or request.GET.get("_return_field")
+        if not return_field:
+            return return_to
+
+        return self._url_with_query(
+            return_to,
+            {
+                "_selected_partner_field": return_field,
+                "_selected_partner_id": partner.pk,
+                "_selected_partner_label": str(partner),
+            },
+        )
+
+    def _url_with_query(self, url, params):
+        parsed = urlparse(url)
+        query = dict(parse_qsl(parsed.query, keep_blank_values=True))
+        query.update(params)
+        return urlunparse(parsed._replace(query=urlencode(query)))
+
+    def _attach_partner_to_return_object(self, request, partner, return_to):
+        return_field = request.POST.get("_return_field") or request.GET.get("_return_field")
+        allowed_targets = {
+            "id_importer": ("invoices", "proformainvoice", "importer"),
+            "id_end_user": ("invoices", "proformainvoice", "end_user"),
+            "id_seller": ("purchase", "purchaseorder", "seller"),
+            "id_requester": ("purchase", "purchaseorder", "requester"),
+        }
+        commercial_targets = {
+            "id_importer": ("invoices", "commercialinvoice", "importer"),
+            "id_end_user": ("invoices", "commercialinvoice", "end_user"),
+        }
+
+        parsed = urlparse(return_to)
+        try:
+            match = resolve(parsed.path)
+        except Resolver404:
+            return
+
+        object_id = match.kwargs.get("object_id")
+        if not object_id:
+            return
+
+        target = allowed_targets.get(return_field)
+        if match.url_name == "invoices_commercialinvoice_change":
+            target = commercial_targets.get(return_field)
+
+        if not target:
+            return
+
+        app_label, model_name, field_name = target
+        expected_url_name = f"{app_label}_{model_name}_change"
+        if match.url_name != expected_url_name:
+            return
+
+        try:
+            model = apps.get_model(app_label, model_name)
+            document = model.objects.get(pk=object_id)
+        except (LookupError, ObjectDoesNotExist):
+            return
+
+        setattr(document, field_name, partner)
+        document.save(update_fields=[field_name])
 
     def get_urls(self):
         urls = super().get_urls()

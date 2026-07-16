@@ -238,10 +238,21 @@
     }
 
     function currentReturnUrl() {
-        return window.location.pathname + window.location.search;
+        const url = new URL(window.location.href);
+        [
+            "_selected_product_field",
+            "_selected_product_id",
+            "_selected_product_label",
+            "_selected_partner_field",
+            "_selected_partner_id",
+            "_selected_partner_label",
+        ].forEach(function(key) {
+            url.searchParams.delete(key);
+        });
+        return url.pathname + url.search;
     }
 
-    function prepareProductLink(link) {
+    function prepareProductLink(link, fieldName, itemId, action) {
         if (!link) {
             return;
         }
@@ -249,27 +260,56 @@
         const url = new URL(link.href, window.location.origin);
         url.searchParams.delete("_popup");
         url.searchParams.set("_return_to", currentReturnUrl());
+        url.searchParams.set("_return_product_action", action || "edit");
+        if (fieldName) {
+            url.searchParams.set("_return_field", fieldName);
+        }
+        if (itemId && action !== "add") {
+            url.searchParams.set("_return_item_id", itemId);
+        } else {
+            url.searchParams.delete("_return_item_id");
+        }
         link.href = url.toString();
+    }
+
+    function getProductFieldName(wrapper) {
+        const field = wrapper.querySelector('select[name$="-product"], input[name$="-product"]');
+        return field ? field.name : "";
+    }
+
+    function getItemId(wrapper, fieldName) {
+        if (!fieldName) {
+            return "";
+        }
+        const row = wrapper.closest("tr");
+        const prefix = fieldName.replace(/-product$/, "");
+        const idField = row ? row.querySelector(`[name="${CSS.escape(prefix + "-id")}"]`) : null;
+        return idField ? idField.value : "";
     }
 
     function prepareProductButtons(root) {
         (root || document).querySelectorAll(".inline-group .field-product .related-widget-wrapper").forEach(function(wrapper) {
             const addLink = wrapper.querySelector(".add-related");
             const changeLink = wrapper.querySelector(".change-related");
+            const fieldName = getProductFieldName(wrapper);
+            const itemId = getItemId(wrapper, fieldName);
 
             wrapper.querySelector(".view-related")?.remove();
             wrapper.querySelector(".delete-related")?.remove();
 
-            [addLink, changeLink].forEach(function(link) {
-                prepareProductLink(link);
+            prepareProductLink(addLink, fieldName, "", "add");
+            prepareProductLink(changeLink, fieldName, itemId, "edit");
 
+            [addLink, changeLink].forEach(function(link) {
                 if (!link || link.dataset.productSamePageBound === "true") {
                     return;
                 }
 
                 link.dataset.productSamePageBound = "true";
                 link.addEventListener("click", function(event) {
-                    prepareProductLink(link);
+                    const action = link.classList.contains("add-related") ? "add" : "edit";
+                    const currentItemId = action === "add" ? "" : getItemId(wrapper, fieldName);
+                    prepareProductLink(link, fieldName, currentItemId, action);
                     event.preventDefault();
                     event.stopImmediatePropagation();
                     window.location.href = link.href;
@@ -278,9 +318,47 @@
         });
     }
 
+    function applyReturnedProductSelection() {
+        const params = new URLSearchParams(window.location.search);
+        const fieldName = params.get("_selected_product_field");
+        const productId = params.get("_selected_product_id");
+        const productLabel = params.get("_selected_product_label");
+
+        if (!fieldName || !productId) {
+            return;
+        }
+
+        const field = document.querySelector(`[name="${CSS.escape(fieldName)}"]`);
+        if (!field) {
+            return;
+        }
+
+        if (field.tagName === "SELECT") {
+            let option = Array.from(field.options).find(function(item) {
+                return item.value === productId;
+            });
+            if (!option) {
+                option = new Option(productLabel || productId, productId, true, true);
+                field.appendChild(option);
+            }
+            field.value = productId;
+            if (window.django && window.django.jQuery) {
+                window.django.jQuery(field).trigger("change");
+            } else {
+                field.dispatchEvent(new Event("change", { bubbles: true }));
+            }
+        } else {
+            field.value = productId;
+            field.dispatchEvent(new Event("change", { bubbles: true }));
+        }
+
+        fetchProductInfoForField(field, { forceDefaultPrice: true });
+    }
+
     document.addEventListener("DOMContentLoaded", function () {
         bindAllFields(document);
         prepareProductButtons(document);
+        applyReturnedProductSelection();
         updateSummary();
 
         document.addEventListener("change", function (event) {

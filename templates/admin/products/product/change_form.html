@@ -43,6 +43,9 @@
 document.addEventListener("DOMContentLoaded", function() {
     var params = new URLSearchParams(window.location.search);
     var returnTo = params.get("_return_to");
+    var returnField = params.get("_return_field");
+    var returnItemId = params.get("_return_item_id");
+    var returnProductAction = params.get("_return_product_action");
     var form = document.querySelector("#content-main form");
 
     if (returnTo && form && !form.querySelector('input[name="_return_to"]')) {
@@ -51,6 +54,27 @@ document.addEventListener("DOMContentLoaded", function() {
         returnInput.name = "_return_to";
         returnInput.value = returnTo;
         form.appendChild(returnInput);
+    }
+    if (returnField && form && !form.querySelector('input[name="_return_field"]')) {
+        var fieldInput = document.createElement("input");
+        fieldInput.type = "hidden";
+        fieldInput.name = "_return_field";
+        fieldInput.value = returnField;
+        form.appendChild(fieldInput);
+    }
+    if (returnItemId && form && !form.querySelector('input[name="_return_item_id"]')) {
+        var itemInput = document.createElement("input");
+        itemInput.type = "hidden";
+        itemInput.name = "_return_item_id";
+        itemInput.value = returnItemId;
+        form.appendChild(itemInput);
+    }
+    if (returnProductAction && form && !form.querySelector('input[name="_return_product_action"]')) {
+        var actionInput = document.createElement("input");
+        actionInput.type = "hidden";
+        actionInput.name = "_return_product_action";
+        actionInput.value = returnProductAction;
+        form.appendChild(actionInput);
     }
 });
 </script>

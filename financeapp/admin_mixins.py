@@ -2,13 +2,67 @@ from django.contrib.admin.views.main import ChangeList
 from django.contrib.admin.options import IS_POPUP_VAR
 from django.shortcuts import redirect
 from django.urls import reverse
+from django.utils.http import url_has_allowed_host_and_scheme
+from urllib.parse import urlparse
 
 
 class SaveRedirectToWelcomeMixin:
     save_redirect_url = "/admin/"
 
+    def _safe_return_url(self, request, url):
+        if not url:
+            return ""
+
+        if not url_has_allowed_host_and_scheme(
+            url,
+            allowed_hosts={request.get_host()},
+            require_https=request.is_secure(),
+        ):
+            return ""
+
+        return url
+
+    def _fallback_parent_url(self, request):
+        path = request.path.rstrip("/")
+        if not path or path == "/admin":
+            return self.save_redirect_url
+
+        parts = path.split("/")
+        if parts[-1] == "change" and len(parts) >= 3:
+            parent = "/".join(parts[:-2]) or self.save_redirect_url
+        elif parts[-1] == "add" and len(parts) >= 2:
+            parent = "/".join(parts[:-1]) or self.save_redirect_url
+        else:
+            parent = path.rsplit("/", 1)[0] or self.save_redirect_url
+        return f"{parent}/"
+
+    def _is_current_url(self, request, url):
+        parsed = urlparse(url)
+        current_path = request.get_full_path()
+        if parsed.scheme or parsed.netloc:
+            candidate = parsed.path
+            if parsed.query:
+                candidate = f"{candidate}?{parsed.query}"
+        else:
+            candidate = url
+        return candidate == current_path
+
+    def _get_return_url(self, request):
+        submitted_url = self._safe_return_url(
+            request,
+            request.POST.get("admin_return_url") or request.GET.get("admin_return_url"),
+        )
+        if submitted_url:
+            return submitted_url
+
+        referer_url = self._safe_return_url(request, request.META.get("HTTP_REFERER"))
+        if referer_url and not self._is_current_url(request, referer_url):
+            return referer_url
+
+        return self._fallback_parent_url(request)
+
     def _redirect_after_save(self, request):
-        return redirect(self.save_redirect_url)
+        return redirect(self._get_return_url(request))
 
     def _redirect_to_add_form(self, request):
         opts = self.model._meta
@@ -21,6 +75,7 @@ class SaveRedirectToWelcomeMixin:
     def changeform_view(self, request, object_id=None, form_url="", extra_context=None):
         extra_context = extra_context or {}
         extra_context["show_save_and_continue"] = False
+        extra_context["admin_return_url"] = self._get_return_url(request)
         return super().changeform_view(
             request,
             object_id=object_id,

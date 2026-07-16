@@ -1,4 +1,5 @@
 {% extends "admin/change_form.html" %}
+{% load static %}
 
 {% block extrahead %}
 {{ block.super }}
@@ -9,6 +10,8 @@
     };
 </script>
 {% endif %}
+<script src="{% static 'admin/js/product_autofill.js' %}?v=20260716-product-add-line" defer></script>
+<script src="{% static 'admin/js/purchase_partner_type.js' %}?v=20260716-product-add-line" defer></script>
 <style>
     :root {
         --po-form-bg: #f7f1ef;
@@ -332,6 +335,19 @@
         justify-self: center;
     }
 
+    .inline-group .tabular table {
+        min-width: 1760px;
+    }
+
+    .inline-group .tabular .field-product {
+        width: 760px !important;
+    }
+
+    .inline-group .field-product .related-widget-wrapper,
+    .inline-group .field-product .related-widget-wrapper .select2-container {
+        min-width: 700px;
+    }
+
     .inline-group .tabular input:not([type="checkbox"]):not([type="radio"]),
     .inline-group .tabular select {
         min-height: 32px;
@@ -591,11 +607,15 @@ document.addEventListener("DOMContentLoaded", function() {
                 event.preventDefault();
                 setHiddenValue(form, "_save_and_pdf", "1");
                 setHiddenValue(form, "_save_and_pdf_url", link.dataset.saveAndPdfUrl || link.href);
+                form.target = "_blank";
                 if (form.requestSubmit) {
                     form.requestSubmit();
                 } else {
                     form.submit();
                 }
+                window.setTimeout(function() {
+                    form.removeAttribute("target");
+                }, 0);
             });
         });
     }

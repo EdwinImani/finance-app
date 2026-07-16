@@ -16,7 +16,7 @@ class PurchaseOrder(models.Model):
         max_length=50,
         unique=True,
         blank=True,
-        editable=False
+        editable=True
     )
 
     purchase_date = models.DateField(

@@ -33,6 +33,8 @@ from .models import PurchaseOrder, PurchaseOrderItem
 
 class PurchaseOrderItemInline(admin.TabularInline):
     model = PurchaseOrderItem
+    verbose_name = "ligne"
+    verbose_name_plural = "lignes"
     extra = 1
 
     fields = (
@@ -99,7 +101,6 @@ class PurchaseOrderAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.M
     form = PurchaseOrderAdminForm
 
     readonly_fields = (
-        "purchase_number",
         "gross_value_display",
         "vat_amount_display",
         "total_amount_display",
@@ -150,6 +151,7 @@ class PurchaseOrderAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.M
 
     class Media:
         js = (
+            "admin/js/invoice_autosave.js",
             "admin/js/product_autofill.js",
             "admin/js/purchase_partner_type.js",
             "admin/js/raw_id_label_display.js",

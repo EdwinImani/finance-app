@@ -389,7 +389,7 @@ def _build_styles():
             fontName=PDF_FONT_BOLD,
             fontSize=20.5,
             leading=22.5,
-            textColor=colors.HexColor("#9A3412"),
+            textColor=colors.HexColor("#EA580C"),
             spaceAfter=0,
         ),
         "section_title": ParagraphStyle(
@@ -398,7 +398,7 @@ def _build_styles():
             fontName=PDF_FONT_BOLD,
             fontSize=8.5,
             leading=9.5,
-            textColor=colors.HexColor("#C2410C"),
+            textColor=colors.HexColor("#F97316"),
             spaceAfter=0,
         ),
         "document_type_title": ParagraphStyle(
@@ -407,7 +407,7 @@ def _build_styles():
             fontName=PDF_FONT_BOLD,
             fontSize=11,
             leading=12.5,
-            textColor=colors.HexColor("#C2410C"),
+            textColor=colors.HexColor("#F97316"),
             spaceAfter=0,
         ),
         "label": ParagraphStyle(
@@ -416,7 +416,7 @@ def _build_styles():
             fontName=PDF_FONT_BOLD,
             fontSize=8,
             leading=9,
-            textColor=colors.HexColor("#7C2D12"),
+            textColor=colors.HexColor("#B45309"),
         ),
         "body": ParagraphStyle(
             "Body",
@@ -472,7 +472,7 @@ def _build_styles():
             fontSize=8,
             leading=9,
             alignment=TA_LEFT,
-            textColor=colors.HexColor("#C2410C"),
+            textColor=colors.HexColor("#F97316"),
         ),
         "table_head_center": ParagraphStyle(
             "TableHeadCenter",
@@ -481,7 +481,7 @@ def _build_styles():
             fontSize=8,
             leading=9,
             alignment=TA_CENTER,
-            textColor=colors.HexColor("#C2410C"),
+            textColor=colors.HexColor("#F97316"),
         ),
         "table_head_amount": ParagraphStyle(
             "TableHeadAmount",
@@ -490,7 +490,7 @@ def _build_styles():
             fontSize=8,
             leading=9,
             alignment=TA_RIGHT,
-            textColor=colors.HexColor("#C2410C"),
+            textColor=colors.HexColor("#F97316"),
         ),
         "table_cell": ParagraphStyle(
             "TableCell",
@@ -499,7 +499,7 @@ def _build_styles():
             fontSize=8.3,
             leading=9.4,
             alignment=TA_JUSTIFY,
-            textColor=colors.HexColor("#431407"),
+            textColor=colors.HexColor("#3F2A14"),
         ),
         "table_cell_part_number": ParagraphStyle(
             "TableCellPartNumber",
@@ -508,7 +508,7 @@ def _build_styles():
             fontSize=7.2,
             leading=8,
             alignment=TA_LEFT,
-            textColor=colors.HexColor("#431407"),
+            textColor=colors.HexColor("#3F2A14"),
             wordWrap="CJK",
         ),
         "table_cell_right": ParagraphStyle(
@@ -518,7 +518,7 @@ def _build_styles():
             fontSize=8.3,
             leading=9.4,
             alignment=TA_RIGHT,
-            textColor=colors.HexColor("#431407"),
+            textColor=colors.HexColor("#3F2A14"),
         ),
         "table_cell_center": ParagraphStyle(
             "TableCellCenter",
@@ -527,7 +527,7 @@ def _build_styles():
             fontSize=8.3,
             leading=9.4,
             alignment=TA_CENTER,
-            textColor=colors.HexColor("#431407"),
+            textColor=colors.HexColor("#3F2A14"),
         ),
         "purchase_order_date_value": ParagraphStyle(
             "PurchaseOrderDateValue",
@@ -536,7 +536,7 @@ def _build_styles():
             fontSize=8.3,
             leading=9.4,
             alignment=TA_LEFT,
-            textColor=colors.HexColor("#431407"),
+            textColor=colors.HexColor("#3F2A14"),
         ),
         "table_cell_amount": ParagraphStyle(
             "TableCellAmount",
@@ -545,41 +545,41 @@ def _build_styles():
             fontSize=8.3,
             leading=9.4,
             alignment=TA_RIGHT,
-            textColor=colors.HexColor("#431407"),
+            textColor=colors.HexColor("#3F2A14"),
         ),
         "footer": ParagraphStyle(
             "Footer",
             parent=base["BodyText"],
-            fontName=PDF_FONT_BOLD,
-            fontSize=10,
-            leading=11,
+            fontName=PDF_FONT_REGULAR,
+            fontSize=9,
+            leading=10,
             alignment=TA_RIGHT,
             textColor=colors.black,
         ),
         "footer_left_small": ParagraphStyle(
             "FooterLeftSmall",
             parent=base["BodyText"],
-            fontName=PDF_FONT_BOLD,
-            fontSize=9,
-            leading=10,
+            fontName=PDF_FONT_REGULAR,
+            fontSize=8,
+            leading=9,
             alignment=TA_LEFT,
             textColor=colors.black,
         ),
         "footer_center_small": ParagraphStyle(
             "FooterCenterSmall",
             parent=base["BodyText"],
-            fontName=PDF_FONT_BOLD,
-            fontSize=9,
-            leading=10,
+            fontName=PDF_FONT_REGULAR,
+            fontSize=8,
+            leading=9,
             alignment=TA_CENTER,
             textColor=colors.black,
         ),
         "footer_right_small": ParagraphStyle(
             "FooterRightSmall",
             parent=base["BodyText"],
-            fontName=PDF_FONT_BOLD,
-            fontSize=9,
-            leading=10,
+            fontName=PDF_FONT_REGULAR,
+            fontSize=8,
+            leading=9,
             alignment=TA_RIGHT,
             textColor=colors.black,
         ),
@@ -872,7 +872,7 @@ def _build_purchase_order_detail_boxes(purchase_order, company, styles):
     left_lines = []
     if getattr(company, "company_name", ""):
         left_lines.append(
-            f'<font color="#C2410C"><b>{_format_preserving_layout(company.company_name)}</b></font>'
+            f'<font color="#F97316"><b>{_format_preserving_layout(company.company_name)}</b></font>'
         )
     if getattr(company, "siren", ""):
         left_lines.append(f"<b>SIREN:</b> {_format_preserving_layout(company.siren)}")
@@ -1333,6 +1333,12 @@ def format_footer_invoice_lines(footer_invoice):
 
     first_line = parts[0][: match.start()].strip()
     second_line = parts[0][match.start() :].strip()
+    address_match = re.match(r"^(.*\b\d{4,6})\s+([^/]+/\s*[^/]+)$", second_line)
+    if address_match:
+        address_line = address_match.group(1).strip()
+        city_country_line = address_match.group(2).strip()
+        return [part for part in (first_line, address_line, city_country_line) if part]
+
     return [part for part in (first_line, second_line) if part]
 
 
@@ -1812,7 +1818,7 @@ def _build_report_histogram(*, chart_labels, chart_totals, title):
         (colors.HexColor("#5C9F7D"), colors.HexColor("#3E7A5D")),
         (colors.HexColor("#648FAE"), colors.HexColor("#416C8B")),
         (colors.HexColor("#EDCB73"), colors.HexColor("#C5A24A")),
-        (colors.HexColor("#EA7D61"), colors.HexColor("#C65E43")),
+        (colors.HexColor("#F59E0B"), colors.HexColor("#D97706")),
         (colors.HexColor("#B78EC8"), colors.HexColor("#8A63A0")),
         (colors.HexColor("#57A39C"), colors.HexColor("#347D76")),
     ]
@@ -1823,7 +1829,7 @@ def _build_report_histogram(*, chart_labels, chart_totals, title):
         chart.bars[(0, index)].strokeWidth = 0.8
 
     drawing.add(chart)
-    drawing.add(String(0, 70 * mm, title, fontName=PDF_FONT_BOLD, fontSize=15, fillColor=colors.HexColor("#9A3412")))
+    drawing.add(String(0, 70 * mm, title, fontName=PDF_FONT_BOLD, fontSize=15, fillColor=colors.HexColor("#EA580C")))
     drawing.add(String(0, 64 * mm, "Metric: Total Amount", fontName=PDF_FONT_BOLD, fontSize=10, fillColor=colors.HexColor("#5F6368")))
     drawing.add(String(90 * mm, 4 * mm, "Month", fontName=PDF_FONT_REGULAR, fontSize=10, fillColor=colors.HexColor("#5F6368"), textAnchor="middle"))
     return drawing
@@ -2215,7 +2221,7 @@ if pdf_canvas is not None:
             for index, state in enumerate(page_states[:-1], start=1):
                 self.__dict__.update(state)
                 self.page_count = total_pages
-                self.setFont(PDF_FONT_REGULAR, 10)
+                self.setFont(PDF_FONT_REGULAR, 9)
                 self.setFillColor(colors.HexColor("#6C7682"))
                 self.drawCentredString(
                     self._pagesize[0] / 2,
@@ -2224,3 +2230,4 @@ if pdf_canvas is not None:
                 )
                 super().showPage()
             super().save()
+

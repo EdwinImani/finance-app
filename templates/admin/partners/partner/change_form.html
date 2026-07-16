@@ -127,6 +127,7 @@
 document.addEventListener("DOMContentLoaded", function() {
     var params = new URLSearchParams(window.location.search);
     var returnTo = params.get("_return_to");
+    var returnField = params.get("_return_field");
     var form = document.querySelector("#content-main form");
     if (returnTo && form && !form.querySelector('input[name="_return_to"]')) {
         var returnInput = document.createElement("input");
@@ -134,6 +135,13 @@ document.addEventListener("DOMContentLoaded", function() {
         returnInput.name = "_return_to";
         returnInput.value = returnTo;
         form.appendChild(returnInput);
+    }
+    if (returnField && form && !form.querySelector('input[name="_return_field"]')) {
+        var fieldInput = document.createElement("input");
+        fieldInput.type = "hidden";
+        fieldInput.name = "_return_field";
+        fieldInput.value = returnField;
+        form.appendChild(fieldInput);
     }
 
     var partnerTypeSelect = document.querySelector("#id_partner_type");

@@ -19,7 +19,7 @@ class BaseInvoice(models.Model):
         max_length=50,
         unique=True,
         blank=True,
-        editable=False
+        editable=True
     )
 
     invoice_date = models.DateField(default=timezone.now)
