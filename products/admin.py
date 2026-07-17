@@ -116,6 +116,23 @@ class ProductAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.ModelAd
 
     list_filter = (LowStockFilter, PartNumberFilter, HSCodeFilter)
 
+    def changeform_view(self, request, object_id=None, form_url="", extra_context=None):
+        return_to = self._get_safe_return_url(request)
+        if (
+            request.method == "POST"
+            and object_id is None
+            and return_to
+            and self._is_empty_return_product_add(request)
+        ):
+            return redirect(return_to)
+
+        return super().changeform_view(
+            request,
+            object_id=object_id,
+            form_url=form_url,
+            extra_context=extra_context,
+        )
+
     def response_add(self, request, obj, post_url_continue=None):
         return_to = self._get_safe_return_url(request)
         if return_to:
@@ -141,6 +158,36 @@ class ProductAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.ModelAd
 
     def _get_return_product_action(self, request):
         return request.POST.get("_return_product_action") or request.GET.get("_return_product_action")
+
+    def _is_empty_return_product_add(self, request):
+        fields = {
+            "description": "text",
+            "part_number": "text",
+            "hs_code": "text",
+            "note": "text",
+            "unit_qty": "number",
+            "sale_price": "number",
+            "purchase_price": "number",
+        }
+
+        for field, field_type in fields.items():
+            value = (request.POST.get(field) or "").strip()
+            if field_type == "text" and value:
+                return False
+            if field_type == "number" and self._posted_number_has_value(value):
+                return False
+
+        return True
+
+    def _posted_number_has_value(self, value):
+        if not value:
+            return False
+
+        normalized = value.replace(",", ".")
+        try:
+            return float(normalized) != 0
+        except ValueError:
+            return True
 
     def _get_safe_return_url(self, request):
         return_to = request.POST.get("_return_to") or request.GET.get("_return_to")

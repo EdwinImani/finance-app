@@ -12,8 +12,13 @@ from products.models import Product
 from .forms import CommercialInvoiceForm, ProformaInvoiceForm
 from .models import CommercialInvoice, CommercialInvoiceItem, ProformaInvoice, ProformaInvoiceItem
 from .pdf_builder import (
+    PDF_BOTTOM_MARGIN,
     PDF_FIRST_PAGE_ITEM_LIMIT,
     PDF_OTHER_PAGE_ITEM_LIMIT,
+    PDF_TOP_MARGIN,
+    _build_invoice_item_table_styles,
+    _build_purchase_order_styles,
+    _build_styles,
     _split_items_for_pages,
     format_footer_invoice_lines,
 )
@@ -21,8 +26,8 @@ from .pdf_builder import (
 
 class PdfPaginationTests(TestCase):
 
-    def test_pdf_item_pages_use_seven_items_then_sixteen_items(self):
-        items = list(range(39))
+    def test_pdf_item_pages_use_ten_items_then_seventeen_items(self):
+        items = list(range(44))
 
         pages = _split_items_for_pages(
             items,
@@ -30,7 +35,25 @@ class PdfPaginationTests(TestCase):
             other_pages_max=PDF_OTHER_PAGE_ITEM_LIMIT,
         )
 
-        self.assertEqual([len(page) for page in pages], [7, 16, 16])
+        self.assertEqual([len(page) for page in pages], [10, 17, 17])
+
+    def test_pdf_body_uses_extra_space_above_footer(self):
+        self.assertEqual(PDF_TOP_MARGIN, 42)
+        self.assertEqual(PDF_BOTTOM_MARGIN, 25)
+
+    def test_item_table_font_size_is_not_reduced_for_pdf_pagination(self):
+        styles = _build_styles()
+        item_styles = _build_invoice_item_table_styles(styles)
+
+        self.assertEqual(item_styles["table_cell"].fontSize, styles["table_cell"].fontSize)
+        self.assertEqual(item_styles["table_cell_part_number"].fontSize, styles["table_cell_part_number"].fontSize)
+
+    def test_purchase_order_item_table_font_size_keeps_normal_pdf_size(self):
+        styles = _build_styles()
+        purchase_styles = _build_purchase_order_styles()
+
+        self.assertEqual(purchase_styles["table_cell"].fontSize, styles["table_cell"].fontSize)
+        self.assertEqual(purchase_styles["table_cell_part_number"].fontSize, styles["table_cell_part_number"].fontSize)
 
     def test_footer_invoice_city_country_moves_to_next_line(self):
         lines = format_footer_invoice_lines(
@@ -811,6 +834,41 @@ class CommercialInvoiceAdminDraftTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response["Location"], pdf_url)
         self.assertEqual(invoice.items.count(), 1)
+
+    def test_save_button_ignores_stale_save_and_pdf_fields(self):
+        invoice = CommercialInvoice.objects.create(vat_percent=Decimal("20.00"))
+        pdf_url = reverse("admin:invoices_commercialinvoice_pdf", args=[invoice.pk])
+
+        response = self.client.post(
+            reverse("admin:invoices_commercialinvoice_change", args=[invoice.pk]),
+            {
+                "invoice_date": invoice.invoice_date.strftime("%Y-%m-%d"),
+                "importer": "",
+                "end_user": "",
+                "our_order_no": "",
+                "our_reference": "",
+                "dispatching_note": "",
+                "packing_specification": "",
+                "freight": "0.00",
+                "discount": "0.00",
+                "vat_percent": "20.00",
+                "items-TOTAL_FORMS": "0",
+                "items-INITIAL_FORMS": "0",
+                "items-MIN_NUM_FORMS": "0",
+                "items-MAX_NUM_FORMS": "1000",
+                "packing_entries-TOTAL_FORMS": "0",
+                "packing_entries-INITIAL_FORMS": "0",
+                "packing_entries-MIN_NUM_FORMS": "0",
+                "packing_entries-MAX_NUM_FORMS": "1000",
+                "_save": "Save",
+                "_save_and_pdf": "1",
+                "_save_and_pdf_url": pdf_url,
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertNotEqual(response["Location"], pdf_url)
+        self.assertEqual(response["Location"], reverse("admin:invoices_commercialinvoice_changelist"))
 
     def test_proforma_form_shows_add_another_without_save_and_continue(self):
         proforma = ProformaInvoice.objects.create(vat_percent=Decimal("20.00"))

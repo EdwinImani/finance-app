@@ -10,8 +10,8 @@
     };
 </script>
 {% endif %}
-<script src="{% static 'admin/js/invoice_product_info.js' %}?v=20260716-product-add-line" defer></script>
-<script src="{% static 'admin/js/invoice_partner_type.js' %}?v=20260716-product-add-line" defer></script>
+<script src="{% static 'admin/js/invoice_product_info.js' %}?v=20260717-save-return" defer></script>
+<script src="{% static 'admin/js/invoice_partner_type.js' %}?v=20260717-save-return" defer></script>
 <style>
     :root {
         --invoice-bg: #fff4e6;
@@ -643,6 +643,8 @@
 </style>
 <script>
 document.addEventListener("DOMContentLoaded", function() {
+    var saveAndPdfSubmit = false;
+
     function setHiddenValue(form, name, value) {
         var input = form.querySelector('input[name="' + name + '"]');
         if (!input) {
@@ -652,6 +654,29 @@ document.addEventListener("DOMContentLoaded", function() {
             form.appendChild(input);
         }
         input.value = value;
+    }
+
+    function removeHiddenValue(form, name) {
+        var input = form.querySelector('input[name="' + name + '"]');
+        if (input) {
+            input.remove();
+        }
+    }
+
+    function clearSaveAndPdfMode(form) {
+        saveAndPdfSubmit = false;
+        removeHiddenValue(form, "_save_and_pdf");
+        removeHiddenValue(form, "_save_and_pdf_url");
+        form.removeAttribute("target");
+    }
+
+    var mainForm = document.querySelector("#content-main form");
+    if (mainForm) {
+        mainForm.addEventListener("submit", function() {
+            if (!saveAndPdfSubmit) {
+                clearSaveAndPdfMode(mainForm);
+            }
+        });
     }
 
     function bindSaveAndPdfButtons() {
@@ -666,6 +691,7 @@ document.addEventListener("DOMContentLoaded", function() {
                     return;
                 }
                 event.preventDefault();
+                saveAndPdfSubmit = true;
                 setHiddenValue(form, "_save_and_pdf", "1");
                 setHiddenValue(form, "_save_and_pdf_url", link.dataset.saveAndPdfUrl || link.href);
                 form.target = "_blank";
@@ -675,8 +701,8 @@ document.addEventListener("DOMContentLoaded", function() {
                     form.submit();
                 }
                 window.setTimeout(function() {
-                    form.removeAttribute("target");
-                }, 0);
+                    clearSaveAndPdfMode(form);
+                }, 1000);
             });
         });
     }

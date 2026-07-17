@@ -227,7 +227,7 @@ class InvoiceAdminMixin:
         return super().changelist_view(request, extra_context=extra_context)
 
     def response_change(self, request, obj):
-        if "_save_and_pdf" in request.POST:
+        if "_save_and_pdf" in request.POST and "_save" not in request.POST:
             return redirect(request.POST.get("_save_and_pdf_url") or self.get_invoice_pdf_url(obj))
         return super().response_change(request, obj)
 

@@ -166,6 +166,10 @@ function currentReturnUrl() {
     ].forEach(function(key) {
         url.searchParams.delete(key);
     });
+    const adminReturnInput = document.querySelector('input[name="admin_return_url"]');
+    if (adminReturnInput && adminReturnInput.value) {
+        url.searchParams.set("admin_return_url", adminReturnInput.value);
+    }
     return url.pathname + url.search;
 }
 

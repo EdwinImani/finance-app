@@ -376,3 +376,34 @@ class PurchaseOrderAdminAutosaveTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response["Location"], pdf_url)
         self.assertEqual(purchase_order.items.count(), 1)
+
+    def test_save_button_ignores_stale_save_and_pdf_fields(self):
+        purchase_order = PurchaseOrder.objects.create(vat_percent=Decimal("20.00"))
+        pdf_url = reverse("admin:purchase_purchaseorder_pdf", args=[purchase_order.pk])
+
+        response = self.client.post(
+            reverse("admin:purchase_purchaseorder_change", args=[purchase_order.pk]),
+            {
+                "purchase_date": purchase_order.purchase_date.strftime("%Y-%m-%d"),
+                "seller": "",
+                "requester": "",
+                "sent_by": "",
+                "shipment": "",
+                "freight": "0.00",
+                "vat_percent": "20.00",
+                "sales_condition": "",
+                "payment_condition": "",
+                "delivery_terms": "",
+                "items-TOTAL_FORMS": "0",
+                "items-INITIAL_FORMS": "0",
+                "items-MIN_NUM_FORMS": "0",
+                "items-MAX_NUM_FORMS": "1000",
+                "_save": "Save",
+                "_save_and_pdf": "1",
+                "_save_and_pdf_url": pdf_url,
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertNotEqual(response["Location"], pdf_url)
+        self.assertEqual(response["Location"], reverse("admin:purchase_purchaseorder_changelist"))

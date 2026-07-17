@@ -124,6 +124,19 @@ class ProductAdminReturnTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response["Location"], "/admin/products/product/")
 
+    def test_get_return_url_uses_admin_return_url_query(self):
+        request = self.factory.get(
+            "/admin/products/product/1/change/",
+            {"admin_return_url": "/admin/products/product/?p=2"},
+        )
+        request.get_host = lambda: "127.0.0.1:8000"
+        request.is_secure = lambda: False
+
+        self.assertEqual(
+            self.admin._get_return_url(request),
+            "/admin/products/product/?p=2",
+        )
+
     def test_save_without_return_url_falls_back_to_model_list(self):
         product = Product.objects.create(description="Fallback Save Product")
         request = self.factory.post("/admin/products/product/1/change/", {})
@@ -175,6 +188,23 @@ class ProductAdminReturnTests(TestCase):
         self.assertEqual(response["Location"], return_to)
         self.assertEqual(item.product, product)
         self.assertEqual(item.unit_price, Decimal("16.90"))
+
+    def test_empty_add_product_from_document_returns_without_creating_product(self):
+        return_to = "/admin/invoices/proformainvoice/1/change/"
+        request = self._add_request(return_to, "items-0-product")
+
+        response = self.admin.changeform_view(request)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], return_to)
+        self.assertFalse(Product.objects.exists())
+
+    def test_started_add_product_from_document_still_requires_description(self):
+        request = self._add_request("/admin/invoices/proformainvoice/1/change/", "items-0-product")
+        request.POST = request.POST.copy()
+        request.POST["part_number"] = "REF-WITHOUT-DESCRIPTION"
+
+        self.assertFalse(self.admin._is_empty_return_product_add(request))
 
     def test_return_from_product_creates_purchase_order_item(self):
         product = Product.objects.create(

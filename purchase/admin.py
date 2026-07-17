@@ -189,7 +189,7 @@ class PurchaseOrderAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.M
         return super().add_view(request, form_url, extra_context)
 
     def response_change(self, request, obj):
-        if "_save_and_pdf" in request.POST:
+        if "_save_and_pdf" in request.POST and "_save" not in request.POST:
             return redirect(request.POST.get("_save_and_pdf_url") or self.get_purchase_pdf_url(obj))
         return super().response_change(request, obj)
 

@@ -4,8 +4,10 @@ from pathlib import Path
 import re
 
 pdf_canvas = None
-PDF_FIRST_PAGE_ITEM_LIMIT = 7
-PDF_OTHER_PAGE_ITEM_LIMIT = 16
+PDF_FIRST_PAGE_ITEM_LIMIT = 10
+PDF_OTHER_PAGE_ITEM_LIMIT = 17
+PDF_TOP_MARGIN = 42
+PDF_BOTTOM_MARGIN = 25
 
 try:
     from reportlab.lib import colors
@@ -87,8 +89,8 @@ def build_invoice_pdf(*, invoice, company, items, importer, end_user, invoice_ti
         pagesize=A4,
         leftMargin=12 * mm,
         rightMargin=14 * mm,
-        topMargin=42 * mm,
-        bottomMargin=42 * mm,
+        topMargin=PDF_TOP_MARGIN * mm,
+        bottomMargin=PDF_BOTTOM_MARGIN * mm,
         title=invoice.invoice_number or invoice_title,
     )
 
@@ -185,8 +187,8 @@ def build_commercial_report_pdf(
         pagesize=A4,
         leftMargin=12 * mm,
         rightMargin=14 * mm,
-        topMargin=42 * mm,
-        bottomMargin=42 * mm,
+        topMargin=PDF_TOP_MARGIN * mm,
+        bottomMargin=PDF_BOTTOM_MARGIN * mm,
         title="Commercial Invoices Report",
     )
 
@@ -264,8 +266,8 @@ def build_purchase_report_pdf(
         pagesize=A4,
         leftMargin=12 * mm,
         rightMargin=14 * mm,
-        topMargin=42 * mm,
-        bottomMargin=42 * mm,
+        topMargin=PDF_TOP_MARGIN * mm,
+        bottomMargin=PDF_BOTTOM_MARGIN * mm,
         title="Purchase Orders Report",
     )
 
@@ -326,8 +328,8 @@ def build_purchase_order_pdf(*, purchase_order, company, items, seller, requeste
         pagesize=A4,
         leftMargin=12 * mm,
         rightMargin=14 * mm,
-        topMargin=42 * mm,
-        bottomMargin=42 * mm,
+        topMargin=PDF_TOP_MARGIN * mm,
+        bottomMargin=PDF_BOTTOM_MARGIN * mm,
         title=purchase_order.purchase_number or document_title,
     )
 
@@ -587,28 +589,34 @@ def _build_styles():
 
 
 def _build_purchase_order_styles():
+    base_styles = _build_styles()
     styles = _build_styles()
     for style in styles.values():
         if hasattr(style, "fontSize"):
             style.fontSize = max(1, style.fontSize - 1)
         if hasattr(style, "leading"):
             style.leading = max(1, style.leading - 1)
+
+    # Keep product rows readable; increasing the first-page item limit must not
+    # shrink item text to force more lines onto the page.
+    for key in (
+        "table_head",
+        "table_head_amount",
+        "table_cell",
+        "table_cell_part_number",
+        "table_cell_amount",
+        "table_cell_right",
+        "table_cell_center",
+    ):
+        styles[key] = base_styles[key]
+
     return styles
 
 
 def _build_invoice_item_table_styles(styles):
-    adjusted = dict(styles)
-    for key in ("table_head", "table_cell", "table_cell_part_number", "table_cell_amount", "table_cell_right"):
-        style = styles.get(key)
-        if not style:
-            continue
-        adjusted[key] = ParagraphStyle(
-            f"InvoiceItems{style.name}",
-            parent=style,
-            fontSize=max(1, style.fontSize - 1),
-            leading=max(1, style.leading - 1),
-        )
-    return adjusted
+    # Product item tables use the normal table font size. Pagination controls
+    # how many rows are attempted on the first page; text is not compressed.
+    return styles
 
 
 def _build_document_info(invoice, styles):
