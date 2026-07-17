@@ -456,12 +456,19 @@ class InvoiceAdminMixin:
             if total_forms <= initial_forms:
                 continue
 
+            removed_all_new_forms = True
             for index in range(initial_forms, total_forms):
+                if prefix == "items" and post_data.get(f"{prefix}-{index}-product"):
+                    removed_all_new_forms = False
+                    continue
+
                 form_prefix = f"{prefix}-{index}-"
                 for key in list(post_data.keys()):
                     if key.startswith(form_prefix):
                         post_data.pop(key, None)
-            post_data[total_key] = str(initial_forms)
+
+            if removed_all_new_forms:
+                post_data[total_key] = str(initial_forms)
 
     def _collect_saved_inline_objects(self, formsets):
         inline_objects = []

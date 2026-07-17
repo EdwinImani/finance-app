@@ -4,7 +4,7 @@ from pathlib import Path
 import re
 
 pdf_canvas = None
-PDF_FIRST_PAGE_ITEM_LIMIT = 6
+PDF_FIRST_PAGE_ITEM_LIMIT = 7
 PDF_OTHER_PAGE_ITEM_LIMIT = 16
 
 try:
@@ -551,8 +551,8 @@ def _build_styles():
             "Footer",
             parent=base["BodyText"],
             fontName=PDF_FONT_REGULAR,
-            fontSize=9,
-            leading=10,
+            fontSize=8,
+            leading=9,
             alignment=TA_RIGHT,
             textColor=colors.black,
         ),
@@ -560,8 +560,8 @@ def _build_styles():
             "FooterLeftSmall",
             parent=base["BodyText"],
             fontName=PDF_FONT_REGULAR,
-            fontSize=8,
-            leading=9,
+            fontSize=7,
+            leading=8,
             alignment=TA_LEFT,
             textColor=colors.black,
         ),
@@ -569,8 +569,8 @@ def _build_styles():
             "FooterCenterSmall",
             parent=base["BodyText"],
             fontName=PDF_FONT_REGULAR,
-            fontSize=8,
-            leading=9,
+            fontSize=7,
+            leading=8,
             alignment=TA_CENTER,
             textColor=colors.black,
         ),
@@ -578,8 +578,8 @@ def _build_styles():
             "FooterRightSmall",
             parent=base["BodyText"],
             fontName=PDF_FONT_REGULAR,
-            fontSize=8,
-            leading=9,
+            fontSize=7,
+            leading=8,
             alignment=TA_RIGHT,
             textColor=colors.black,
         ),
@@ -952,7 +952,7 @@ def _partner_card(title, partner, styles, left_padding=None, top_padding=None, b
     if partner.get("fax"):
         info_lines.append(f"Fax: {_escape(partner['fax'])}")
 
-    lines.append(Paragraph("<br/>".join(info_lines), styles["body"]))
+    lines.append(Paragraph("<br/>".join(info_lines), styles["body_left"]))
     card = Table([[lines]], colWidths=[89 * mm])
     card.setStyle(
         TableStyle(

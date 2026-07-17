@@ -21,7 +21,7 @@ from .pdf_builder import (
 
 class PdfPaginationTests(TestCase):
 
-    def test_pdf_item_pages_use_six_items_then_sixteen_items(self):
+    def test_pdf_item_pages_use_seven_items_then_sixteen_items(self):
         items = list(range(39))
 
         pages = _split_items_for_pages(
@@ -30,7 +30,7 @@ class PdfPaginationTests(TestCase):
             other_pages_max=PDF_OTHER_PAGE_ITEM_LIMIT,
         )
 
-        self.assertEqual([len(page) for page in pages], [6, 16, 16, 1])
+        self.assertEqual([len(page) for page in pages], [7, 16, 16])
 
     def test_footer_invoice_city_country_moves_to_next_line(self):
         lines = format_footer_invoice_lines(
@@ -445,7 +445,7 @@ class CommercialInvoiceAdminDraftTests(TestCase):
             reverse("admin:invoices_commercialinvoice_draft_add"),
         )
 
-    def test_autosave_does_not_create_new_inline_item(self):
+    def test_autosave_creates_new_inline_item_with_product(self):
         importer = Partner.objects.create(
             description="Client Autosave",
             partner_type="importer",
@@ -493,8 +493,11 @@ class CommercialInvoiceAdminDraftTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 200, response.content)
-        self.assertEqual(invoice.items.count(), 0)
-        self.assertEqual(response.json()["inline_objects"], [])
+        item = invoice.items.get()
+        self.assertEqual(item.product, product)
+        self.assertEqual(item.quantity, 5)
+        self.assertEqual(item.unit_price, Decimal("58.00"))
+        self.assertEqual(response.json()["inline_objects"][0]["id"], str(item.pk))
 
     def test_autosave_updates_existing_item_price_without_updating_product_default_price(self):
         importer = Partner.objects.create(

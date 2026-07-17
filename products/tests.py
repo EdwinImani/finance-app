@@ -97,6 +97,19 @@ class ProductAdminReturnTests(TestCase):
         request.is_secure = lambda: False
         return request
 
+    def _add_request(self, return_to, return_field):
+        request = self.factory.post(
+            "/admin/products/product/add/",
+            {
+                "_return_to": return_to,
+                "_return_field": return_field,
+                "_return_product_action": "add",
+            },
+        )
+        request.get_host = lambda: "127.0.0.1:8000"
+        request.is_secure = lambda: False
+        return request
+
     def test_save_redirects_to_admin_return_url(self):
         product = Product.objects.create(description="Return Save Product")
         request = self.factory.post(
@@ -143,6 +156,25 @@ class ProductAdminReturnTests(TestCase):
         self.assertEqual(item.part_number, "RET-INV")
         self.assertEqual(item.hs_code, "8504.40")
         self.assertEqual(item.unit_price, Decimal("12.30"))
+
+    def test_add_product_save_returns_to_proforma_and_creates_item(self):
+        product = Product.objects.create(
+            description="New Product From Invoice",
+            part_number="NEW-INV",
+            hs_code="8504.40",
+            sale_price=Decimal("16.90"),
+        )
+        invoice = ProformaInvoice.objects.create()
+        return_to = f"/admin/invoices/proformainvoice/{invoice.pk}/change/"
+        request = self._add_request(return_to, "items-0-product")
+
+        response = self.admin.response_add(request, product)
+
+        item = invoice.items.get()
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], return_to)
+        self.assertEqual(item.product, product)
+        self.assertEqual(item.unit_price, Decimal("16.90"))
 
     def test_return_from_product_creates_purchase_order_item(self):
         product = Product.objects.create(

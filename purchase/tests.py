@@ -185,7 +185,7 @@ class PurchaseOrderAdminAutosaveTests(TestCase):
         self.assertEqual(item.unit_price, Decimal("18.75"))
         self.assertEqual(product.purchase_price, Decimal("12.50"))
 
-    def test_autosave_does_not_create_new_inline_item(self):
+    def test_autosave_creates_new_inline_item_with_product(self):
         product = Product.objects.create(
             description="Produit Nouveau PO Autosave",
             part_number="PO-AUTO-NEW",
@@ -225,8 +225,11 @@ class PurchaseOrderAdminAutosaveTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 200, response.content)
-        self.assertEqual(purchase_order.items.count(), 0)
-        self.assertEqual(response.json()["inline_objects"], [])
+        item = purchase_order.items.get()
+        self.assertEqual(item.product, product)
+        self.assertEqual(item.quantity, 2)
+        self.assertEqual(item.unit_price, Decimal("12.50"))
+        self.assertEqual(response.json()["inline_objects"][0]["id"], str(item.pk))
 
     def test_autosave_deletes_only_checked_item(self):
         product_one = Product.objects.create(
