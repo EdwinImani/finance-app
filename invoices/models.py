@@ -45,6 +45,8 @@ class BaseInvoice(models.Model):
     freight = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
     discount = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
     vat_percent = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal("0.00"))
+    delivery_time = models.CharField(max_length=255, blank=True)
+    terms_conditions = models.CharField(max_length=255, blank=True)
 
     class Meta:
         abstract = True
@@ -147,6 +149,8 @@ class ProformaInvoice(BaseInvoice):
                 commercial.discount = self.discount
                 commercial.vat_percent = self.vat_percent
                 commercial.our_reference = self.invoice_number
+                commercial.delivery_time = self.delivery_time
+                commercial.terms_conditions = self.terms_conditions
                 commercial.save()
 
                 for commercial_item in commercial.items.select_related("product"):
@@ -159,7 +163,9 @@ class ProformaInvoice(BaseInvoice):
                     freight=self.freight,
                     discount=self.discount,
                     vat_percent=self.vat_percent,
-                    our_reference=self.invoice_number
+                    our_reference=self.invoice_number,
+                    delivery_time=self.delivery_time,
+                    terms_conditions=self.terms_conditions,
                 )
 
             for item in self.items.select_related("product"):

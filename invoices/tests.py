@@ -270,6 +270,18 @@ class ProformaConversionTests(TestCase):
 
         self.assertEqual(commercial.vat_percent, Decimal("7.50"))
 
+    def test_convert_to_commercial_keeps_edited_delivery_and_payment_terms(self):
+        proforma = ProformaInvoice.objects.create(
+            importer=self.importer,
+            delivery_time="Custom delivery",
+            terms_conditions="Custom payment",
+        )
+
+        commercial = proforma.convert_to_commercial(user_initiated=True)
+
+        self.assertEqual(commercial.delivery_time, "Custom delivery")
+        self.assertEqual(commercial.terms_conditions, "Custom payment")
+
     def test_proforma_item_price_change_does_not_update_product_sale_price(self):
         proforma = ProformaInvoice.objects.create(importer=self.importer)
         item = ProformaInvoiceItem.objects.create(
@@ -293,21 +305,57 @@ class InvoiceFormVatDefaultTests(TestCase):
         CompanySetting.objects.create(
             company_name="Societe TVA",
             vat_amount=Decimal("19.60"),
+            delivery_time="2 weeks",
+            terms_conditions="30 days",
         )
 
         form = ProformaInvoiceForm()
 
         self.assertEqual(form.fields["vat_percent"].initial, Decimal("19.60"))
+        self.assertEqual(form.fields["delivery_time"].initial, "2 weeks")
+        self.assertEqual(form.fields["terms_conditions"].initial, "30 days")
 
     def test_commercial_form_uses_company_vat_as_initial_value(self):
         CompanySetting.objects.create(
             company_name="Societe TVA",
             vat_amount=Decimal("8.50"),
+            delivery_time="1 week",
+            terms_conditions="At sight",
         )
 
         form = CommercialInvoiceForm()
 
         self.assertEqual(form.fields["vat_percent"].initial, Decimal("8.50"))
+        self.assertEqual(form.fields["delivery_time"].initial, "1 week")
+        self.assertEqual(form.fields["terms_conditions"].initial, "At sight")
+
+    def test_proforma_form_saves_user_edited_delivery_and_payment_terms(self):
+        CompanySetting.objects.create(
+            company_name="Societe TVA",
+            vat_amount=Decimal("19.60"),
+            delivery_time="Company delivery",
+            terms_conditions="Company payment",
+        )
+
+        form = ProformaInvoiceForm(
+            data={
+                "invoice_date": "2026-07-20",
+                "importer": "",
+                "end_user": "",
+                "vat_percent": "19.60",
+                "our_reference": "",
+                "price_for": "",
+                "delivery_time": "User delivery",
+                "terms_conditions": "User payment",
+                "freight": "0.00",
+                "discount": "0.00",
+            }
+        )
+
+        self.assertTrue(form.is_valid(), form.errors)
+        invoice = form.save()
+        self.assertEqual(invoice.delivery_time, "User delivery")
+        self.assertEqual(invoice.terms_conditions, "User payment")
 
 
 class CommercialInvoiceStockTests(TestCase):

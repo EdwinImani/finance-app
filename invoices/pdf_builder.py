@@ -403,6 +403,15 @@ def _build_styles():
             textColor=colors.HexColor("#F97316"),
             spaceAfter=0,
         ),
+        "invoice_box_title": ParagraphStyle(
+            "InvoiceBoxTitle",
+            parent=base["Heading4"],
+            fontName=PDF_FONT_BOLD,
+            fontSize=8.5,
+            leading=9.5,
+            textColor=colors.HexColor("#F97316"),
+            spaceAfter=0,
+        ),
         "document_type_title": ParagraphStyle(
             "DocumentTypeTitle",
             parent=base["Heading4"],
@@ -436,7 +445,73 @@ def _build_styles():
             fontSize=9,
             leading=10.2,
             alignment=TA_LEFT,
-            textColor=colors.black,
+            textColor=colors.HexColor("#1F2933"),
+        ),
+        "invoice_box_body": ParagraphStyle(
+            "InvoiceBoxBody",
+            parent=base["BodyText"],
+            fontName=PDF_FONT_REGULAR,
+            fontSize=9,
+            leading=10.2,
+            alignment=TA_LEFT,
+            textColor=colors.HexColor("#1F2933"),
+            splitLongWords=True,
+        ),
+        "partner_compact_body": ParagraphStyle(
+            "PartnerCompactBody",
+            parent=base["BodyText"],
+            fontName=PDF_FONT_REGULAR,
+            fontSize=9,
+            leading=9.8,
+            alignment=TA_LEFT,
+            textColor=colors.HexColor("#1F2933"),
+            splitLongWords=True,
+            spaceBefore=0,
+            spaceAfter=0,
+        ),
+        "partner_body": ParagraphStyle(
+            "PartnerBody",
+            parent=base["BodyText"],
+            fontName=PDF_FONT_REGULAR,
+            fontSize=9,
+            leading=10.2,
+            alignment=TA_LEFT,
+            textColor=colors.HexColor("#1F2933"),
+            splitLongWords=True,
+        ),
+        "info_box_body": ParagraphStyle(
+            "InfoBoxBody",
+            parent=base["BodyText"],
+            fontName=PDF_FONT_REGULAR,
+            fontSize=9,
+            leading=10.2,
+            alignment=TA_LEFT,
+            textColor=colors.HexColor("#1F2933"),
+            splitLongWords=True,
+        ),
+        "invoice_note_body": ParagraphStyle(
+            "InvoiceNoteBody",
+            parent=base["BodyText"],
+            fontName=PDF_FONT_REGULAR,
+            fontSize=9,
+            leading=9.8,
+            alignment=TA_LEFT,
+            textColor=colors.HexColor("#1F2933"),
+            splitLongWords=True,
+            spaceBefore=0,
+            spaceAfter=0,
+        ),
+        "terms_body": ParagraphStyle(
+            "TermsBody",
+            parent=base["BodyText"],
+            fontName=PDF_FONT_REGULAR,
+            fontSize=9,
+            leading=9.8,
+            alignment=TA_LEFT,
+            textColor=colors.HexColor("#1F2933"),
+            splitLongWords=True,
+            spaceBefore=0,
+            spaceAfter=0,
         ),
         "body_compact": ParagraphStyle(
             "BodyCompact",
@@ -654,13 +729,15 @@ def _build_invoice_details(invoice, company, styles, document_type="default"):
 
     invoice_note = getattr(company, "invoice_note", "") or "-"
     terms_lines = []
-    if getattr(company, "terms_conditions", ""):
-        terms_lines.append(f"<b>Terms and Conditions:</b> {_format_preserving_layout(company.terms_conditions)}")
-    if getattr(company, "delivery_time", ""):
-        terms_lines.append(f"<b>Delivery Time:</b> {_format_preserving_layout(company.delivery_time)}")
+    terms_conditions = getattr(invoice, "terms_conditions", "") or getattr(company, "terms_conditions", "")
+    delivery_time = getattr(invoice, "delivery_time", "") or getattr(company, "delivery_time", "")
+    if terms_conditions:
+        terms_lines.append(f"<b>Terms and Conditions:</b> {_format_preserving_layout(terms_conditions)}")
+    if delivery_time:
+        terms_lines.append(f"<b>Delivery Time:</b> {_format_preserving_layout(delivery_time)}")
     if _is_proforma_invoice(invoice) and getattr(company, "proforma_validity", None):
         terms_lines.append(f"<b>Proforma Validity:</b> {_escape(company.proforma_validity)} days")
-    note_box = _info_box("Invoice Note", _format_preserving_layout(invoice_note), styles)
+    note_box = _info_box("Invoice Note", _format_invoice_note_text(invoice_note), styles, body_style_key="invoice_note_body")
     left_column = [note_box]
 
     if not _is_shipping_document(document_type):
@@ -678,7 +755,7 @@ def _build_invoice_details(invoice, company, styles, document_type="default"):
         right_column = []
     else:
         terms_text = "<br/>".join(terms_lines) if terms_lines else "-"
-        terms_box = _info_box("Terms", terms_text, styles)
+        terms_box = _info_box("Terms", terms_text, styles, body_style_key="terms_body", title_gap=0, paragraph_gap=1.2 * mm)
 
         if _is_proforma_invoice(invoice):
             price_for = getattr(invoice, "price_for", "") or "-"
@@ -944,23 +1021,24 @@ def _partner_card(title, partner, styles, left_padding=None, top_padding=None, b
 
     lines = []
     if title:
-        lines.extend([Paragraph(title, styles["section_title"]), Spacer(1, 0.2 * mm)])
+        lines.extend([Paragraph(title, styles["invoice_box_title"]), Spacer(1, 0.2 * mm)])
 
-    name = partner.get("name") or "-"
+    name = _normalize_pdf_text(partner.get("name") or "-")
     info_lines = [f"<b>{_escape(name)}</b>"]
-    info_lines.extend(_escape(address) for address in partner.get("addresses", []) if address)
+    info_lines.extend(_escape(_normalize_pdf_text(address)) for address in partner.get("addresses", []) if address)
 
     phones = [phone for phone in partner.get("phones", []) if phone]
     if phones:
-        info_lines.append(f"Tel: {_escape(', '.join(phones))}")
+        info_lines.append(f"Tel: {_escape(_normalize_pdf_text(', '.join(phones)))}")
     if partner.get("email"):
-        info_lines.append(f"Email: {_escape(partner['email'])}")
+        info_lines.append(f"Email: {_escape(_normalize_pdf_text(partner['email']))}")
     if partner.get("website"):
-        info_lines.append(_escape(partner["website"]))
+        info_lines.append(_escape(_normalize_pdf_text(partner["website"])))
     if partner.get("fax"):
-        info_lines.append(f"Fax: {_escape(partner['fax'])}")
+        info_lines.append(f"Fax: {_escape(_normalize_pdf_text(partner['fax']))}")
 
-    lines.append(Paragraph("<br/>".join(info_lines), styles["body_left"]))
+    partner_style = styles.get("partner_compact_body", styles.get("invoice_box_body", styles["body_left"]))
+    lines.append(Paragraph("<br/>".join(info_lines), partner_style))
     card = Table([[lines]], colWidths=[89 * mm])
     card.setStyle(
         TableStyle(
@@ -976,12 +1054,14 @@ def _partner_card(title, partner, styles, left_padding=None, top_padding=None, b
     return card
 
 
-def _info_box(title, text, styles):
+def _info_box(title, text, styles, body_style_key="invoice_box_body", title_gap=None, paragraph_gap=0):
+    title_gap = 1 * mm if title_gap is None else title_gap
     content = [
-        Paragraph(title, styles["section_title"]),
-        Spacer(1, 1 * mm),
-        Paragraph(text if text == "-" else text, styles.get("body_left", styles["body"])),
+        Paragraph(title, styles["invoice_box_title"]),
     ]
+    if title_gap:
+        content.append(Spacer(1, title_gap))
+    content.extend(_build_info_box_paragraphs(text, styles, body_style_key=body_style_key, paragraph_gap=paragraph_gap))
     box = Table([[content]], colWidths=[89 * mm])
     box.setStyle(
         TableStyle(
@@ -995,6 +1075,30 @@ def _info_box(title, text, styles):
         )
     )
     return box
+
+
+def _build_info_box_paragraphs(text, styles, body_style_key="invoice_box_body", paragraph_gap=0):
+    style = styles.get(body_style_key, styles.get("invoice_box_body", styles.get("info_box_body", styles["body_left"])))
+    if text == "-":
+        return [Paragraph("-", style)]
+
+    paragraphs = []
+    for line in str(text).split("<br/>"):
+        clean = _normalize_pdf_text(line)
+        if clean:
+            if paragraphs and paragraph_gap:
+                paragraphs.append(Spacer(1, paragraph_gap))
+            paragraphs.append(Paragraph(clean, style))
+    return paragraphs or [Paragraph("-", style)]
+
+
+def _format_invoice_note_text(value):
+    text = _normalize_pdf_text(value)
+    if not text:
+        return "-"
+    text = re.sub(r"\.\s+", ".<br/>", text)
+    text = re.sub(r"\s+(Authorised signature\b)", r"<br/>\1", text, flags=re.IGNORECASE)
+    return _escape(text).replace("&lt;br/&gt;", "<br/>")
 
 
 def _build_meta_section(invoice, company, styles):
@@ -1646,6 +1750,10 @@ def _escape(value):
         .replace("<", "&lt;")
         .replace(">", "&gt;")
     )
+
+
+def _normalize_pdf_text(value):
+    return re.sub(r"[ \t]+", " ", str(value or "")).strip()
 
 
 def _format_preserving_layout(value):

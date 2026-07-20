@@ -8,8 +8,13 @@ class BaseInvoiceForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         company = CompanySetting.objects.first()
 
-        if company and not self.instance.pk and "vat_percent" in self.fields:
-            self.fields["vat_percent"].initial = company.vat_amount
+        if company and not self.instance.pk:
+            if "vat_percent" in self.fields:
+                self.fields["vat_percent"].initial = company.vat_amount
+            if "delivery_time" in self.fields:
+                self.fields["delivery_time"].initial = company.delivery_time
+            if "terms_conditions" in self.fields:
+                self.fields["terms_conditions"].initial = company.terms_conditions
 
 
 class ProformaInvoiceForm(BaseInvoiceForm):
@@ -22,6 +27,8 @@ class ProformaInvoiceForm(BaseInvoiceForm):
             'vat_percent',
             'our_reference',
             'price_for',
+            'delivery_time',
+            'terms_conditions',
             'freight',
             'discount',
         ]
@@ -39,6 +46,8 @@ class CommercialInvoiceForm(BaseInvoiceForm):
             'our_reference',
             'dispatching_note',
             'packing_specification',
+            'delivery_time',
+            'terms_conditions',
             'freight',
             'discount',
         ]

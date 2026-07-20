@@ -110,6 +110,10 @@ class InvoiceAdminForm(forms.ModelForm):
                 self.fields["vat_percent"].initial = company.vat_amount
             if "invoice_date" in self.fields:
                 self.fields["invoice_date"].initial = self._get_default_company_date(company.year)
+            if "delivery_time" in self.fields:
+                self.fields["delivery_time"].initial = company.delivery_time
+            if "terms_conditions" in self.fields:
+                self.fields["terms_conditions"].initial = company.terms_conditions
 
     def _get_default_company_date(self, year):
         today = timezone.now().date()
@@ -155,9 +159,12 @@ class InvoiceAdminMixin:
         return company.vat_amount if company else Decimal("0.00")
 
     def create_draft_invoice(self):
+        company = CompanySetting.objects.first()
         return self.model.objects.create(
             invoice_date=self.get_default_invoice_date(),
             vat_percent=self.get_default_vat_percent(),
+            delivery_time=company.delivery_time if company else "",
+            terms_conditions=company.terms_conditions if company else "",
         )
 
     def has_explicit_year_filter(self, request, field_name):
@@ -387,6 +394,9 @@ class InvoiceAdminMixin:
 
         response = HttpResponse(pdf_bytes, content_type="application/pdf")
         response["Content-Disposition"] = f'inline; filename="{self.get_pdf_filename(obj, document_type=document_type)}"'
+        response["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+        response["Pragma"] = "no-cache"
+        response["Expires"] = "0"
         return response
 
     def autosave(self, request, object_id):
@@ -506,6 +516,7 @@ class ProformaInvoiceAdmin(InvoiceAdminMixin, SaveRedirectToWelcomeMixin, PageSi
                 "end_user",
                 "our_reference",
                 "price_for",
+                ("delivery_time", "terms_conditions"),
             )
         }),
         ("Financial Summary", {
@@ -742,6 +753,7 @@ class CommercialInvoiceAdmin(InvoiceAdminMixin, SaveRedirectToWelcomeMixin, Page
                 ("our_order_no", "our_reference"),
                 "dispatching_note",
                 "packing_specification",
+                ("delivery_time", "terms_conditions"),
             )
         }),
         ("Financial Summary", {
@@ -1003,6 +1015,9 @@ class CommercialInvoiceAdmin(InvoiceAdminMixin, SaveRedirectToWelcomeMixin, Page
 
             response = HttpResponse(pdf_bytes, content_type="application/pdf")
             response["Content-Disposition"] = 'inline; filename="commercial-invoices-report.pdf"'
+            response["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+            response["Pragma"] = "no-cache"
+            response["Expires"] = "0"
             return response
 
         export_pdf_query = request.GET.copy()
