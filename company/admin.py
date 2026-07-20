@@ -9,6 +9,7 @@ from .models import CompanySetting
 @admin.register(CompanySetting)
 class CompanySettingAdmin(SaveRedirectToWelcomeMixin, admin.ModelAdmin):
     change_form_template = "admin/company/companysetting/change_form.html"
+    save_redirect_url = "/admin/"
 
     list_display = (
         "company_name",
@@ -53,6 +54,9 @@ class CompanySettingAdmin(SaveRedirectToWelcomeMixin, admin.ModelAdmin):
             return False
 
         return True
+
+    def _get_return_url(self, request):
+        return self.save_redirect_url
 
     fieldsets = (
 
