@@ -149,6 +149,7 @@ class ProformaInvoice(BaseInvoice):
                 commercial.discount = self.discount
                 commercial.vat_percent = self.vat_percent
                 commercial.our_reference = self.invoice_number
+                commercial.price_for = self.price_for
                 commercial.delivery_time = self.delivery_time
                 commercial.terms_conditions = self.terms_conditions
                 commercial.save()
@@ -164,6 +165,7 @@ class ProformaInvoice(BaseInvoice):
                     discount=self.discount,
                     vat_percent=self.vat_percent,
                     our_reference=self.invoice_number,
+                    price_for=self.price_for,
                     delivery_time=self.delivery_time,
                     terms_conditions=self.terms_conditions,
                 )
@@ -251,6 +253,7 @@ class CommercialInvoice(BaseInvoice):
     our_order_no = models.CharField(max_length=100, blank=True)
 
     our_reference = models.CharField(max_length=100, blank=True)
+    price_for = models.CharField(max_length=255, blank=True)
     packing_specification = models.CharField(max_length=255, blank=True)
     dispatching_note = models.CharField(max_length=255, blank=True)
 

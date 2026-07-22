@@ -562,7 +562,7 @@ class ProformaInvoiceAdmin(InvoiceAdminMixin, SaveRedirectToWelcomeMixin, PageSi
         queryset = super().get_queryset(request)
         queryset = queryset.annotate(items_count=Count("items", distinct=True))
         if not request.GET.get("o"):
-            queryset = queryset.order_by("-id")
+            queryset = queryset.order_by("-invoice_date", "-id")
         return queryset
 
     # ----------------------
@@ -751,6 +751,7 @@ class CommercialInvoiceAdmin(InvoiceAdminMixin, SaveRedirectToWelcomeMixin, Page
                 "importer",
                 "end_user",
                 ("our_order_no", "our_reference"),
+                "price_for",
                 "dispatching_note",
                 "packing_specification",
                 ("delivery_time", "terms_conditions"),
@@ -797,7 +798,7 @@ class CommercialInvoiceAdmin(InvoiceAdminMixin, SaveRedirectToWelcomeMixin, Page
         queryset = super().get_queryset(request)
         queryset = queryset.annotate(items_count=Count("items", distinct=True))
         if not request.GET.get("o"):
-            queryset = queryset.order_by("-id")
+            queryset = queryset.order_by("-invoice_date", "-id")
         return queryset
 
     # ----------------------

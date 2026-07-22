@@ -757,7 +757,7 @@ def _build_invoice_details(invoice, company, styles, document_type="default"):
         terms_text = "<br/>".join(terms_lines) if terms_lines else "-"
         terms_box = _info_box("Terms", terms_text, styles, body_style_key="terms_body", title_gap=0, paragraph_gap=1.2 * mm)
 
-        if _is_proforma_invoice(invoice):
+        if _is_proforma_invoice(invoice) or hasattr(invoice, "price_for"):
             price_for = getattr(invoice, "price_for", "") or "-"
             right_column = [
                 terms_box,

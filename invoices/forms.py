@@ -44,6 +44,7 @@ class CommercialInvoiceForm(BaseInvoiceForm):
             'vat_percent',
             'our_order_no',
             'our_reference',
+            'price_for',
             'dispatching_note',
             'packing_specification',
             'delivery_time',
