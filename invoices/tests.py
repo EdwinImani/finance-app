@@ -26,7 +26,7 @@ from .pdf_builder import (
 
 class PdfPaginationTests(TestCase):
 
-    def test_pdf_item_pages_use_ten_items_then_seventeen_items(self):
+    def test_pdf_item_pages_use_more_available_page_space(self):
         items = list(range(44))
 
         pages = _split_items_for_pages(
@@ -35,7 +35,7 @@ class PdfPaginationTests(TestCase):
             other_pages_max=PDF_OTHER_PAGE_ITEM_LIMIT,
         )
 
-        self.assertEqual([len(page) for page in pages], [10, 17, 17])
+        self.assertEqual([len(page) for page in pages], [15, 22, 7])
 
     def test_pdf_body_uses_extra_space_above_footer(self):
         self.assertEqual(PDF_TOP_MARGIN, 42)

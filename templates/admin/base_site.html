@@ -536,6 +536,17 @@
         outline: none;
     }
 
+    input[type="number"] {
+        appearance: textfield;
+        -moz-appearance: textfield;
+    }
+
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
     .change-form fieldset.module.aligned > .form-row {
         display: grid;
         grid-template-columns: minmax(170px, 240px) minmax(0, 1fr);
@@ -1881,7 +1892,7 @@
 {% block extrahead %}
 {{ block.super }}
 <script src="{% static 'admin/js/auto_search.js' %}?v=20260723-ajax-search" defer></script>
-<script src="{% static 'admin/js/number_format_fields.js' %}?v=20260723-number-format-display" defer></script>
+<script src="{% static 'admin/js/number_format_fields.js' %}?v=20260723-price-for-text-fix" defer></script>
 {% if user.is_authenticated %}
 <script>
 (function() {

@@ -7,7 +7,7 @@
     });
 
     var decimalNamePattern = /(amount|balance|cost|debit|credit|dimension|discount|freight|gross_weight|net_weight|percent|price|rate|subtotal|total|vat|weight)/i;
-    var excludedNamePattern = /(date|day|email|hs_code|id$|invoice_number|month|no_packing|number|part_number|phone|purchase_number|quantity|unit_qty|year|zip)/i;
+    var excludedNamePattern = /(date|day|email|hs_code|id$|invoice_number|month|no_packing|number|part_number|phone|price_for|purchase_number|quantity|unit_qty|year|zip)/i;
 
     function fieldKey(field) {
         return [field.name, field.id, field.getAttribute("aria-label")].filter(Boolean).join(" ");

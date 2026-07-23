@@ -92,13 +92,29 @@
         });
     }
 
+    function markUnitPriceEdited(input) {
+        if (input) {
+            input.dataset.invoiceUnitPriceEdited = "true";
+        }
+    }
+
+    function clearUnitPriceEdited(input) {
+        if (input) {
+            input.dataset.invoiceUnitPriceEdited = "";
+        }
+    }
+
+    function hasEditedUnitPrice(input) {
+        return Boolean(input && input.dataset.invoiceUnitPriceEdited === "true");
+    }
+
     function shouldUseDefaultUnitPrice(input, forceDefaultPrice) {
         if (!input) {
             return false;
         }
 
         if (forceDefaultPrice) {
-            return true;
+            return !hasEditedUnitPrice(input);
         }
 
         return !input.value || toNumber(input.value) === 0;
@@ -127,6 +143,7 @@
 
         if (shouldUseDefaultUnitPrice(unitPriceInput, settings.forceDefaultPrice)) {
             unitPriceInput.value = data.sale_price || "0";
+            clearUnitPriceEdited(unitPriceInput);
         }
 
         if (hsCodeInput) {
@@ -217,7 +234,12 @@
 
         field.dataset.invoiceMoneyBound = "true";
 
-        field.addEventListener("input", updateSummary);
+        field.addEventListener("input", function () {
+            if (field.name && field.name.endsWith("-unit_price")) {
+                markUnitPriceEdited(field);
+            }
+            updateSummary();
+        });
         field.addEventListener("change", updateSummary);
     }
 
@@ -366,7 +388,7 @@
             field.dispatchEvent(new Event("change", { bubbles: true }));
         }
 
-        fetchProductInfoForField(field, { forceDefaultPrice: true });
+        fetchProductInfoForField(field, { preserveUnitPrice: true });
     }
 
     document.addEventListener("DOMContentLoaded", function () {

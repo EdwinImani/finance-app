@@ -44,6 +44,16 @@ function updatePurchaseOrderItemRow(row, refreshProduct, options) {
         }
     }
 
+    function hasEditedUnitPrice(input) {
+        return Boolean(input && input.dataset.purchaseUnitPriceEdited === "true");
+    }
+
+    function clearUnitPriceEdited(input) {
+        if (input) {
+            input.dataset.purchaseUnitPriceEdited = "";
+        }
+    }
+
     if (!refreshProduct) {
         updateTotal();
         return;
@@ -92,8 +102,14 @@ function updatePurchaseOrderItemRow(row, refreshProduct, options) {
             if (partNumberDisplay) {
                 partNumberDisplay.textContent = data.part_number || "-";
             }
-            if (unitPriceInput && (settings.forceDefaultPrice === true || (productChanged && settings.preserveUnitPrice !== true) || !unitPriceInput.value || toNumber(unitPriceInput.value) === 0)) {
+            if (unitPriceInput && (
+                (settings.forceDefaultPrice === true && !hasEditedUnitPrice(unitPriceInput)) ||
+                (productChanged && settings.preserveUnitPrice !== true && !hasEditedUnitPrice(unitPriceInput)) ||
+                !unitPriceInput.value ||
+                toNumber(unitPriceInput.value) === 0
+            )) {
                 unitPriceInput.value = data.purchase_price || "0";
+                clearUnitPriceEdited(unitPriceInput);
             }
             if (productField) {
                 productField.dataset.purchaseLastProductId = productId;
@@ -139,6 +155,9 @@ document.addEventListener("change", function(e) {
     }
 
     if (target.name.includes("quantity") || target.name.includes("unit_price")) {
+        if (target.name.includes("unit_price")) {
+            target.dataset.purchaseUnitPriceEdited = "true";
+        }
         updatePurchaseOrderItemRow(row, false);
     }
 });
@@ -283,7 +302,7 @@ function applyReturnedProductSelection() {
         field.dispatchEvent(new Event("change", { bubbles: true }));
     }
 
-    updatePurchaseOrderItemRow(field.closest("tr"), true, { forceDefaultPrice: true });
+    updatePurchaseOrderItemRow(field.closest("tr"), true, { preserveUnitPrice: true });
 }
 
 document.addEventListener("DOMContentLoaded", function() {
