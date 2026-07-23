@@ -10,8 +10,10 @@
     };
 </script>
 {% endif %}
-<script src="{% static 'admin/js/product_autofill.js' %}?v=20260717-save-return" defer></script>
-<script src="{% static 'admin/js/purchase_partner_type.js' %}?v=20260717-save-return" defer></script>
+<script src="{% static 'admin/js/invoice_autosave.js' %}?v=20260723-number-format" defer></script>
+<script src="{% static 'admin/js/product_autofill.js' %}?v=20260723-number-format" defer></script>
+<script src="{% static 'admin/js/purchase_partner_type.js' %}?v=20260723-no-duplicate-related" defer></script>
+<script src="{% static 'admin/js/inline_row_tools.js' %}?v=20260723-line-count-only" defer></script>
 <style>
     :root {
         --po-form-bg: #f7f1ef;
@@ -61,6 +63,10 @@
         padding: 16px 20px;
         font-size: 15px;
         letter-spacing: 0.03em;
+    }
+
+    .change-form .inline-group h2 {
+        display: none;
     }
 
     .change-form .form-row {
@@ -441,6 +447,28 @@
 
     .inline-group .add-row a:hover {
         background: #fff0f1;
+    }
+
+    .inline-group .tabular th.inline-row-number-header,
+    .inline-group .tabular td.inline-row-number-cell {
+        width: 42px;
+        min-width: 42px;
+        max-width: 42px;
+        padding-left: 3px;
+        padding-right: 3px;
+        text-align: center;
+        font-weight: 800;
+        font-size: 15px !important;
+        color: #9a3412;
+        white-space: nowrap;
+    }
+
+    .inline-group .tabular th.inline-row-number-header {
+        background: #ffedd5;
+    }
+
+    .inline-group .tabular td.inline-row-number-cell {
+        background: inherit;
     }
 
     .inline-group td.delete {

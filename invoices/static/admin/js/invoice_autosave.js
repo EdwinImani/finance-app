@@ -28,7 +28,11 @@
     }
 
     function serializeForm(form) {
-        return new FormData(form);
+        const formData = new FormData(form);
+        if (window.financeNumberFormatting && window.financeNumberFormatting.normalizeFormData) {
+            return window.financeNumberFormatting.normalizeFormData(formData);
+        }
+        return formData;
     }
 
     function hasCheckedDelete(form) {
@@ -139,6 +143,38 @@
             return activeSavePromise;
         }
 
+        window.invoiceAutosaveNow = function () {
+            window.clearTimeout(timer);
+            return autosave({ force: true, suppressReload: true });
+        };
+
+        function autosaveOnPageExit() {
+            if (isSubmitting) {
+                return;
+            }
+
+            window.clearTimeout(timer);
+            const payload = serializeForm(form);
+
+            if (navigator.sendBeacon && navigator.sendBeacon(config.url, payload)) {
+                return;
+            }
+
+            try {
+                fetch(config.url, {
+                    method: "POST",
+                    body: payload,
+                    credentials: "same-origin",
+                    keepalive: true,
+                    headers: {
+                        "X-Requested-With": "XMLHttpRequest"
+                    }
+                });
+            } catch (error) {
+                // The browser may reject keepalive for large forms; the regular autosave still covers normal editing.
+            }
+        }
+
         function scheduleAutosave(delay) {
             if (isSubmitting) {
                 return;
@@ -227,9 +263,10 @@
 
         document.addEventListener("visibilitychange", function () {
             if (document.visibilityState === "hidden") {
-                window.clearTimeout(timer);
-                autosave();
+                autosaveOnPageExit();
             }
         });
+        window.addEventListener("pagehide", autosaveOnPageExit);
+        window.addEventListener("beforeunload", autosaveOnPageExit);
     });
 })();

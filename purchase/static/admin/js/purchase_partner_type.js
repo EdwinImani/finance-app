@@ -55,7 +55,13 @@ document.addEventListener("DOMContentLoaded", function () {
                 preparePartnerLink(link, link === addLink ? partnerType : "", fieldId);
                 event.preventDefault();
                 event.stopImmediatePropagation();
-                window.location.href = link.href;
+                const targetHref = link.href;
+                const autosave = window.invoiceAutosaveNow ? window.invoiceAutosaveNow() : Promise.resolve();
+                autosave
+                    .catch(function () {})
+                    .finally(function () {
+                        window.location.href = targetHref;
+                    });
             }, true);
         });
     }

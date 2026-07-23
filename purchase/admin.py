@@ -6,6 +6,7 @@ from urllib.parse import unquote, urlparse
 from django.conf import settings
 from django.contrib import admin
 from django import forms
+from django.core.exceptions import ValidationError
 from django.forms.formsets import all_valid
 from django.db.models import DecimalField, ExpressionWrapper, F, Sum, Value
 from django.db.models.functions import Coalesce, TruncMonth
@@ -142,7 +143,16 @@ class PurchaseOrderAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.M
     search_fields = (
         "purchase_number",
         "seller__description",
+        "seller__email",
+        "requester__description",
+        "requester__email",
         "sent_by",
+        "shipment",
+        "items__product__description",
+        "items__product__part_number",
+        "items__description",
+        "items__part_number",
+        "items__hs_code",
     )
 
     autocomplete_fields = ("seller", "requester")
@@ -151,9 +161,6 @@ class PurchaseOrderAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.M
 
     class Media:
         js = (
-            "admin/js/invoice_autosave.js",
-            "admin/js/product_autofill.js",
-            "admin/js/purchase_partner_type.js",
             "admin/js/raw_id_label_display.js",
         )
 
@@ -303,6 +310,8 @@ class PurchaseOrderAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.M
         finally:
             request.POST = original_post
 
+        partial_update_fields = self._autosave_main_form_fields(form, obj)
+
         if form.is_valid() and all_valid(formsets):
             new_object = self.save_form(request, form, change=True)
             self.save_model(request, new_object, form, change=True)
@@ -314,6 +323,32 @@ class PurchaseOrderAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.M
                     "saved_at": timezone.localtime().strftime("%d/%m/%Y %H:%M:%S"),
                     "purchase_number": new_object.purchase_number or "",
                     "inline_objects": self._collect_saved_inline_objects(formsets),
+                }
+            )
+
+        if all_valid(formsets):
+            for formset in formsets:
+                formset.save()
+            return JsonResponse(
+                {
+                    "ok": True,
+                    "saved_at": timezone.localtime().strftime("%d/%m/%Y %H:%M:%S"),
+                    "purchase_number": obj.purchase_number or "",
+                    "inline_objects": self._collect_saved_inline_objects(formsets),
+                    "partial": True,
+                    "partial_update_fields": partial_update_fields,
+                }
+            )
+
+        if partial_update_fields:
+            return JsonResponse(
+                {
+                    "ok": True,
+                    "saved_at": timezone.localtime().strftime("%d/%m/%Y %H:%M:%S"),
+                    "purchase_number": obj.purchase_number or "",
+                    "inline_objects": [],
+                    "partial": True,
+                    "partial_update_fields": partial_update_fields,
                 }
             )
 
@@ -331,6 +366,33 @@ class PurchaseOrderAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.M
         errors["inlines"] = inline_errors
         return JsonResponse({"ok": False, "errors": errors}, status=400)
 
+    def _autosave_main_form_fields(self, form, obj):
+        update_fields = []
+        model_field_names = {field.name for field in obj._meta.fields}
+
+        for field_name, field in form.fields.items():
+            if field_name not in model_field_names:
+                continue
+
+            try:
+                raw_value = field.widget.value_from_datadict(
+                    form.data,
+                    form.files,
+                    form.add_prefix(field_name),
+                )
+                cleaned_value = field.clean(raw_value)
+            except ValidationError:
+                continue
+
+            setattr(obj, field_name, cleaned_value)
+            update_fields.append(field_name)
+
+        if update_fields:
+            update_fields = list(dict.fromkeys(update_fields))
+            obj.save(update_fields=update_fields)
+
+        return update_fields
+
     def _remove_new_inline_forms_from_autosave(self, post_data):
         prefix = "items"
         total_key = f"{prefix}-TOTAL_FORMS"
@@ -347,10 +409,10 @@ class PurchaseOrderAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.M
         if total_forms <= initial_forms:
             return
 
-        removed_all_new_forms = True
+        kept_new_form_count = 0
         for index in range(initial_forms, total_forms):
-            if post_data.get(f"{prefix}-{index}-product"):
-                removed_all_new_forms = False
+            if self._autosave_inline_form_has_data(post_data, prefix, index):
+                kept_new_form_count += 1
                 continue
 
             form_prefix = f"{prefix}-{index}-"
@@ -358,8 +420,24 @@ class PurchaseOrderAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.M
                 if key.startswith(form_prefix):
                     post_data.pop(key, None)
 
-        if removed_all_new_forms:
+        if kept_new_form_count == 0:
             post_data[total_key] = str(initial_forms)
+
+    def _autosave_inline_form_has_data(self, post_data, prefix, index):
+        if post_data.get(f"{prefix}-{index}-DELETE"):
+            return False
+
+        product = (post_data.get(f"{prefix}-{index}-product") or "").strip()
+        hs_code = (post_data.get(f"{prefix}-{index}-hs_code") or "").strip()
+        part_number = (post_data.get(f"{prefix}-{index}-part_number") or "").strip()
+        unit_price = (post_data.get(f"{prefix}-{index}-unit_price") or "").strip()
+
+        return bool(
+            product or
+            (hs_code and hs_code != "-") or
+            part_number or
+            (unit_price and unit_price not in {"0", "0.0", "0.00"})
+        )
 
     def _collect_saved_inline_objects(self, formsets):
         inline_objects = []

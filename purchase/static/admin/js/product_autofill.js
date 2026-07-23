@@ -3,8 +3,10 @@ function updatePurchaseOrderItemRow(row, refreshProduct, options) {
     const settings = options || {};
 
     function toNumber(value) {
-        const normalized = String(value || "0").replace(",", ".");
-        const parsed = parseFloat(normalized);
+        const normalized = window.financeNumberFormatting && window.financeNumberFormatting.normalizeValue
+            ? window.financeNumberFormatting.normalizeValue(value)
+            : String(value || "0").replace(/,/g, "");
+        const parsed = parseFloat(normalized || "0");
         return Number.isNaN(parsed) ? 0 : parsed;
     }
 
@@ -28,13 +30,16 @@ function updatePurchaseOrderItemRow(row, refreshProduct, options) {
         const qty = toNumber(qtyInput.value);
         const price = toNumber(unitPriceInput.value);
         const total = qty * price;
+        const formattedTotal = window.financeNumberFormatting && window.financeNumberFormatting.formatValue
+            ? window.financeNumberFormatting.formatValue(total)
+            : total.toFixed(2);
 
         const totalField = row.querySelector("input[name$='total_line']") || row.querySelector("td.field-total_line") || row.querySelector("div.field-total_line");
         if (totalField) {
             if (totalField.tagName === "INPUT") {
-                totalField.value = total.toFixed(2);
+                totalField.value = formattedTotal;
             } else {
-                totalField.textContent = total.toFixed(2);
+                totalField.textContent = formattedTotal;
             }
         }
     }
@@ -229,11 +234,16 @@ function prepareProductButtons(root) {
             link.dataset.productSamePageBound = "true";
             link.addEventListener("click", function(event) {
                 const action = link.classList.contains("add-related") ? "add" : "edit";
-                const currentItemId = action === "add" ? "" : getItemId(wrapper, fieldName);
-                prepareProductLink(link, fieldName, currentItemId, action);
                 event.preventDefault();
                 event.stopImmediatePropagation();
-                window.location.href = link.href;
+                const autosave = window.invoiceAutosaveNow ? window.invoiceAutosaveNow() : Promise.resolve();
+                autosave
+                    .catch(function () {})
+                    .finally(function () {
+                        const currentItemId = action === "add" ? "" : getItemId(wrapper, fieldName);
+                        prepareProductLink(link, fieldName, currentItemId, action);
+                        window.location.href = link.href;
+                    });
             }, true);
         });
     });

@@ -1,11 +1,16 @@
 (function () {
     function toNumber(value) {
-        const normalized = String(value || "0").replace(",", ".");
-        const parsed = parseFloat(normalized);
+        const normalized = window.financeNumberFormatting && window.financeNumberFormatting.normalizeValue
+            ? window.financeNumberFormatting.normalizeValue(value)
+            : String(value || "0").replace(/,/g, "");
+        const parsed = parseFloat(normalized || "0");
         return Number.isNaN(parsed) ? 0 : parsed;
     }
 
     function formatMoney(value) {
+        if (window.financeNumberFormatting && window.financeNumberFormatting.formatValue) {
+            return window.financeNumberFormatting.formatValue(value);
+        }
         return toNumber(value).toFixed(2);
     }
 
@@ -312,11 +317,16 @@
                 link.dataset.productSamePageBound = "true";
                 link.addEventListener("click", function(event) {
                     const action = link.classList.contains("add-related") ? "add" : "edit";
-                    const currentItemId = action === "add" ? "" : getItemId(wrapper, fieldName);
-                    prepareProductLink(link, fieldName, currentItemId, action);
                     event.preventDefault();
                     event.stopImmediatePropagation();
-                    window.location.href = link.href;
+                    const autosave = window.invoiceAutosaveNow ? window.invoiceAutosaveNow() : Promise.resolve();
+                    autosave
+                        .catch(function () {})
+                        .finally(function () {
+                            const currentItemId = action === "add" ? "" : getItemId(wrapper, fieldName);
+                            prepareProductLink(link, fieldName, currentItemId, action);
+                            window.location.href = link.href;
+                        });
                 }, true);
             });
         });

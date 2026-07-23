@@ -22,7 +22,7 @@ class ProductModelTests(TestCase):
             sale_price=Decimal("19.90"),
         )
 
-        self.assertEqual(str(product), "Produit A - REF-123")
+        self.assertEqual(str(product), f"#{product.pk} - Produit A - REF-123")
 
     def test_admin_label_uses_product_id_when_part_number_is_missing(self):
         product = Product.objects.create(
@@ -31,13 +31,19 @@ class ProductModelTests(TestCase):
             sale_price=Decimal("19.90"),
         )
 
-        self.assertEqual(str(product), f"Produit Sans Reference - Product #{product.pk}")
+        self.assertEqual(str(product), f"#{product.pk} - Produit Sans Reference")
 
     def test_description_can_be_used_by_multiple_products(self):
         Product.objects.create(description="JOINT", part_number="K-39228")
         Product.objects.create(description="JOINT", part_number="K-40785")
 
         self.assertEqual(Product.objects.filter(description="JOINT").count(), 2)
+
+    def test_part_number_can_be_used_by_multiple_products(self):
+        Product.objects.create(description="Joint 10mm", part_number="K-39228")
+        Product.objects.create(description="Joint 20mm", part_number="K-39228")
+
+        self.assertEqual(Product.objects.filter(part_number="K-39228").count(), 2)
 
 
 class ProductAdminSearchTests(TestCase):
@@ -170,7 +176,7 @@ class ProductAdminReturnTests(TestCase):
         self.assertEqual(item.hs_code, "8504.40")
         self.assertEqual(item.unit_price, Decimal("12.30"))
 
-    def test_add_product_save_returns_to_proforma_and_creates_item(self):
+    def test_add_product_save_returns_to_proforma_without_creating_duplicate_item(self):
         product = Product.objects.create(
             description="New Product From Invoice",
             part_number="NEW-INV",
@@ -183,11 +189,11 @@ class ProductAdminReturnTests(TestCase):
 
         response = self.admin.response_add(request, product)
 
-        item = invoice.items.get()
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response["Location"], return_to)
-        self.assertEqual(item.product, product)
-        self.assertEqual(item.unit_price, Decimal("16.90"))
+        self.assertIn(return_to, response["Location"])
+        self.assertIn("_selected_product_field=items-0-product", response["Location"])
+        self.assertIn(f"_selected_product_id={product.pk}", response["Location"])
+        self.assertFalse(invoice.items.exists())
 
     def test_empty_add_product_from_document_returns_without_creating_product(self):
         return_to = "/admin/invoices/proformainvoice/1/change/"
@@ -232,7 +238,7 @@ class ProductAdminReturnTests(TestCase):
 
 class ProductCsvImportTests(TestCase):
 
-    def test_import_creates_one_product_per_csv_row_and_generates_unique_part_numbers(self):
+    def test_import_creates_one_product_per_csv_row_and_keeps_duplicate_part_numbers(self):
         Product.objects.create(description="Existing", part_number="DUP-001")
 
         content = "\n".join(
@@ -256,10 +262,10 @@ class ProductCsvImportTests(TestCase):
 
         self.assertEqual(imported.count(), 4)
         self.assertEqual(Product.objects.filter(description="JOINT").count(), 3)
-        self.assertEqual(imported[0].part_number, "PART-DUP-0001")
+        self.assertEqual(imported[0].part_number, "DUP-001")
         self.assertEqual(imported[1].part_number, "K-40785")
         self.assertEqual(imported[2].part_number, "LEGACY-0001")
-        self.assertEqual(imported[3].part_number, "PART-DUP-0002")
+        self.assertEqual(imported[3].part_number, "DUP-001")
         self.assertEqual(imported[0].purchase_price, Decimal("2.50"))
         self.assertEqual(imported[1].sale_price, Decimal("5.00"))
         self.assertEqual(imported[2].unit_qty, 7)

@@ -98,12 +98,14 @@ class ProductAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.ModelAd
     change_form_template = "admin/products/product/change_form.html"
 
     list_display = (
+        "id",
         "description",
         "part_number_with_hs_code",
         "total_sold",
     )
 
     search_fields = (
+        "=id",
         "description",
         "part_number",
         "hs_code",
@@ -137,11 +139,9 @@ class ProductAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.ModelAd
         return_to = self._get_safe_return_url(request)
         if return_to:
             action = self._get_return_product_action(request)
-            if action == "add":
-                self._attach_product_to_return_item(request, obj, return_to, force_new=True)
-                return redirect(return_to)
-            if action == "edit":
-                return redirect(return_to)
+            if action in {"add", "edit"}:
+                self._update_existing_return_item(request, obj, return_to)
+                return redirect(self._return_url_with_product(request, obj, return_to))
             self._attach_product_to_return_item(request, obj, return_to)
             return redirect(self._return_url_with_product(request, obj, return_to))
         return super().response_add(request, obj, post_url_continue=post_url_continue)
@@ -151,7 +151,8 @@ class ProductAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.ModelAd
         if return_to:
             action = self._get_return_product_action(request)
             if action in {"add", "edit"}:
-                return redirect(return_to)
+                self._update_existing_return_item(request, obj, return_to)
+                return redirect(self._return_url_with_product(request, obj, return_to))
             self._attach_product_to_return_item(request, obj, return_to)
             return redirect(self._return_url_with_product(request, obj, return_to))
         return super().response_change(request, obj)
@@ -263,6 +264,44 @@ class ProductAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.ModelAd
         if hasattr(item, "quantity") and not item.quantity:
             item.quantity = 1
         if hasattr(item, "unit_price") and not item.unit_price:
+            item.unit_price = getattr(product, price_field)
+        item.save()
+
+    def _update_existing_return_item(self, request, product, return_to):
+        return_field = request.POST.get("_return_field") or request.GET.get("_return_field")
+        item_id = request.POST.get("_return_item_id") or request.GET.get("_return_item_id")
+        if not return_field or not return_field.endswith("-product") or not item_id:
+            return
+
+        parsed = urlparse(return_to)
+        try:
+            match = resolve(parsed.path)
+        except Resolver404:
+            return
+
+        object_id = match.kwargs.get("object_id")
+        target = self._product_return_target(match.url_name)
+        if not object_id or not target:
+            return
+
+        parent_app, parent_model, item_app, item_model, parent_field, price_field = target
+
+        try:
+            parent_cls = apps.get_model(parent_app, parent_model)
+            item_cls = apps.get_model(item_app, item_model)
+            parent = parent_cls.objects.get(pk=object_id)
+            item = item_cls.objects.get(pk=item_id, **{parent_field: parent})
+        except (LookupError, ValueError, ObjectDoesNotExist):
+            return
+
+        item.product = product
+        if hasattr(item, "description"):
+            item.description = product.description
+        if hasattr(item, "part_number"):
+            item.part_number = product.part_number or ""
+        if hasattr(item, "hs_code"):
+            item.hs_code = product.hs_code or "-"
+        if hasattr(item, "unit_price"):
             item.unit_price = getattr(product, price_field)
         item.save()
 

@@ -51,7 +51,12 @@ class PartnerAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.ModelAd
 
     search_fields = (
         "description",
+        "partner_type",
         "email",
+        "fax",
+        "website",
+        "addresses__address",
+        "phones__phone_number",
     )
 
     ordering = ("description",)

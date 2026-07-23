@@ -1,7 +1,7 @@
 from decimal import Decimal
 
-from django.contrib import admin
 from django.contrib.auth import get_user_model
+from django.template.loader import get_template
 from django.test import TestCase
 from django.test import override_settings
 from django.urls import reverse
@@ -64,9 +64,10 @@ class PurchaseOrderAdminFormTests(TestCase):
         self.assertEqual(form.fields["vat_percent"].initial, Decimal("20.00"))
 
     def test_purchase_order_admin_loads_autosave_script(self):
-        media_js = admin.site._registry[PurchaseOrder].media._js
+        template_source = get_template("admin/purchase/purchaseorder/change_form.html").template.source
 
-        self.assertIn("admin/js/invoice_autosave.js", media_js)
+        self.assertIn("admin/js/invoice_autosave.js", template_source)
+        self.assertIn("20260723-no-duplicate-related", template_source)
 
 
 class PurchaseOrderItemTests(TestCase):

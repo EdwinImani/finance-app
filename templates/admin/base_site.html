@@ -330,6 +330,10 @@
         -webkit-backdrop-filter: blur(8px);
     }
 
+    .timezonewarning {
+        display: none !important;
+    }
+
     .actions select,
     .actions select[name="action"] {
         min-height: 42px;
@@ -1876,7 +1880,8 @@
 
 {% block extrahead %}
 {{ block.super }}
-<script src="{% static 'admin/js/auto_search.js' %}" defer></script>
+<script src="{% static 'admin/js/auto_search.js' %}?v=20260723-ajax-search" defer></script>
+<script src="{% static 'admin/js/number_format_fields.js' %}?v=20260723-number-format-display" defer></script>
 {% if user.is_authenticated %}
 <script>
 (function() {

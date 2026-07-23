@@ -10,8 +10,7 @@ class Product(models.Model):
     part_number = models.CharField(
         max_length=100,
         blank=True,
-        null=True,
-        unique=True
+        null=True
     )
 
     hs_code = models.CharField(
@@ -45,9 +44,9 @@ class Product(models.Model):
 
     def admin_label(self):
         if self.part_number:
-            return f"{self.description} - {self.part_number}"
+            return f"#{self.pk} - {self.description} - {self.part_number}" if self.pk else f"{self.description} - {self.part_number}"
         if self.pk:
-            return f"{self.description} - Product #{self.pk}"
+            return f"#{self.pk} - {self.description}"
         return self.description
 
     def __str__(self):

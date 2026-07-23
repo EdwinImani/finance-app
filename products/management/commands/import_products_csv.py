@@ -25,16 +25,14 @@ class Command(BaseCommand):
             raise CommandError(f"CSV file not found: {csv_path}")
 
         rows = self.read_rows(csv_path, options["encoding"])
-        existing_part_numbers = set(
+        generated_part_numbers = set(
             Product.objects.exclude(part_number__isnull=True)
             .exclude(part_number="")
             .values_list("part_number", flat=True)
         )
-        used_part_numbers = set(existing_part_numbers)
 
         created = 0
         generated_missing = 0
-        generated_duplicate = 0
 
         with transaction.atomic():
             for line_number, row in rows:
@@ -47,13 +45,8 @@ class Command(BaseCommand):
                 part_number = raw_part_number
 
                 if not part_number:
-                    part_number = self.next_part_number("LEGACY", used_part_numbers)
+                    part_number = self.next_part_number("LEGACY", generated_part_numbers)
                     generated_missing += 1
-                elif part_number in used_part_numbers:
-                    part_number = self.next_part_number("PART-DUP", used_part_numbers)
-                    generated_duplicate += 1
-                else:
-                    used_part_numbers.add(part_number)
 
                 Product.objects.create(
                     description=description[:255],
@@ -68,7 +61,6 @@ class Command(BaseCommand):
 
         self.stdout.write(self.style.SUCCESS(f"Imported products: {created}"))
         self.stdout.write(f"Generated missing part numbers: {generated_missing}")
-        self.stdout.write(f"Generated duplicate part numbers: {generated_duplicate}")
 
     def read_rows(self, csv_path, encoding):
         with csv_path.open("r", encoding=encoding, newline="") as handle:
@@ -79,12 +71,12 @@ class Command(BaseCommand):
             reader = csv.DictReader(handle, delimiter=";")
             return list(enumerate(reader, start=2))
 
-    def next_part_number(self, prefix, used_part_numbers):
+    def next_part_number(self, prefix, generated_part_numbers):
         index = 1
         while True:
             candidate = f"{prefix}-{index:04d}"
-            if candidate not in used_part_numbers:
-                used_part_numbers.add(candidate)
+            if candidate not in generated_part_numbers:
+                generated_part_numbers.add(candidate)
                 return candidate
             index += 1
 
