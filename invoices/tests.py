@@ -4,6 +4,7 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.test import override_settings
 from django.urls import reverse
+from reportlab.lib.units import mm
 
 from company.models import CompanySetting
 from partners.models import Partner
@@ -14,11 +15,15 @@ from .models import CommercialInvoice, CommercialInvoiceItem, ProformaInvoice, P
 from .pdf_builder import (
     PDF_BOTTOM_MARGIN,
     PDF_FIRST_PAGE_ITEM_LIMIT,
+    PDF_INVOICE_BOX_HEIGHT_MM,
     PDF_OTHER_PAGE_ITEM_LIMIT,
     PDF_TOP_MARGIN,
+    _info_box,
     _build_invoice_item_table_styles,
     _build_purchase_order_styles,
     _build_styles,
+    _format_pdf_title,
+    _partner_card,
     _split_items_for_pages,
     format_footer_invoice_lines,
 )
@@ -38,7 +43,7 @@ class PdfPaginationTests(TestCase):
         self.assertEqual([len(page) for page in pages], [15, 22, 7])
 
     def test_pdf_body_uses_extra_space_above_footer(self):
-        self.assertEqual(PDF_TOP_MARGIN, 42)
+        self.assertEqual(PDF_TOP_MARGIN, 34)
         self.assertEqual(PDF_BOTTOM_MARGIN, 25)
 
     def test_item_table_font_size_is_not_reduced_for_pdf_pagination(self):
@@ -61,6 +66,45 @@ class PdfPaginationTests(TestCase):
         self.assertFalse(styles["table_head"].splitLongWords)
         self.assertFalse(styles["table_head_center"].splitLongWords)
         self.assertFalse(styles["table_head_amount"].splitLongWords)
+
+    def test_pdf_titles_capitalize_each_word(self):
+        self.assertEqual(_format_pdf_title("COMMERCIAL INVOICE"), "Commercial Invoice")
+        self.assertEqual(_format_pdf_title("Proforma Invoice"), "Proforma Invoice")
+        self.assertEqual(_format_pdf_title("PACKING LIST"), "Packing List")
+        self.assertEqual(_format_pdf_title("COMMAND / ORDER"), "Command / Order")
+
+    def test_dispatching_note_line_uses_bold_font(self):
+        styles = _build_styles()
+
+        self.assertEqual(styles["body_left_bold"].fontName, styles["invoice_box_title"].fontName)
+        self.assertNotEqual(styles["body_left_bold"].fontName, styles["body_left"].fontName)
+
+    def test_totals_labels_use_the_main_pdf_color(self):
+        styles = _build_styles()
+
+        self.assertEqual(styles["totals_label"].textColor, styles["table_head"].textColor)
+
+    def test_invoice_information_boxes_use_the_pdf_accent_border(self):
+        styles = _build_styles()
+        partner = {"name": "Test", "addresses": [], "phones": []}
+
+        importer_box = _partner_card("Importer", partner, styles, accent_border=True)
+        note_box = _info_box("Invoice Note", "-", styles)
+
+        self.assertIn("BOX", [command[0] for command in importer_box._linecmds])
+        self.assertIn("BOX", [command[0] for command in note_box._linecmds])
+        self.assertEqual(
+            [command[3] for command in importer_box._linecmds if command[0] == "BOX"],
+            [2],
+        )
+        self.assertEqual(
+            [command[3] for command in note_box._linecmds if command[0] == "BOX"],
+            [2],
+        )
+        self.assertEqual(importer_box._argH, [PDF_INVOICE_BOX_HEIGHT_MM * mm])
+        self.assertEqual(note_box._argH, importer_box._argH)
+        self.assertEqual(importer_box._cellStyles[0][0].valign, "TOP")
+        self.assertEqual(note_box._cellStyles[0][0].valign, "TOP")
 
     def test_footer_invoice_city_country_moves_to_next_line(self):
         lines = format_footer_invoice_lines(

@@ -6,8 +6,9 @@ import re
 pdf_canvas = None
 PDF_FIRST_PAGE_ITEM_LIMIT = 15
 PDF_OTHER_PAGE_ITEM_LIMIT = 22
-PDF_TOP_MARGIN = 42
+PDF_TOP_MARGIN = 34
 PDF_BOTTOM_MARGIN = 25
+PDF_INVOICE_BOX_HEIGHT_MM = 40
 
 try:
     from reportlab.lib import colors
@@ -429,6 +430,14 @@ def _build_styles():
             leading=9,
             textColor=colors.HexColor("#B45309"),
         ),
+        "totals_label": ParagraphStyle(
+            "TotalsLabel",
+            parent=base["BodyText"],
+            fontName=PDF_FONT_BOLD,
+            fontSize=8,
+            leading=9,
+            textColor=colors.HexColor("#F97316"),
+        ),
         "body": ParagraphStyle(
             "Body",
             parent=base["BodyText"],
@@ -442,6 +451,15 @@ def _build_styles():
             "BodyLeft",
             parent=base["BodyText"],
             fontName=PDF_FONT_REGULAR,
+            fontSize=9,
+            leading=10.2,
+            alignment=TA_LEFT,
+            textColor=colors.HexColor("#1F2933"),
+        ),
+        "body_left_bold": ParagraphStyle(
+            "BodyLeftBold",
+            parent=base["BodyText"],
+            fontName=PDF_FONT_BOLD,
             fontSize=9,
             leading=10.2,
             alignment=TA_LEFT,
@@ -709,8 +727,8 @@ def _build_document_info(invoice, styles):
 
 
 def _build_partner_blocks(importer, end_user, styles):
-    importer_card = _partner_card("Importer", importer, styles)
-    end_user_card = _partner_card("End User", end_user, styles)
+    importer_card = _partner_card("Importer", importer, styles, accent_border=True)
+    end_user_card = _partner_card("End User", end_user, styles, accent_border=True)
 
     table = Table([[importer_card, end_user_card]], colWidths=[92 * mm, 92 * mm], hAlign="LEFT")
     table.setStyle(
@@ -743,32 +761,12 @@ def _build_invoice_details(invoice, company, styles, document_type="default"):
     note_box = _info_box("Invoice Note", _format_invoice_note_text(invoice_note), styles, body_style_key="invoice_note_body")
     left_column = [note_box]
 
-    if not _is_shipping_document(document_type):
-        left_column.extend(
-            [
-                Spacer(1, 2 * mm),
-                Paragraph(
-                    f"<b>Our Reference:</b> {_format_preserving_layout(getattr(invoice, 'our_reference', '') or '-')}",
-                    styles["body"],
-                ),
-            ]
-        )
-
     if _is_shipping_document(document_type):
         right_column = []
     else:
         terms_text = "<br/>".join(terms_lines) if terms_lines else "-"
         terms_box = _info_box("Terms", terms_text, styles, body_style_key="terms_body", title_gap=0, paragraph_gap=1.2 * mm)
-
-        if _is_proforma_invoice(invoice) or hasattr(invoice, "price_for"):
-            price_for = getattr(invoice, "price_for", "") or "-"
-            right_column = [
-                terms_box,
-                Spacer(1, 2 * mm),
-                Paragraph(f"<b>Price for:</b> {_format_preserving_layout(price_for)}", styles["body"]),
-            ]
-        else:
-            right_column = [terms_box]
+        right_column = [terms_box]
 
     if not right_column:
         right_column = [Spacer(1, 0)]
@@ -786,6 +784,37 @@ def _build_invoice_details(invoice, company, styles, document_type="default"):
         )
     )
     blocks.append(details_table)
+
+    if not _is_shipping_document(document_type):
+        price_for_text = ""
+        if _is_proforma_invoice(invoice) or hasattr(invoice, "price_for"):
+            price_for = getattr(invoice, "price_for", "") or "-"
+            price_for_text = f"<b>Price for:</b> {_format_preserving_layout(price_for)}"
+
+        reference_table = Table(
+            [[
+                Paragraph(
+                    f"<b>Our Reference:</b> {_format_preserving_layout(getattr(invoice, 'our_reference', '') or '-')}",
+                    styles["body"],
+                ),
+                Paragraph(price_for_text, styles["body"]) if price_for_text else Spacer(1, 0),
+            ]],
+            colWidths=[92 * mm, 92 * mm],
+            hAlign="LEFT",
+        )
+        reference_table.setStyle(
+            TableStyle(
+                [
+                    ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                    ("LEFTPADDING", (0, 0), (-1, -1), 0),
+                    ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+                    ("TOPPADDING", (0, 0), (-1, -1), 0),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
+                ]
+            )
+        )
+        blocks.extend([Spacer(1, 4 * mm), reference_table])
+
     return blocks
 
 
@@ -797,7 +826,12 @@ def _build_shipping_document_intro(invoice, company, styles):
     ]
 
     right_note = getattr(invoice, "dispatching_note", "") or "-"
-    right_column = [Paragraph(f"<b>Dispatching Note:</b> {_format_preserving_layout(right_note)}", styles["body_right"])]
+    right_column = [
+        Paragraph(
+            f"Dispatching Note: {_format_preserving_layout(right_note)}",
+            styles["body_left_bold"],
+        )
+    ]
 
     summary_table = Table([[left_column, right_column]], colWidths=[92 * mm, 92 * mm], hAlign="LEFT")
     summary_table.setStyle(
@@ -1017,7 +1051,15 @@ def _build_purchase_company_address(company, styles):
     ]
 
 
-def _partner_card(title, partner, styles, left_padding=None, top_padding=None, bottom_padding=None):
+def _partner_card(
+    title,
+    partner,
+    styles,
+    left_padding=None,
+    top_padding=None,
+    bottom_padding=None,
+    accent_border=False,
+):
     left_padding = 5 * mm if left_padding is None else left_padding
     top_padding = 2 * mm if top_padding is None else top_padding
     bottom_padding = 4 * mm if bottom_padding is None else bottom_padding
@@ -1042,18 +1084,19 @@ def _partner_card(title, partner, styles, left_padding=None, top_padding=None, b
 
     partner_style = styles.get("partner_compact_body", styles.get("invoice_box_body", styles["body_left"]))
     lines.append(Paragraph("<br/>".join(info_lines), partner_style))
-    card = Table([[lines]], colWidths=[89 * mm])
-    card.setStyle(
-        TableStyle(
-            [
-                ("BACKGROUND", (0, 0), (-1, -1), colors.white),
-                ("LEFTPADDING", (0, 0), (-1, -1), left_padding),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 5 * mm),
-                ("TOPPADDING", (0, 0), (-1, -1), top_padding),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), bottom_padding),
-            ]
-        )
-    )
+    row_heights = [PDF_INVOICE_BOX_HEIGHT_MM * mm] if accent_border else None
+    card = Table([[lines]], colWidths=[89 * mm], rowHeights=row_heights)
+    commands = [
+        ("BACKGROUND", (0, 0), (-1, -1), colors.white),
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ("LEFTPADDING", (0, 0), (-1, -1), left_padding),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 5 * mm),
+        ("TOPPADDING", (0, 0), (-1, -1), top_padding),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), bottom_padding),
+    ]
+    if accent_border:
+        commands.append(("BOX", (0, 0), (-1, -1), 2, colors.HexColor("#F97316")))
+    card.setStyle(TableStyle(commands))
     return card
 
 
@@ -1065,11 +1108,17 @@ def _info_box(title, text, styles, body_style_key="invoice_box_body", title_gap=
     if title_gap:
         content.append(Spacer(1, title_gap))
     content.extend(_build_info_box_paragraphs(text, styles, body_style_key=body_style_key, paragraph_gap=paragraph_gap))
-    box = Table([[content]], colWidths=[89 * mm])
+    box = Table(
+        [[content]],
+        colWidths=[89 * mm],
+        rowHeights=[PDF_INVOICE_BOX_HEIGHT_MM * mm],
+    )
     box.setStyle(
         TableStyle(
             [
                 ("BACKGROUND", (0, 0), (-1, -1), colors.white),
+                ("BOX", (0, 0), (-1, -1), 2, colors.HexColor("#F97316")),
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
                 ("LEFTPADDING", (0, 0), (-1, -1), 5 * mm),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 5 * mm),
                 ("TOPPADDING", (0, 0), (-1, -1), 2 * mm),
@@ -1385,7 +1434,7 @@ def _build_totals_table_from_values(*, gross_value, freight, vat_amount, discoun
 
     total_row_index = len(rows) - 1
     cells = [
-        [Paragraph(_escape(label), styles["label"]), Paragraph(_escape(value), styles["body_right"])]
+        [Paragraph(_escape(label), styles["totals_label"]), Paragraph(_escape(value), styles["body_right"])]
         for label, value in rows
     ]
     table = Table(cells, colWidths=[50 * mm, 35 * mm], hAlign="RIGHT")
@@ -1520,7 +1569,7 @@ def _draw_report_page_frame(canvas, document, *, company, report_title, styles, 
     company_name.drawOn(canvas, left_x, top_y - 10 * mm)
 
     title_style = styles["document_type_title"] if report_title == "COMMAND / ORDER" else styles["section_title"]
-    report_type = Paragraph(_escape((report_title or "").upper()), title_style)
+    report_type = Paragraph(_escape(_format_pdf_title(report_title)), title_style)
     report_type.wrapOn(canvas, 90 * mm, 8 * mm)
     report_type.drawOn(canvas, left_x, top_y - 18 * mm)
 
@@ -1557,7 +1606,7 @@ def _draw_page_header(canvas, document, company, invoice, invoice_title, styles)
     company_name.wrapOn(canvas, 110 * mm, 10 * mm)
     company_name.drawOn(canvas, left_x, top_y - 10 * mm)
 
-    invoice_type = Paragraph(_escape((invoice_title or "").upper()), styles["section_title"])
+    invoice_type = Paragraph(_escape(_format_pdf_title(invoice_title)), styles["section_title"])
     invoice_type.wrapOn(canvas, 80 * mm, 6 * mm)
     invoice_type.drawOn(canvas, left_x, top_y - 18 * mm)
 
@@ -1759,6 +1808,10 @@ def _normalize_pdf_text(value):
     return re.sub(r"[ \t]+", " ", str(value or "")).strip()
 
 
+def _format_pdf_title(value):
+    return str(value or "").strip().title()
+
+
 def _format_preserving_layout(value):
     escaped = _escape(value)
     escaped = escaped.replace("  ", "&nbsp; ")
@@ -1858,7 +1911,7 @@ def _build_report_summary_table(*, currency, total_qty, total_subtotal, total_va
         ["Total Amount", _format_money(total_amount, currency)],
     ]
     cells = [
-        [Paragraph(_escape(label), styles["label"]), Paragraph(_escape(value), styles["body_right"])]
+        [Paragraph(_escape(label), styles["totals_label"]), Paragraph(_escape(value), styles["body_right"])]
         for label, value in rows
     ]
     table = Table(cells, colWidths=[40 * mm, 40 * mm], hAlign="LEFT")
@@ -1885,7 +1938,7 @@ def _build_purchase_report_summary_table(*, currency, total_qty, total_gross, to
         ["Total Amount", _format_money(total_amount, currency)],
     ]
     cells = [
-        [Paragraph(_escape(label), styles["label"]), Paragraph(_escape(value), styles["body_right"])]
+        [Paragraph(_escape(label), styles["totals_label"]), Paragraph(_escape(value), styles["body_right"])]
         for label, value in rows
     ]
     table = Table(cells, colWidths=[40 * mm, 40 * mm], hAlign="LEFT")
