@@ -130,7 +130,10 @@
                 })
                 .catch(function () {
                     setStatus("Autosave needs a valid form", "is-error");
-                    throw new Error("Autosave failed");
+                    if (settings.force) {
+                        throw new Error("Autosave failed");
+                    }
+                    return false;
                 })
                 .finally(function () {
                     isSaving = false;
@@ -180,12 +183,14 @@
                 return;
             }
             window.clearTimeout(timer);
-            timer = window.setTimeout(autosave, delay == null ? 1200 : delay);
+            timer = window.setTimeout(autosave, delay == null ? 180 : delay);
         }
 
         function scheduleAutosaveSoon() {
-            scheduleAutosave(250);
+            scheduleAutosave(80);
         }
+
+        window.invoiceAutosaveTouch = scheduleAutosaveSoon;
 
         function scheduleAutosaveAfterDomUpdate() {
             window.setTimeout(scheduleAutosaveSoon, 0);
@@ -221,10 +226,13 @@
                 });
         }, true);
         form.addEventListener("input", function (event) {
-            scheduleAutosave();
+            scheduleAutosaveSoon();
         }, true);
         form.addEventListener("change", function (event) {
-            scheduleAutosave();
+            scheduleAutosaveSoon();
+        }, true);
+        form.addEventListener("blur", function (event) {
+            scheduleAutosaveSoon();
         }, true);
         form.addEventListener("click", function (event) {
             const target = event.target;

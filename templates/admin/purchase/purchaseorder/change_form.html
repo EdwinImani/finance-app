@@ -10,10 +10,10 @@
     };
 </script>
 {% endif %}
-<script src="{% static 'admin/js/invoice_autosave.js' %}?v=20260723-number-format" defer></script>
+<script src="{% static 'admin/js/invoice_autosave.js' %}?v=20260723-autosave-80ms" defer></script>
 <script src="{% static 'admin/js/product_autofill.js' %}?v=20260723-custom-unit-price" defer></script>
 <script src="{% static 'admin/js/purchase_partner_type.js' %}?v=20260723-no-duplicate-related" defer></script>
-<script src="{% static 'admin/js/inline_row_tools.js' %}?v=20260723-line-count-only" defer></script>
+<script src="{% static 'admin/js/inline_row_tools.js' %}?v=20260723-small-row-number" defer></script>
 <style>
     :root {
         --po-form-bg: #f7f1ef;
@@ -99,6 +99,16 @@
     .change-form .related-widget-wrapper .select2-container {
         min-width: 320px;
         width: min(100%, 520px) !important;
+    }
+
+    .change-form .field-seller .related-widget-wrapper {
+        width: 100%;
+    }
+
+    .change-form .field-seller .related-widget-wrapper select,
+    .change-form .field-seller .related-widget-wrapper .select2-container {
+        min-width: min(100%, 520px);
+        width: min(100%, 980px) !important;
     }
 
     .change-form .related-widget-wrapper .select2-selection,
@@ -509,6 +519,12 @@
         white-space: nowrap;
     }
 
+    .purchase-order-hero-actions {
+        display: grid;
+        justify-items: end;
+        gap: 6px;
+    }
+
     .invoice-autosave-status {
         margin-top: 8px;
         color: var(--po-form-muted);
@@ -590,6 +606,25 @@
     .purchase-order-badge,
     .invoice-autosave-status {
         font-size: 21px;
+    }
+
+    body.app-purchase.change-form .form-row.field-seller .flex-container,
+    body.app-purchase.change-form .form-row.field-seller .related-widget-wrapper {
+        width: 100% !important;
+        max-width: 1180px !important;
+    }
+
+    body.app-purchase.change-form #id_seller,
+    body.app-purchase.change-form #id_seller + .select2-container,
+    body.app-purchase.change-form .form-row.field-seller .select2-container {
+        flex: 1 1 auto !important;
+        min-width: min(100%, 760px) !important;
+        width: min(100%, 980px) !important;
+        max-width: calc(100% - 110px) !important;
+    }
+
+    body.app-purchase.change-form .form-row.field-seller .select2-selection {
+        width: 100% !important;
     }
 
     @media (max-width: 900px) {
@@ -763,12 +798,17 @@ document.addEventListener("DOMContentLoaded", function() {
     <div>
         <h1>{% if add %}Add Purchase Order{% else %}Edit Purchase Order{% endif %}</h1>
     </div>
-    <div class="purchase-order-badge">
-        {% if original and original.purchase_number %}
-            {{ original.purchase_number }}
-        {% else %}
-            New order
-        {% endif %}
+    <div class="purchase-order-hero-actions">
+        <div class="purchase-order-badge">
+            {% if original and original.purchase_number %}
+                {{ original.purchase_number }}
+            {% else %}
+                New order
+            {% endif %}
+        </div>
+        <div class="invoice-autosave-status" data-invoice-autosave-status>
+            Autosave ready
+        </div>
     </div>
 </div>
 {% endblock %}

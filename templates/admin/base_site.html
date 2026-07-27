@@ -782,6 +782,69 @@
         overflow-wrap: anywhere;
     }
 
+    body.app-invoices.change-form .form-row.field-importer,
+    body.app-invoices.change-form .form-row.field-end_user,
+    body.app-purchase.change-form .form-row.field-seller {
+        grid-template-columns: minmax(130px, 180px) minmax(640px, 1fr) !important;
+    }
+
+    body.app-invoices.change-form .form-row.field-importer fieldset,
+    body.app-invoices.change-form .form-row.field-end_user fieldset,
+    body.app-purchase.change-form .form-row.field-seller fieldset,
+    body.app-invoices.change-form .form-row.field-importer fieldset > div,
+    body.app-invoices.change-form .form-row.field-end_user fieldset > div,
+    body.app-purchase.change-form .form-row.field-seller fieldset > div,
+    body.app-invoices.change-form .form-row.field-importer .flex-container,
+    body.app-invoices.change-form .form-row.field-end_user .flex-container,
+    body.app-purchase.change-form .form-row.field-seller .flex-container,
+    body.app-invoices.change-form .form-row.field-importer .related-widget-wrapper,
+    body.app-invoices.change-form .form-row.field-end_user .related-widget-wrapper,
+    body.app-purchase.change-form .form-row.field-seller .related-widget-wrapper {
+        width: 100% !important;
+        max-width: none !important;
+        box-sizing: border-box !important;
+    }
+
+    body.app-invoices.change-form .form-row.field-importer .related-widget-wrapper,
+    body.app-invoices.change-form .form-row.field-end_user .related-widget-wrapper,
+    body.app-purchase.change-form .form-row.field-seller .related-widget-wrapper {
+        display: flex !important;
+        align-items: center !important;
+        gap: 10px !important;
+        flex-wrap: nowrap !important;
+    }
+
+    body.app-invoices.change-form #id_importer + .select2-container,
+    body.app-invoices.change-form #id_end_user + .select2-container,
+    body.app-purchase.change-form #id_seller + .select2-container,
+    body.app-invoices.change-form .form-row.field-importer .select2-container,
+    body.app-invoices.change-form .form-row.field-end_user .select2-container,
+    body.app-purchase.change-form .form-row.field-seller .select2-container {
+        flex: 1 1 auto !important;
+        min-width: min(760px, 100%) !important;
+        width: min(980px, calc(100vw - 430px)) !important;
+        max-width: calc(100% - 150px) !important;
+    }
+
+    @media (max-width: 1100px) {
+        body.app-invoices.change-form .form-row.field-importer,
+        body.app-invoices.change-form .form-row.field-end_user,
+        body.app-purchase.change-form .form-row.field-seller {
+            grid-template-columns: 1fr !important;
+        }
+
+        body.app-invoices.change-form #id_importer + .select2-container,
+        body.app-invoices.change-form #id_end_user + .select2-container,
+        body.app-purchase.change-form #id_seller + .select2-container,
+        body.app-invoices.change-form .form-row.field-importer .select2-container,
+        body.app-invoices.change-form .form-row.field-end_user .select2-container,
+        body.app-purchase.change-form .form-row.field-seller .select2-container {
+            min-width: 0 !important;
+            width: 100% !important;
+            max-width: 100% !important;
+        }
+    }
+
     .aligned label,
     .form-row label,
     .inline-group .tabular tr th {
@@ -1565,6 +1628,10 @@
             return dropdown ? dropdown.parentElement : null;
         }
 
+        function isWidePartnerAutocomplete(select) {
+            return Boolean(select && ["importer", "end_user", "seller", "requester"].includes(select.name));
+        }
+
         function positionAutocomplete(select) {
             const $ = window.django && window.django.jQuery;
 
@@ -1586,7 +1653,9 @@
 
             const zoom = getBodyZoom();
             const rect = select2.$container[0].getBoundingClientRect();
-            const dropdownWidth = Math.max(rect.width, Math.min(520, window.innerWidth - 32));
+            const maxAvailableWidth = Math.max(260, window.innerWidth - rect.left - 24);
+            const preferredWidth = isWidePartnerAutocomplete(select) ? 780 : 520;
+            const dropdownWidth = Math.max(rect.width, Math.min(preferredWidth, maxAvailableWidth));
 
             dropdownContainer.style.position = "absolute";
             dropdownContainer.style.left = `${(rect.left + window.scrollX) / zoom}px`;
@@ -1671,6 +1740,26 @@
 
             $(document).on("input keyup", ".select2-container--open .select2-search__field", refreshSoon);
             $(document).on("results:all results:append", "select.admin-autocomplete", refreshSoon);
+
+            document.addEventListener("wheel", function(event) {
+                const openContainer = event.target && event.target.closest(".select2-container--open");
+                if (!openContainer) {
+                    return;
+                }
+
+                const results = openContainer.querySelector(".select2-results__options");
+                const canScrollResults = results && results.scrollHeight > results.clientHeight;
+                const atTop = !canScrollResults || results.scrollTop <= 0;
+                const atBottom = !canScrollResults || results.scrollTop + results.clientHeight >= results.scrollHeight - 1;
+                const shouldScrollPage = !results || event.target.closest(".select2-search") || (event.deltaY < 0 && atTop) || (event.deltaY > 0 && atBottom);
+
+                if (shouldScrollPage) {
+                    window.scrollBy({ top: event.deltaY, left: 0, behavior: "auto" });
+                    event.preventDefault();
+                    event.stopImmediatePropagation();
+                    refreshSoon();
+                }
+            }, { capture: true, passive: false });
 
             window.addEventListener("scroll", refreshPosition, true);
             window.addEventListener("resize", refreshPosition);

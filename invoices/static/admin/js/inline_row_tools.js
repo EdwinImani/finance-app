@@ -58,6 +58,15 @@
         return false;
     }
 
+    function getLastCopyableRow(group) {
+        var activeRows = getRows(group).filter(function (row) {
+            return !isDeleted(row);
+        });
+        var rowsWithData = activeRows.filter(hasUserData);
+
+        return rowsWithData[rowsWithData.length - 1] || activeRows[activeRows.length - 1] || null;
+    }
+
     function valueOf(field) {
         return field ? String(field.value || "").trim() : "";
     }
@@ -116,14 +125,20 @@
             rows.forEach(function (row) {
                 var cell = ensureNumberCell(row);
                 var index = countedRows.indexOf(row);
-                cell.textContent = index === -1 ? "" : String(index + 1) + "/" + String(total);
+                var label = index === -1 ? "" : String(index + 1);
+                if (cell.textContent !== label) {
+                    cell.textContent = label;
+                }
             });
         });
     }
 
-    function isCommercialPackingGroup(group) {
-        var addLink = group.querySelector(".add-row a");
-        return Boolean(addLink && (addLink.textContent || "").toLowerCase().includes("commercial invoice packing"));
+    function isInvoicePage() {
+        return Boolean(document.body && document.body.classList.contains("app-invoices"));
+    }
+
+    function isCloneableInvoiceGroup(group) {
+        return isInvoicePage() && Boolean(group.querySelector(".field-no_packing"));
     }
 
     function fieldSuffix(field) {
@@ -142,53 +157,150 @@
             return;
         }
 
+        if (sourceField.tagName === "SELECT") {
+            Array.from(sourceField.selectedOptions || []).forEach(function (option) {
+                if (!option.value || targetField.querySelector('option[value="' + option.value.replace(/"/g, '\\"') + '"]')) {
+                    return;
+                }
+                targetField.appendChild(option.cloneNode(true));
+            });
+        }
+
         if (targetField.type === "checkbox" || targetField.type === "radio") {
             targetField.checked = sourceField.checked;
         } else {
             targetField.value = sourceField.value;
         }
+
+        if (targetField.tagName === "SELECT" && window.django && window.django.jQuery) {
+            window.django.jQuery(targetField).trigger("change");
+        }
+
         targetField.dispatchEvent(new Event("input", { bubbles: true }));
         targetField.dispatchEvent(new Event("change", { bubbles: true }));
     }
 
+    function notifyAutosave() {
+        document.dispatchEvent(new CustomEvent("invoice:inline-product-updated"));
+        if (window.invoiceAutosaveTouch) {
+            window.invoiceAutosaveTouch();
+        }
+    }
+
+    function getRealAddLink(group) {
+        return group.querySelector(".add-row a.addlink, .add-row a:not(.add-same-inline-row):not(.add-same-commercial-packing)");
+    }
+
+    function clickAddLink(addLink) {
+        if (addLink && typeof addLink.click === "function") {
+            addLink.click();
+        }
+    }
+
+    function replaceFormIndex(root, prefix, index) {
+        var pattern = new RegExp(prefix + "-(?:__prefix__|empty)", "g");
+        Array.from(root.querySelectorAll("*")).concat(root).forEach(function (element) {
+            ["for", "id", "name"].forEach(function (attribute) {
+                var value = element.getAttribute && element.getAttribute(attribute);
+                if (value) {
+                    element.setAttribute(attribute, value.replace(pattern, prefix + "-" + index));
+                }
+            });
+        });
+    }
+
+    function addDeleteLink(row) {
+        var deleteCell = row.querySelector("td.delete");
+        if (!deleteCell || deleteCell.querySelector(".inline-deletelink")) {
+            return;
+        }
+
+        var wrapper = document.createElement("div");
+        var link = document.createElement("a");
+        link.href = "#";
+        link.className = "inline-deletelink";
+        link.textContent = "Remove";
+        link.addEventListener("click", function (event) {
+            event.preventDefault();
+            row.remove();
+            notifyAutosave();
+        });
+        wrapper.appendChild(link);
+        deleteCell.appendChild(wrapper);
+    }
+
+    function fallbackAddRow(group) {
+        var totalInput = group.querySelector('input[id$="-TOTAL_FORMS"]');
+        var template = group.querySelector("tr.empty-form, tr[id$='-empty']");
+        if (!totalInput || !template) {
+            return null;
+        }
+
+        var prefix = totalInput.id.replace(/^id_/, "").replace(/-TOTAL_FORMS$/, "");
+        var index = parseInt(totalInput.value || "0", 10);
+        if (Number.isNaN(index)) {
+            return null;
+        }
+
+        var row = template.cloneNode(true);
+        row.classList.remove("empty-form", "empty-row");
+        row.classList.add("dynamic-" + prefix);
+        row.id = prefix + "-" + index;
+        replaceFormIndex(row, prefix, index);
+        addDeleteLink(row);
+
+        template.parentNode.insertBefore(row, template);
+        totalInput.value = String(index + 1);
+        row.dispatchEvent(new CustomEvent("formset:added", {
+            bubbles: true,
+            detail: { formsetName: prefix }
+        }));
+        return row;
+    }
+
     function addSameCommercialPackingLine(group) {
-        var addLink = group.querySelector(".add-row a");
+        var addLink = getRealAddLink(group);
         if (!addLink) {
             return;
         }
 
-        var sourceRows = getRows(group).filter(function (row) {
-            return !isDeleted(row);
-        });
-        var sourceRow = sourceRows[sourceRows.length - 1];
+        var sourceRow = getLastCopyableRow(group);
         var beforeRows = getRows(group);
 
-        addLink.click();
+        clickAddLink(addLink);
 
         window.setTimeout(function () {
             var afterRows = getRows(group);
             var newRow = afterRows.find(function (row) {
                 return beforeRows.indexOf(row) === -1;
-            }) || afterRows[afterRows.length - 1];
+            });
+
+            if (!newRow) {
+                newRow = fallbackAddRow(group);
+            }
 
             if (sourceRow && newRow && newRow !== sourceRow) {
                 Array.from(sourceRow.querySelectorAll("input, select, textarea")).forEach(function (sourceField) {
                     copyFieldValue(sourceField, newRow);
                 });
+                notifyAutosave();
             }
             updateRowNumbers(group);
         }, 0);
     }
 
     function ensureSamePackingButton(group) {
-        if (!isCommercialPackingGroup(group) || group.querySelector(".add-same-commercial-packing")) {
+        if (!isCloneableInvoiceGroup(group) || group.querySelector(".add-same-inline-row, .add-same-commercial-packing")) {
             return;
         }
 
-        var addLink = group.querySelector(".add-row a");
+        var addLink = getRealAddLink(group);
+        if (!addLink) {
+            return;
+        }
         var sameLink = document.createElement("a");
         sameLink.href = "#";
-        sameLink.className = "add-same-commercial-packing";
+        sameLink.className = "add-same-inline-row add-same-commercial-packing";
         sameLink.textContent = "Add another same item";
         sameLink.addEventListener("click", function (event) {
             event.preventDefault();
@@ -205,6 +317,20 @@
 
     document.addEventListener("DOMContentLoaded", function () {
         setup(document);
+        [50, 200, 600, 1200].forEach(function (delay) {
+            window.setTimeout(function () {
+                setup(document);
+            }, delay);
+        });
+
+        if (window.MutationObserver) {
+            var observer = new MutationObserver(function (mutations) {
+                if (mutations.some(function (mutation) { return mutation.addedNodes && mutation.addedNodes.length; })) {
+                    setup(document);
+                }
+            });
+            observer.observe(document.body, { childList: true, subtree: true });
+        }
 
         document.body.addEventListener("formset:added", function () {
             window.setTimeout(function () {

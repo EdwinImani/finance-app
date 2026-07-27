@@ -67,7 +67,7 @@ class PurchaseOrderAdminFormTests(TestCase):
         template_source = get_template("admin/purchase/purchaseorder/change_form.html").template.source
 
         self.assertIn("admin/js/invoice_autosave.js", template_source)
-        self.assertIn("20260723-no-duplicate-related", template_source)
+        self.assertIn("20260723-autosave-80ms", template_source)
 
 
 class PurchaseOrderItemTests(TestCase):
@@ -230,6 +230,44 @@ class PurchaseOrderAdminAutosaveTests(TestCase):
         self.assertEqual(item.product, product)
         self.assertEqual(item.quantity, 2)
         self.assertEqual(item.unit_price, Decimal("12.50"))
+        self.assertEqual(response.json()["inline_objects"][0]["id"], str(item.pk))
+
+    def test_autosave_keeps_new_inline_item_when_only_quantity_changed(self):
+        purchase_order = PurchaseOrder.objects.create(vat_percent=Decimal("20.00"))
+
+        response = self.client.post(
+            reverse("admin:purchase_purchaseorder_autosave", args=[purchase_order.pk]),
+            {
+                "purchase_number": purchase_order.purchase_number,
+                "purchase_date": purchase_order.purchase_date.strftime("%Y-%m-%d"),
+                "seller": "",
+                "requester": "",
+                "sent_by": "",
+                "shipment": "",
+                "freight": "0.00",
+                "vat_percent": "20.00",
+                "sales_condition": "",
+                "payment_condition": "",
+                "delivery_terms": "",
+                "items-TOTAL_FORMS": "1",
+                "items-INITIAL_FORMS": "0",
+                "items-MIN_NUM_FORMS": "0",
+                "items-MAX_NUM_FORMS": "1000",
+                "items-0-id": "",
+                "items-0-purchase_order": str(purchase_order.pk),
+                "items-0-product": "",
+                "items-0-hs_code": "",
+                "items-0-part_number": "",
+                "items-0-quantity": "4",
+                "items-0-unit_price": "0.00",
+            },
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+        )
+
+        self.assertEqual(response.status_code, 200, response.content)
+        item = purchase_order.items.get()
+        self.assertEqual(item.quantity, 4)
+        self.assertEqual(item.product, None)
         self.assertEqual(response.json()["inline_objects"][0]["id"], str(item.pk))
 
     def test_autosave_deletes_only_checked_item(self):

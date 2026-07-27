@@ -10,10 +10,10 @@
     };
 </script>
 {% endif %}
-<script src="{% static 'admin/js/invoice_autosave.js' %}?v=20260723-number-format" defer></script>
+<script src="{% static 'admin/js/invoice_autosave.js' %}?v=20260723-autosave-80ms" defer></script>
 <script src="{% static 'admin/js/invoice_product_info.js' %}?v=20260723-custom-unit-price" defer></script>
 <script src="{% static 'admin/js/invoice_partner_type.js' %}?v=20260723-no-duplicate-related" defer></script>
-<script src="{% static 'admin/js/inline_row_tools.js' %}?v=20260723-same-commercial-packing-link" defer></script>
+<script src="{% static 'admin/js/inline_row_tools.js' %}?v=20260723-small-row-number" defer></script>
 <style>
     :root {
         --invoice-bg: #fff4e6;
@@ -92,6 +92,12 @@
 
     .invoice-autosave-status.is-error {
         color: #9a3412;
+    }
+
+    .invoice-hero-actions {
+        display: grid;
+        justify-items: end;
+        gap: 6px;
     }
 
     .change-form .module,
@@ -191,6 +197,19 @@
         width: min(100%, 520px) !important;
     }
 
+    .change-form .field-importer .related-widget-wrapper,
+    .change-form .field-end_user .related-widget-wrapper {
+        width: 100%;
+    }
+
+    .change-form .field-importer .related-widget-wrapper select,
+    .change-form .field-importer .related-widget-wrapper .select2-container,
+    .change-form .field-end_user .related-widget-wrapper select,
+    .change-form .field-end_user .related-widget-wrapper .select2-container {
+        min-width: min(100%, 520px);
+        width: min(100%, 980px) !important;
+    }
+
     .select2-container--admin-autocomplete .select2-results__option,
     .select2-container--default .select2-results__option {
         color: var(--invoice-text);
@@ -231,7 +250,9 @@
     }
 
     .change-form .related-widget-wrapper a.related-widget-wrapper-link,
-    .inline-group .add-row a {
+    .inline-group .add-row a,
+    .inline-group .add-row .add-same-inline-row,
+    .inline-group .add-row .add-same-commercial-packing {
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -247,7 +268,9 @@
     }
 
     .change-form .related-widget-wrapper a.related-widget-wrapper-link:hover,
-    .inline-group .add-row a:hover {
+    .inline-group .add-row a:hover,
+    .inline-group .add-row .add-same-inline-row:hover,
+    .inline-group .add-row .add-same-commercial-packing:hover {
         background: #ffedd5;
     }
 
@@ -257,20 +280,31 @@
     }
 
     .inline-group .add-row {
-        padding: 16px 18px;
+        padding: 0;
+    }
+
+    .inline-group .add-row td {
+        padding: 8px 10px !important;
+        display: table-cell;
+        white-space: nowrap;
+        text-align: left;
+    }
+
+    .inline-group .add-row a + a {
+        margin-left: 8px;
     }
 
 
     .inline-group .tabular th.inline-row-number-header,
     .inline-group .tabular td.inline-row-number-cell {
-        width: 42px;
-        min-width: 42px;
-        max-width: 42px;
-        padding-left: 3px;
-        padding-right: 3px;
+        width: 32px;
+        min-width: 32px;
+        max-width: 32px;
+        padding-left: 2px;
+        padding-right: 2px;
         text-align: center;
         font-weight: 800;
-        font-size: 15px !important;
+        font-size: 12px !important;
         color: #9a3412;
         white-space: nowrap;
     }
@@ -333,6 +367,21 @@
 
     .inline-group .tabular td {
         min-width: 0;
+    }
+
+    .inline-group .tabular th.original,
+    .inline-group .tabular td.original {
+        width: 0 !important;
+        min-width: 0 !important;
+        max-width: 0 !important;
+        padding: 0 !important;
+        border: 0 !important;
+        overflow: hidden !important;
+    }
+
+    .inline-group .tabular td.original p,
+    .inline-group .tabular td.original .inline_label {
+        display: none !important;
     }
 
     .inline-group .tabular .field-product {
@@ -673,6 +722,74 @@
         font-size: 21px;
     }
 
+    body.app-invoices.change-form .inline-group .tabular th.inline-row-number-header,
+    body.app-invoices.change-form .inline-group .tabular td.inline-row-number-cell {
+        display: table-cell !important;
+        width: 18px !important;
+        min-width: 18px !important;
+        max-width: 18px !important;
+        padding-left: 1px !important;
+        padding-right: 1px !important;
+        text-align: center !important;
+        font-size: 10px !important;
+        line-height: 1 !important;
+        border-right: 0 !important;
+    }
+
+    body.app-invoices.change-form .inline-group.invoice-commercial-items .tabular th,
+    body.app-invoices.change-form .inline-group.invoice-commercial-items .tabular td,
+    body.app-invoices.change-form .inline-group.invoice-commercial-packings .tabular th,
+    body.app-invoices.change-form .inline-group.invoice-commercial-packings .tabular td {
+        padding-top: 4px !important;
+        padding-bottom: 4px !important;
+    }
+
+    body.app-invoices.change-form .inline-group.invoice-commercial-items .tabular input:not([type="checkbox"]):not([type="radio"]),
+    body.app-invoices.change-form .inline-group.invoice-commercial-items .tabular select,
+    body.app-invoices.change-form .inline-group.invoice-commercial-packings .tabular input:not([type="checkbox"]):not([type="radio"]) {
+        min-height: 38px !important;
+        padding-top: 4px !important;
+        padding-bottom: 4px !important;
+    }
+
+    body.app-invoices.change-form .inline-group .add-row td {
+        padding-top: 4px !important;
+        padding-bottom: 4px !important;
+    }
+
+    body.app-invoices.change-form .inline-group .add-row a,
+    body.app-invoices.change-form .inline-group .add-row .add-same-inline-row,
+    body.app-invoices.change-form .inline-group .add-row .add-same-commercial-packing {
+        min-height: 30px;
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+
+    body.app-invoices.change-form .form-row.field-importer .flex-container,
+    body.app-invoices.change-form .form-row.field-end_user .flex-container,
+    body.app-invoices.change-form .form-row.field-importer .related-widget-wrapper,
+    body.app-invoices.change-form .form-row.field-end_user .related-widget-wrapper {
+        width: 100% !important;
+        max-width: 1180px !important;
+    }
+
+    body.app-invoices.change-form #id_importer,
+    body.app-invoices.change-form #id_end_user,
+    body.app-invoices.change-form #id_importer + .select2-container,
+    body.app-invoices.change-form #id_end_user + .select2-container,
+    body.app-invoices.change-form .form-row.field-importer .select2-container,
+    body.app-invoices.change-form .form-row.field-end_user .select2-container {
+        flex: 1 1 auto !important;
+        min-width: min(100%, 760px) !important;
+        width: min(100%, 980px) !important;
+        max-width: calc(100% - 110px) !important;
+    }
+
+    body.app-invoices.change-form .form-row.field-importer .select2-selection,
+    body.app-invoices.change-form .form-row.field-end_user .select2-selection {
+        width: 100% !important;
+    }
+
     @media (max-width: 900px) {
         .invoice-hero {
             flex-direction: column;
@@ -780,75 +897,6 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
-    function copyPackingField(sourceField, targetRow) {
-        if (!sourceField.name || sourceField.type === "hidden") {
-            return;
-        }
-
-        var suffix = sourceField.name.split("-").slice(2).join("-");
-        if (!suffix || suffix === "id" || suffix === "DELETE") {
-            return;
-        }
-
-        var targetField = targetRow.querySelector('[name$="-' + CSS.escape(suffix) + '"]');
-        if (!targetField || targetField.type === "hidden") {
-            return;
-        }
-
-        targetField.value = sourceField.value;
-        targetField.dispatchEvent(new Event("input", { bubbles: true }));
-        targetField.dispatchEvent(new Event("change", { bubbles: true }));
-    }
-
-    function addSamePackingLine(inlineGroup) {
-        var addLink = inlineGroup.querySelector(".add-row a");
-        var rows = Array.from(inlineGroup.querySelectorAll(".tabular tbody tr")).filter(function(row) {
-            return !row.classList.contains("empty-form") && !row.id.endsWith("-empty");
-        });
-        var sourceRow = rows[rows.length - 1];
-
-        if (!addLink || !sourceRow) {
-            return;
-        }
-
-        addLink.click();
-
-        window.setTimeout(function() {
-            var updatedRows = Array.from(inlineGroup.querySelectorAll(".tabular tbody tr")).filter(function(row) {
-                return !row.classList.contains("empty-form") && !row.id.endsWith("-empty");
-            });
-            var newRow = updatedRows[updatedRows.length - 1];
-
-            if (!newRow || newRow === sourceRow) {
-                return;
-            }
-
-            Array.from(sourceRow.querySelectorAll("input, select, textarea")).forEach(function(sourceField) {
-                copyPackingField(sourceField, newRow);
-            });
-        }, 0);
-    }
-
-    function addSamePackingButton(inlineGroup) {
-        var addRow = inlineGroup.querySelector(".add-row");
-        var addLink = addRow ? addRow.querySelector("a") : null;
-
-        if (!addRow || !addLink || addRow.querySelector(".add-same-commercial-packing")) {
-            return;
-        }
-
-        var sameLink = document.createElement("a");
-        sameLink.href = "#";
-        sameLink.className = "add-same-commercial-packing";
-        sameLink.textContent = "Add another same item";
-        sameLink.addEventListener("click", function(event) {
-            event.preventDefault();
-            addSamePackingLine(inlineGroup);
-        });
-
-        addLink.insertAdjacentElement("afterend", sameLink);
-    }
-
     document.querySelectorAll(".inline-group").forEach(function(inlineGroup) {
         var hasProductRows = inlineGroup.querySelector(".field-product");
         var hasItemDate = inlineGroup.querySelector(".field-item_date");
@@ -858,7 +906,6 @@ document.addEventListener("DOMContentLoaded", function() {
         }
         if (hasPackingRows) {
             inlineGroup.classList.add("invoice-commercial-packings");
-            addSamePackingButton(inlineGroup);
         }
     });
     showFullProductLabel(document);
@@ -928,12 +975,17 @@ document.addEventListener("DOMContentLoaded", function() {
     <div>
         <h1>{% if add %}Add {{ opts.verbose_name|capfirst }}{% else %}Edit {{ opts.verbose_name|capfirst }}{% endif %}</h1>
     </div>
-    <div class="invoice-badge">
-        {% if original and original.invoice_number %}
-            {{ original.invoice_number }}
-        {% else %}
-            New invoice
-        {% endif %}
+    <div class="invoice-hero-actions">
+        <div class="invoice-badge">
+            {% if original and original.invoice_number %}
+                {{ original.invoice_number }}
+            {% else %}
+                New invoice
+            {% endif %}
+        </div>
+        <div class="invoice-autosave-status" data-invoice-autosave-status>
+            Autosave ready
+        </div>
     </div>
 </div>
 {% endblock %}

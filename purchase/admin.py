@@ -430,14 +430,19 @@ class PurchaseOrderAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.M
         product = (post_data.get(f"{prefix}-{index}-product") or "").strip()
         hs_code = (post_data.get(f"{prefix}-{index}-hs_code") or "").strip()
         part_number = (post_data.get(f"{prefix}-{index}-part_number") or "").strip()
-        unit_price = (post_data.get(f"{prefix}-{index}-unit_price") or "").strip()
+        quantity = self._normalized_autosave_value(post_data.get(f"{prefix}-{index}-quantity"))
+        unit_price = self._normalized_autosave_value(post_data.get(f"{prefix}-{index}-unit_price"))
 
         return bool(
             product or
             (hs_code and hs_code != "-") or
             part_number or
+            (quantity and quantity != "1") or
             (unit_price and unit_price not in {"0", "0.0", "0.00"})
         )
+
+    def _normalized_autosave_value(self, value):
+        return (value or "").strip().replace(",", "")
 
     def _collect_saved_inline_objects(self, formsets):
         inline_objects = []

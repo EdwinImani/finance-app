@@ -570,6 +570,50 @@ class CommercialInvoiceAdminDraftTests(TestCase):
         self.assertEqual(item.unit_price, Decimal("58.00"))
         self.assertEqual(response.json()["inline_objects"][0]["id"], str(item.pk))
 
+    def test_autosave_keeps_new_inline_item_when_only_quantity_changed(self):
+        invoice = CommercialInvoice.objects.create(vat_percent=Decimal("20.00"))
+
+        response = self.client.post(
+            reverse("admin:invoices_commercialinvoice_autosave", args=[invoice.pk]),
+            {
+                "invoice_date": invoice.invoice_date.strftime("%Y-%m-%d"),
+                "importer": "",
+                "end_user": "",
+                "our_order_no": "",
+                "our_reference": "",
+                "price_for": "",
+                "dispatching_note": "",
+                "packing_specification": "",
+                "delivery_time": "",
+                "terms_conditions": "",
+                "freight": "0.00",
+                "discount": "0.00",
+                "vat_percent": "20.00",
+                "items-TOTAL_FORMS": "1",
+                "items-INITIAL_FORMS": "0",
+                "items-MIN_NUM_FORMS": "0",
+                "items-MAX_NUM_FORMS": "1000",
+                "items-0-id": "",
+                "items-0-invoice": str(invoice.pk),
+                "items-0-product": "",
+                "items-0-hs_code": "",
+                "items-0-part_number": "",
+                "items-0-quantity": "3",
+                "items-0-unit_price": "0.00",
+                "packing_entries-TOTAL_FORMS": "0",
+                "packing_entries-INITIAL_FORMS": "0",
+                "packing_entries-MIN_NUM_FORMS": "0",
+                "packing_entries-MAX_NUM_FORMS": "1000",
+            },
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+        )
+
+        self.assertEqual(response.status_code, 200, response.content)
+        item = invoice.items.get()
+        self.assertEqual(item.quantity, 3)
+        self.assertEqual(item.product, None)
+        self.assertEqual(response.json()["inline_objects"][0]["id"], str(item.pk))
+
     def test_autosave_updates_existing_item_price_without_updating_product_default_price(self):
         importer = Partner.objects.create(
             description="Client Autosave Price",
