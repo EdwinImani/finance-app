@@ -5,6 +5,7 @@ from django.test import TestCase
 from django.test import override_settings
 from django.urls import reverse
 from reportlab.lib.units import mm
+from reportlab.platypus import Spacer
 
 from company.models import CompanySetting
 from partners.models import Partner
@@ -16,12 +17,18 @@ from .pdf_builder import (
     PDF_BOTTOM_MARGIN,
     PDF_FIRST_PAGE_ITEM_LIMIT,
     PDF_INVOICE_BOX_HEIGHT_MM,
+    PDF_INVOICE_BOX_TITLE_GAP_MM,
+    PDF_INVOICE_BOX_WIDTH_MM,
+    PDF_INVOICE_COLUMN_WIDTH_MM,
+    PDF_INVOICE_SIDE_MARGIN_MM,
     PDF_OTHER_PAGE_ITEM_LIMIT,
     PDF_TOP_MARGIN,
     _info_box,
     _build_invoice_item_table_styles,
+    _build_info_box_paragraphs,
     _build_purchase_order_styles,
     _build_styles,
+    _format_invoice_note_text,
     _format_pdf_title,
     _partner_card,
     _split_items_for_pages,
@@ -45,6 +52,8 @@ class PdfPaginationTests(TestCase):
     def test_pdf_body_uses_extra_space_above_footer(self):
         self.assertEqual(PDF_TOP_MARGIN, 34)
         self.assertEqual(PDF_BOTTOM_MARGIN, 25)
+        self.assertEqual(PDF_INVOICE_COLUMN_WIDTH_MM, 96)
+        self.assertEqual(PDF_INVOICE_SIDE_MARGIN_MM, 9)
 
     def test_item_table_font_size_is_not_reduced_for_pdf_pagination(self):
         styles = _build_styles()
@@ -95,16 +104,32 @@ class PdfPaginationTests(TestCase):
         self.assertIn("BOX", [command[0] for command in note_box._linecmds])
         self.assertEqual(
             [command[3] for command in importer_box._linecmds if command[0] == "BOX"],
-            [2],
+            [1],
         )
         self.assertEqual(
             [command[3] for command in note_box._linecmds if command[0] == "BOX"],
-            [2],
+            [1],
         )
         self.assertEqual(importer_box._argH, [PDF_INVOICE_BOX_HEIGHT_MM * mm])
+        self.assertEqual(importer_box._argW, [PDF_INVOICE_BOX_WIDTH_MM * mm])
         self.assertEqual(note_box._argH, importer_box._argH)
+        self.assertEqual(note_box._argW, importer_box._argW)
         self.assertEqual(importer_box._cellStyles[0][0].valign, "TOP")
         self.assertEqual(note_box._cellStyles[0][0].valign, "TOP")
+        self.assertEqual(importer_box._cellvalues[0][0][1].height, PDF_INVOICE_BOX_TITLE_GAP_MM * mm)
+        self.assertEqual(note_box._cellvalues[0][0][1].height, PDF_INVOICE_BOX_TITLE_GAP_MM * mm)
+
+    def test_company_setting_blank_lines_are_preserved_in_pdf_boxes(self):
+        styles = _build_styles()
+        formatted_note = _format_invoice_note_text("First line\n\nSecond line")
+        paragraphs = _build_info_box_paragraphs(
+            formatted_note,
+            styles,
+            body_style_key="invoice_note_body",
+        )
+
+        self.assertIn("<br/><br/>", formatted_note)
+        self.assertEqual(sum(isinstance(item, Spacer) for item in paragraphs), 1)
 
     def test_footer_invoice_city_country_moves_to_next_line(self):
         lines = format_footer_invoice_lines(

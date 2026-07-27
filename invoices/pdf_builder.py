@@ -8,7 +8,11 @@ PDF_FIRST_PAGE_ITEM_LIMIT = 15
 PDF_OTHER_PAGE_ITEM_LIMIT = 22
 PDF_TOP_MARGIN = 34
 PDF_BOTTOM_MARGIN = 25
-PDF_INVOICE_BOX_HEIGHT_MM = 40
+PDF_INVOICE_BOX_HEIGHT_MM = 43
+PDF_INVOICE_BOX_WIDTH_MM = 95
+PDF_INVOICE_COLUMN_WIDTH_MM = 96
+PDF_INVOICE_SIDE_MARGIN_MM = 9
+PDF_INVOICE_BOX_TITLE_GAP_MM = 3
 
 try:
     from reportlab.lib import colors
@@ -88,8 +92,8 @@ def build_invoice_pdf(*, invoice, company, items, importer, end_user, invoice_ti
     document = SimpleDocTemplate(
         buffer,
         pagesize=A4,
-        leftMargin=12 * mm,
-        rightMargin=14 * mm,
+        leftMargin=PDF_INVOICE_SIDE_MARGIN_MM * mm,
+        rightMargin=PDF_INVOICE_SIDE_MARGIN_MM * mm,
         topMargin=PDF_TOP_MARGIN * mm,
         bottomMargin=PDF_BOTTOM_MARGIN * mm,
         title=invoice.invoice_number or invoice_title,
@@ -730,7 +734,11 @@ def _build_partner_blocks(importer, end_user, styles):
     importer_card = _partner_card("Importer", importer, styles, accent_border=True)
     end_user_card = _partner_card("End User", end_user, styles, accent_border=True)
 
-    table = Table([[importer_card, end_user_card]], colWidths=[92 * mm, 92 * mm], hAlign="LEFT")
+    table = Table(
+        [[importer_card, end_user_card]],
+        colWidths=[PDF_INVOICE_COLUMN_WIDTH_MM * mm, PDF_INVOICE_COLUMN_WIDTH_MM * mm],
+        hAlign="LEFT",
+    )
     table.setStyle(
         TableStyle(
             [
@@ -765,13 +773,17 @@ def _build_invoice_details(invoice, company, styles, document_type="default"):
         right_column = []
     else:
         terms_text = "<br/>".join(terms_lines) if terms_lines else "-"
-        terms_box = _info_box("Terms", terms_text, styles, body_style_key="terms_body", title_gap=0, paragraph_gap=1.2 * mm)
+        terms_box = _info_box("Terms", terms_text, styles, body_style_key="terms_body", paragraph_gap=1.2 * mm)
         right_column = [terms_box]
 
     if not right_column:
         right_column = [Spacer(1, 0)]
 
-    details_table = Table([[left_column, right_column]], colWidths=[92 * mm, 92 * mm], hAlign="LEFT")
+    details_table = Table(
+        [[left_column, right_column]],
+        colWidths=[PDF_INVOICE_COLUMN_WIDTH_MM * mm, PDF_INVOICE_COLUMN_WIDTH_MM * mm],
+        hAlign="LEFT",
+    )
     details_table.setStyle(
         TableStyle(
             [
@@ -799,7 +811,7 @@ def _build_invoice_details(invoice, company, styles, document_type="default"):
                 ),
                 Paragraph(price_for_text, styles["body"]) if price_for_text else Spacer(1, 0),
             ]],
-            colWidths=[92 * mm, 92 * mm],
+            colWidths=[PDF_INVOICE_COLUMN_WIDTH_MM * mm, PDF_INVOICE_COLUMN_WIDTH_MM * mm],
             hAlign="LEFT",
         )
         reference_table.setStyle(
@@ -1066,7 +1078,8 @@ def _partner_card(
 
     lines = []
     if title:
-        lines.extend([Paragraph(title, styles["invoice_box_title"]), Spacer(1, 0.2 * mm)])
+        title_gap = PDF_INVOICE_BOX_TITLE_GAP_MM * mm if accent_border else 0.2 * mm
+        lines.extend([Paragraph(title, styles["invoice_box_title"]), Spacer(1, title_gap)])
 
     name = _normalize_pdf_text(partner.get("name") or "-")
     info_lines = [f"<b>{_escape(name)}</b>"]
@@ -1085,7 +1098,11 @@ def _partner_card(
     partner_style = styles.get("partner_compact_body", styles.get("invoice_box_body", styles["body_left"]))
     lines.append(Paragraph("<br/>".join(info_lines), partner_style))
     row_heights = [PDF_INVOICE_BOX_HEIGHT_MM * mm] if accent_border else None
-    card = Table([[lines]], colWidths=[89 * mm], rowHeights=row_heights)
+    card = Table(
+        [[lines]],
+        colWidths=[PDF_INVOICE_BOX_WIDTH_MM * mm],
+        rowHeights=row_heights,
+    )
     commands = [
         ("BACKGROUND", (0, 0), (-1, -1), colors.white),
         ("VALIGN", (0, 0), (-1, -1), "TOP"),
@@ -1095,13 +1112,13 @@ def _partner_card(
         ("BOTTOMPADDING", (0, 0), (-1, -1), bottom_padding),
     ]
     if accent_border:
-        commands.append(("BOX", (0, 0), (-1, -1), 2, colors.HexColor("#F97316")))
+        commands.append(("BOX", (0, 0), (-1, -1), 1, colors.HexColor("#F97316")))
     card.setStyle(TableStyle(commands))
     return card
 
 
 def _info_box(title, text, styles, body_style_key="invoice_box_body", title_gap=None, paragraph_gap=0):
-    title_gap = 1 * mm if title_gap is None else title_gap
+    title_gap = PDF_INVOICE_BOX_TITLE_GAP_MM * mm if title_gap is None else title_gap
     content = [
         Paragraph(title, styles["invoice_box_title"]),
     ]
@@ -1110,14 +1127,14 @@ def _info_box(title, text, styles, body_style_key="invoice_box_body", title_gap=
     content.extend(_build_info_box_paragraphs(text, styles, body_style_key=body_style_key, paragraph_gap=paragraph_gap))
     box = Table(
         [[content]],
-        colWidths=[89 * mm],
+        colWidths=[PDF_INVOICE_BOX_WIDTH_MM * mm],
         rowHeights=[PDF_INVOICE_BOX_HEIGHT_MM * mm],
     )
     box.setStyle(
         TableStyle(
             [
                 ("BACKGROUND", (0, 0), (-1, -1), colors.white),
-                ("BOX", (0, 0), (-1, -1), 2, colors.HexColor("#F97316")),
+                ("BOX", (0, 0), (-1, -1), 1, colors.HexColor("#F97316")),
                 ("VALIGN", (0, 0), (-1, -1), "TOP"),
                 ("LEFTPADDING", (0, 0), (-1, -1), 5 * mm),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 5 * mm),
@@ -1141,16 +1158,23 @@ def _build_info_box_paragraphs(text, styles, body_style_key="invoice_box_body", 
             if paragraphs and paragraph_gap:
                 paragraphs.append(Spacer(1, paragraph_gap))
             paragraphs.append(Paragraph(clean, style))
+        else:
+            paragraphs.append(Spacer(1, style.leading))
     return paragraphs or [Paragraph("-", style)]
 
 
 def _format_invoice_note_text(value):
-    text = _normalize_pdf_text(value)
+    text = str(value or "").replace("\r\n", "\n").replace("\r", "\n")
+    text = re.sub(r"[ \t]+", " ", text).strip()
     if not text:
         return "-"
-    text = re.sub(r"\.\s+", ".<br/>", text)
-    text = re.sub(r"\s+(Authorised signature\b)", r"<br/>\1", text, flags=re.IGNORECASE)
-    return _escape(text).replace("&lt;br/&gt;", "<br/>")
+    text = re.sub(r"\. +", ".<br/>", text)
+    text = re.sub(r"[ \t]+(Authorised signature\b)", r"<br/>\1", text, flags=re.IGNORECASE)
+    return (
+        _escape(text)
+        .replace("&lt;br/&gt;", "<br/>")
+        .replace("\n", "<br/>")
+    )
 
 
 def _build_meta_section(invoice, company, styles):
