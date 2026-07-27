@@ -55,6 +55,13 @@ class PdfPaginationTests(TestCase):
         self.assertEqual(purchase_styles["table_cell"].fontSize, styles["table_cell"].fontSize)
         self.assertEqual(purchase_styles["table_cell_part_number"].fontSize, styles["table_cell_part_number"].fontSize)
 
+    def test_pdf_table_headers_do_not_split_words(self):
+        styles = _build_styles()
+
+        self.assertFalse(styles["table_head"].splitLongWords)
+        self.assertFalse(styles["table_head_center"].splitLongWords)
+        self.assertFalse(styles["table_head_amount"].splitLongWords)
+
     def test_footer_invoice_city_country_moves_to_next_line(self):
         lines = format_footer_invoice_lines(
             "VERTEA SAS 23 route de Gisy - 91570 Bievres / France"

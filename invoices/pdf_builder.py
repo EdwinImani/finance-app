@@ -550,6 +550,7 @@ def _build_styles():
             leading=9,
             alignment=TA_LEFT,
             textColor=colors.HexColor("#F97316"),
+            splitLongWords=False,
         ),
         "table_head_center": ParagraphStyle(
             "TableHeadCenter",
@@ -559,6 +560,7 @@ def _build_styles():
             leading=9,
             alignment=TA_CENTER,
             textColor=colors.HexColor("#F97316"),
+            splitLongWords=False,
         ),
         "table_head_amount": ParagraphStyle(
             "TableHeadAmount",
@@ -568,6 +570,7 @@ def _build_styles():
             leading=9,
             alignment=TA_RIGHT,
             textColor=colors.HexColor("#F97316"),
+            splitLongWords=False,
         ),
         "table_cell": ParagraphStyle(
             "TableCell",
@@ -2113,7 +2116,7 @@ def _build_purchase_order_items_table(items, currency, styles, amount_from_last_
 
     table = Table(
         rows,
-        colWidths=[10 * mm, 48 * mm, 29 * mm, 18 * mm, 13 * mm, 25 * mm, 27 * mm, 14 * mm],
+        colWidths=[12 * mm, 46 * mm, 29 * mm, 18 * mm, 13 * mm, 25 * mm, 27 * mm, 14 * mm],
         hAlign="LEFT",
         repeatRows=1,
     )
