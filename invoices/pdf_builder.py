@@ -6,8 +6,8 @@ import re
 pdf_canvas = None
 PDF_FIRST_PAGE_ITEM_LIMIT = 10
 PDF_OTHER_PAGE_ITEM_LIMIT = 10
-PDF_LATER_PAGE_CONTENT_GAP_MM = 10
-PDF_TOP_MARGIN = 48
+PDF_LATER_PAGE_CONTENT_GAP_MM = 0
+PDF_TOP_MARGIN = 38
 PDF_BOTTOM_MARGIN = 25
 PDF_INVOICE_BOX_HEIGHT_MM = 43
 PDF_INVOICE_BOX_WIDTH_MM = 95
@@ -16,7 +16,6 @@ PDF_INVOICE_SIDE_MARGIN_MM = 9
 PDF_INVOICE_BOX_TITLE_GAP_MM = 1.5
 PDF_INVOICE_CONTENT_PADDING_MM = 1.5
 PDF_INVOICE_REFERENCE_GAP_MM = 17
-PDF_FIRST_PAGE_TITLE_SHIFT_MM = 18
 PDF_ACCENT_HEX = "#FF3300"
 
 try:
@@ -1649,10 +1648,7 @@ def _draw_report_page_frame(canvas, document, *, company, report_title, styles, 
     title_style = styles["document_type_title"] if report_title == "COMMAND / ORDER" else styles["section_title"]
     report_type = Paragraph(_escape(_format_pdf_title(report_title)), title_style)
     report_type.wrapOn(canvas, 90 * mm, 8 * mm)
-    report_title_offset = 18 * mm
-    if canvas.getPageNumber() == 1:
-        report_title_offset += PDF_FIRST_PAGE_TITLE_SHIFT_MM * mm
-    report_type.drawOn(canvas, left_x, top_y - report_title_offset)
+    report_type.drawOn(canvas, left_x, top_y - 18 * mm)
 
     if report_meta and canvas.getPageNumber() > 1:
         meta = Paragraph("<br/>".join(report_meta), styles["body_small"])
@@ -1689,21 +1685,22 @@ def _draw_page_header(canvas, document, company, invoice, invoice_title, styles)
 
     invoice_type = Paragraph(_escape(_format_pdf_title(invoice_title)), styles["section_title"])
     invoice_type.wrapOn(canvas, 80 * mm, 6 * mm)
-    invoice_title_offset = 18 * mm
-    if page_number == 1:
-        invoice_title_offset += PDF_FIRST_PAGE_TITLE_SHIFT_MM * mm
-    invoice_type.drawOn(canvas, left_x, top_y - invoice_title_offset)
+    invoice_type.drawOn(canvas, left_x, top_y - 18 * mm)
 
     if page_number > 1:
-        invoice_meta = Paragraph(
-            (
-                f"<b>Invoice Number:</b> {_escape(invoice.invoice_number or '-')}<br/>"
-                f"<b>Invoice Date:</b> {invoice.invoice_date.strftime('%d/%m/%Y') if invoice.invoice_date else '-'}"
-            ),
+        invoice_number = Paragraph(
+            f"<b>Invoice Number:</b> {_escape(invoice.invoice_number or '-')}",
             styles["body_small"],
         )
-        invoice_meta.wrapOn(canvas, 55 * mm, 10 * mm)
-        invoice_meta.drawOn(canvas, left_x, top_y - 18 * mm)
+        invoice_number.wrapOn(canvas, 80 * mm, 5 * mm)
+        invoice_number.drawOn(canvas, left_x, top_y - 25 * mm)
+
+        invoice_date = Paragraph(
+            f"<b>Invoice Date:</b> {invoice.invoice_date.strftime('%d/%m/%Y') if invoice.invoice_date else '-'}",
+            styles["body_small"],
+        )
+        invoice_date.wrapOn(canvas, 80 * mm, 5 * mm)
+        invoice_date.drawOn(canvas, left_x, top_y - 29 * mm)
 
     logo_path = getattr(getattr(company, "company_logo", None), "path", "")
     if logo_path and Path(logo_path).exists():

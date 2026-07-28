@@ -53,7 +53,7 @@ class PdfPaginationTests(TestCase):
         self.assertEqual([len(page) for page in pages], [10, 10, 10, 10, 4])
 
     def test_pdf_body_uses_extra_space_above_footer(self):
-        self.assertEqual(PDF_TOP_MARGIN, 48)
+        self.assertEqual(PDF_TOP_MARGIN, 38)
         self.assertEqual(PDF_BOTTOM_MARGIN, 25)
         self.assertEqual(PDF_INVOICE_COLUMN_WIDTH_MM, 96)
         self.assertEqual(PDF_INVOICE_SIDE_MARGIN_MM, 9)
