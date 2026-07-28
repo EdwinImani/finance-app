@@ -50,10 +50,10 @@ class PdfPaginationTests(TestCase):
             other_pages_max=PDF_OTHER_PAGE_ITEM_LIMIT,
         )
 
-        self.assertEqual([len(page) for page in pages], [13, 22, 9])
+        self.assertEqual([len(page) for page in pages], [10, 10, 10, 10, 4])
 
     def test_pdf_body_uses_extra_space_above_footer(self):
-        self.assertEqual(PDF_TOP_MARGIN, 34)
+        self.assertEqual(PDF_TOP_MARGIN, 62)
         self.assertEqual(PDF_BOTTOM_MARGIN, 25)
         self.assertEqual(PDF_INVOICE_COLUMN_WIDTH_MM, 96)
         self.assertEqual(PDF_INVOICE_SIDE_MARGIN_MM, 9)
@@ -140,7 +140,7 @@ class PdfPaginationTests(TestCase):
             "First sentence. Second sentence<br/><br/>Authorised signature",
         )
 
-    def test_invoice_reference_stays_about_three_lines_below_invoice_note(self):
+    def test_invoice_reference_stays_about_five_lines_below_invoice_note(self):
         blocks = _build_invoice_details(
             ProformaInvoice(),
             CompanySetting(invoice_note="Invoice note"),
@@ -149,7 +149,7 @@ class PdfPaginationTests(TestCase):
 
         self.assertIsInstance(blocks[1], Spacer)
         self.assertEqual(blocks[1].height, PDF_INVOICE_REFERENCE_GAP_MM * mm)
-        self.assertEqual(PDF_INVOICE_REFERENCE_GAP_MM, 10)
+        self.assertEqual(PDF_INVOICE_REFERENCE_GAP_MM, 17)
         reference_table = blocks[2]
         self.assertEqual(
             [cell.leftPadding for cell in reference_table._cellStyles[0]],

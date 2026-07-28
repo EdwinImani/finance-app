@@ -4,9 +4,10 @@ from pathlib import Path
 import re
 
 pdf_canvas = None
-PDF_FIRST_PAGE_ITEM_LIMIT = 13
-PDF_OTHER_PAGE_ITEM_LIMIT = 22
-PDF_TOP_MARGIN = 34
+PDF_FIRST_PAGE_ITEM_LIMIT = 10
+PDF_OTHER_PAGE_ITEM_LIMIT = 10
+PDF_LATER_PAGE_CONTENT_GAP_MM = 10
+PDF_TOP_MARGIN = 62
 PDF_BOTTOM_MARGIN = 25
 PDF_INVOICE_BOX_HEIGHT_MM = 43
 PDF_INVOICE_BOX_WIDTH_MM = 95
@@ -14,8 +15,8 @@ PDF_INVOICE_COLUMN_WIDTH_MM = 96
 PDF_INVOICE_SIDE_MARGIN_MM = 9
 PDF_INVOICE_BOX_TITLE_GAP_MM = 1.5
 PDF_INVOICE_CONTENT_PADDING_MM = 1.5
-PDF_INVOICE_REFERENCE_GAP_MM = 10
-PDF_ACCENT_HEX = "#ED1C24"
+PDF_INVOICE_REFERENCE_GAP_MM = 17
+PDF_ACCENT_HEX = "#FF5733"
 
 try:
     from reportlab.lib import colors
@@ -152,7 +153,7 @@ def build_invoice_pdf(*, invoice, company, items, importer, end_user, invoice_ti
         for page_index, page_items in enumerate(item_pages):
             if page_index > 0:
                 story.append(PageBreak())
-                story.append(Spacer(1, 2 * mm))
+                story.append(Spacer(1, PDF_LATER_PAGE_CONTENT_GAP_MM * mm))
             story.append(_build_shipping_items_table(page_items, styles))
             if page_index == len(item_pages) - 1:
                 packing_section = _build_packing_section(
@@ -176,7 +177,7 @@ def build_invoice_pdf(*, invoice, company, items, importer, end_user, invoice_ti
         for page_index, page_items in enumerate(item_pages):
             if page_index > 0:
                 story.append(PageBreak())
-                story.append(Spacer(1, 2 * mm))
+                story.append(Spacer(1, PDF_LATER_PAGE_CONTENT_GAP_MM * mm))
             amount_from_last_page = page_totals[page_index - 1]["cumulative_gross_value"] if page_index > 0 else None
             story.append(_build_items_table(page_items, currency, styles, amount_from_last_page=amount_from_last_page))
             story.append(Spacer(1, 2 * mm))
@@ -392,7 +393,7 @@ def build_purchase_order_pdf(*, purchase_order, company, items, seller, requeste
     for page_index, page_items in enumerate(item_pages):
         if page_index > 0:
             story.append(PageBreak())
-            story.append(Spacer(1, 2 * mm))
+            story.append(Spacer(1, PDF_LATER_PAGE_CONTENT_GAP_MM * mm))
         amount_from_last_page = page_totals[page_index - 1]["gross_value"] if page_index > 0 else None
         story.append(_build_purchase_order_items_table(page_items, currency, styles, amount_from_last_page=amount_from_last_page))
         story.append(Spacer(1, 2 * mm))
