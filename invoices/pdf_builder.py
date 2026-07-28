@@ -4,7 +4,8 @@ from pathlib import Path
 import re
 
 pdf_canvas = None
-PDF_FIRST_PAGE_ITEM_LIMIT = 10
+PDF_FIRST_PAGE_ITEM_LIMIT = 9
+PDF_SECOND_PAGE_ITEM_LIMIT = 10
 PDF_OTHER_PAGE_ITEM_LIMIT = 10
 PDF_LATER_PAGE_CONTENT_GAP_MM = 0
 PDF_TOP_MARGIN = 38
@@ -148,6 +149,7 @@ def build_invoice_pdf(*, invoice, company, items, importer, end_user, invoice_ti
         item_pages = _split_items_for_pages(
             items,
             first_page_max=PDF_FIRST_PAGE_ITEM_LIMIT,
+            second_page_max=PDF_SECOND_PAGE_ITEM_LIMIT,
             other_pages_max=PDF_OTHER_PAGE_ITEM_LIMIT,
         )
         for page_index, page_items in enumerate(item_pages):
@@ -168,6 +170,7 @@ def build_invoice_pdf(*, invoice, company, items, importer, end_user, invoice_ti
         item_pages = _split_items_for_pages(
             items,
             first_page_max=PDF_FIRST_PAGE_ITEM_LIMIT,
+            second_page_max=PDF_SECOND_PAGE_ITEM_LIMIT,
             other_pages_max=PDF_OTHER_PAGE_ITEM_LIMIT,
         )
         page_totals = _compute_page_totals(
@@ -387,6 +390,7 @@ def build_purchase_order_pdf(*, purchase_order, company, items, seller, requeste
     item_pages = _split_items_for_pages(
         items,
         first_page_max=PDF_FIRST_PAGE_ITEM_LIMIT,
+        second_page_max=PDF_SECOND_PAGE_ITEM_LIMIT,
         other_pages_max=PDF_OTHER_PAGE_ITEM_LIMIT,
     )
     page_totals = _compute_purchase_order_page_totals(purchase_order=purchase_order, item_pages=item_pages)
@@ -1693,14 +1697,14 @@ def _draw_page_header(canvas, document, company, invoice, invoice_title, styles)
             styles["body_small"],
         )
         invoice_number.wrapOn(canvas, 80 * mm, 5 * mm)
-        invoice_number.drawOn(canvas, left_x, top_y - 25 * mm)
+        invoice_number.drawOn(canvas, left_x, top_y - 23 * mm)
 
         invoice_date = Paragraph(
             f"<b>Invoice Date:</b> {invoice.invoice_date.strftime('%d/%m/%Y') if invoice.invoice_date else '-'}",
             styles["body_small"],
         )
         invoice_date.wrapOn(canvas, 80 * mm, 5 * mm)
-        invoice_date.drawOn(canvas, left_x, top_y - 29 * mm)
+        invoice_date.drawOn(canvas, left_x, top_y - 27 * mm)
 
     logo_path = getattr(getattr(company, "company_logo", None), "path", "")
     if logo_path and Path(logo_path).exists():
@@ -2447,12 +2451,15 @@ def _build_purchase_order_signature_block(purchase_order, company, styles):
 
 
 
-def _split_items_for_pages(items, *, first_page_max, other_pages_max):
+def _split_items_for_pages(items, *, first_page_max, other_pages_max, second_page_max=None):
     if not items:
         return [[]]
 
     pages = [items[:first_page_max]]
     remaining = items[first_page_max:]
+    if remaining and second_page_max is not None:
+        pages.append(remaining[:second_page_max])
+        remaining = remaining[second_page_max:]
     while remaining:
         pages.append(remaining[:other_pages_max])
         remaining = remaining[other_pages_max:]

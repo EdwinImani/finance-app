@@ -24,6 +24,7 @@ from .pdf_builder import (
     PDF_INVOICE_REFERENCE_GAP_MM,
     PDF_INVOICE_SIDE_MARGIN_MM,
     PDF_OTHER_PAGE_ITEM_LIMIT,
+    PDF_SECOND_PAGE_ITEM_LIMIT,
     PDF_TOP_MARGIN,
     _info_box,
     _build_invoice_details,
@@ -47,10 +48,11 @@ class PdfPaginationTests(TestCase):
         pages = _split_items_for_pages(
             items,
             first_page_max=PDF_FIRST_PAGE_ITEM_LIMIT,
+            second_page_max=PDF_SECOND_PAGE_ITEM_LIMIT,
             other_pages_max=PDF_OTHER_PAGE_ITEM_LIMIT,
         )
 
-        self.assertEqual([len(page) for page in pages], [10, 10, 10, 10, 4])
+        self.assertEqual([len(page) for page in pages], [9, 10, 10, 10, 5])
 
     def test_pdf_body_uses_extra_space_above_footer(self):
         self.assertEqual(PDF_TOP_MARGIN, 38)
