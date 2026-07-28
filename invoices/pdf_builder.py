@@ -891,13 +891,7 @@ def _build_shipping_document_intro(invoice, company, styles):
         Paragraph(f"<b>Our Reference:</b> {_format_preserving_layout(getattr(invoice, 'our_reference', '') or '-')}", styles["body"]),
     ]
 
-    right_note = getattr(invoice, "dispatching_note", "") or "-"
-    right_column = [
-        Paragraph(
-            f"Dispatching Note: {_format_preserving_layout(right_note)}",
-            styles["body_left_bold"],
-        )
-    ]
+    right_column = [Spacer(1, 0)]
 
     summary_table = Table([[left_column, right_column]], colWidths=[92 * mm, 92 * mm], hAlign="LEFT")
     summary_table.setStyle(
