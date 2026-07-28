@@ -20,10 +20,13 @@ from .pdf_builder import (
     PDF_INVOICE_BOX_TITLE_GAP_MM,
     PDF_INVOICE_BOX_WIDTH_MM,
     PDF_INVOICE_COLUMN_WIDTH_MM,
+    PDF_INVOICE_CONTENT_PADDING_MM,
+    PDF_INVOICE_REFERENCE_GAP_MM,
     PDF_INVOICE_SIDE_MARGIN_MM,
     PDF_OTHER_PAGE_ITEM_LIMIT,
     PDF_TOP_MARGIN,
     _info_box,
+    _build_invoice_details,
     _build_invoice_item_table_styles,
     _build_info_box_paragraphs,
     _build_purchase_order_styles,
@@ -47,7 +50,7 @@ class PdfPaginationTests(TestCase):
             other_pages_max=PDF_OTHER_PAGE_ITEM_LIMIT,
         )
 
-        self.assertEqual([len(page) for page in pages], [15, 22, 7])
+        self.assertEqual([len(page) for page in pages], [13, 22, 9])
 
     def test_pdf_body_uses_extra_space_above_footer(self):
         self.assertEqual(PDF_TOP_MARGIN, 34)
@@ -101,13 +104,9 @@ class PdfPaginationTests(TestCase):
         note_box = _info_box("Invoice Note", "-", styles)
 
         self.assertIn("BOX", [command[0] for command in importer_box._linecmds])
-        self.assertIn("BOX", [command[0] for command in note_box._linecmds])
+        self.assertNotIn("BOX", [command[0] for command in note_box._linecmds])
         self.assertEqual(
             [command[3] for command in importer_box._linecmds if command[0] == "BOX"],
-            [1],
-        )
-        self.assertEqual(
-            [command[3] for command in note_box._linecmds if command[0] == "BOX"],
             [1],
         )
         self.assertEqual(importer_box._argH, [PDF_INVOICE_BOX_HEIGHT_MM * mm])
@@ -130,6 +129,32 @@ class PdfPaginationTests(TestCase):
 
         self.assertIn("<br/><br/>", formatted_note)
         self.assertEqual(sum(isinstance(item, Spacer) for item in paragraphs), 1)
+
+    def test_invoice_note_does_not_invent_line_breaks(self):
+        formatted_note = _format_invoice_note_text(
+            "First sentence. Second sentence\n\nAuthorised signature"
+        )
+
+        self.assertEqual(
+            formatted_note,
+            "First sentence. Second sentence<br/><br/>Authorised signature",
+        )
+
+    def test_invoice_reference_stays_about_three_lines_below_invoice_note(self):
+        blocks = _build_invoice_details(
+            ProformaInvoice(),
+            CompanySetting(invoice_note="Invoice note"),
+            _build_styles(),
+        )
+
+        self.assertIsInstance(blocks[1], Spacer)
+        self.assertEqual(blocks[1].height, PDF_INVOICE_REFERENCE_GAP_MM * mm)
+        self.assertEqual(PDF_INVOICE_REFERENCE_GAP_MM, 10)
+        reference_table = blocks[2]
+        self.assertEqual(
+            [cell.leftPadding for cell in reference_table._cellStyles[0]],
+            [PDF_INVOICE_CONTENT_PADDING_MM * mm] * 2,
+        )
 
     def test_footer_invoice_city_country_moves_to_next_line(self):
         lines = format_footer_invoice_lines(

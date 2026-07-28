@@ -4,7 +4,7 @@ from pathlib import Path
 import re
 
 pdf_canvas = None
-PDF_FIRST_PAGE_ITEM_LIMIT = 15
+PDF_FIRST_PAGE_ITEM_LIMIT = 13
 PDF_OTHER_PAGE_ITEM_LIMIT = 22
 PDF_TOP_MARGIN = 34
 PDF_BOTTOM_MARGIN = 25
@@ -12,7 +12,10 @@ PDF_INVOICE_BOX_HEIGHT_MM = 43
 PDF_INVOICE_BOX_WIDTH_MM = 95
 PDF_INVOICE_COLUMN_WIDTH_MM = 96
 PDF_INVOICE_SIDE_MARGIN_MM = 9
-PDF_INVOICE_BOX_TITLE_GAP_MM = 3
+PDF_INVOICE_BOX_TITLE_GAP_MM = 1.5
+PDF_INVOICE_CONTENT_PADDING_MM = 1.5
+PDF_INVOICE_REFERENCE_GAP_MM = 10
+PDF_ACCENT_HEX = "#ED1C24"
 
 try:
     from reportlab.lib import colors
@@ -26,6 +29,7 @@ try:
     from reportlab.pdfbase.ttfonts import TTFont
     from reportlab.pdfgen import canvas as pdf_canvas
     from reportlab.platypus import (
+        HRFlowable,
         PageBreak,
         Paragraph,
         SimpleDocTemplate,
@@ -36,6 +40,22 @@ try:
     REPORTLAB_IMPORT_ERROR = None
 except ImportError as exc:
     REPORTLAB_IMPORT_ERROR = exc
+
+
+if REPORTLAB_IMPORT_ERROR is None:
+    class InvoiceWidthHRFlowable(HRFlowable):
+        """Horizontal rule matching the fixed-width invoice partner frames."""
+
+        def wrap(self, availWidth, availHeight):
+            width = self.width
+            if isinstance(width, str):
+                width = width.strip()
+                if width.endswith("%"):
+                    width = availWidth * float(width[:-1]) * 0.01
+                else:
+                    width = float(width)
+            self._width = width
+            return width, self.lineWidth
 
 
 PDF_FONT_REGULAR = "Helvetica"
@@ -106,6 +126,17 @@ def build_invoice_pdf(*, invoice, company, items, importer, end_user, invoice_ti
     story.extend(_build_document_info(invoice, styles))
     story.append(Spacer(1, 3 * mm))
     story.extend(_build_partner_blocks(importer, end_user, styles))
+    story.append(Spacer(1, 2 * mm))
+    story.append(
+        InvoiceWidthHRFlowable(
+            width=(PDF_INVOICE_COLUMN_WIDTH_MM + PDF_INVOICE_BOX_WIDTH_MM) * mm,
+            thickness=0.8,
+            color=colors.HexColor(PDF_ACCENT_HEX),
+            spaceBefore=0,
+            spaceAfter=0,
+            hAlign="LEFT",
+        )
+    )
     story.append(Spacer(1, 2 * mm))
     story.extend(_build_invoice_details(invoice, company, styles, document_type=document_type))
     story.append(Spacer(1, 6 * mm))
@@ -396,7 +427,7 @@ def _build_styles():
             fontName=PDF_FONT_BOLD,
             fontSize=20.5,
             leading=22.5,
-            textColor=colors.HexColor("#EA580C"),
+            textColor=colors.HexColor(PDF_ACCENT_HEX),
             spaceAfter=0,
         ),
         "section_title": ParagraphStyle(
@@ -405,7 +436,7 @@ def _build_styles():
             fontName=PDF_FONT_BOLD,
             fontSize=8.5,
             leading=9.5,
-            textColor=colors.HexColor("#F97316"),
+            textColor=colors.HexColor(PDF_ACCENT_HEX),
             spaceAfter=0,
         ),
         "invoice_box_title": ParagraphStyle(
@@ -414,7 +445,7 @@ def _build_styles():
             fontName=PDF_FONT_BOLD,
             fontSize=8.5,
             leading=9.5,
-            textColor=colors.HexColor("#F97316"),
+            textColor=colors.HexColor(PDF_ACCENT_HEX),
             spaceAfter=0,
         ),
         "document_type_title": ParagraphStyle(
@@ -423,7 +454,7 @@ def _build_styles():
             fontName=PDF_FONT_BOLD,
             fontSize=11,
             leading=12.5,
-            textColor=colors.HexColor("#F97316"),
+            textColor=colors.HexColor(PDF_ACCENT_HEX),
             spaceAfter=0,
         ),
         "label": ParagraphStyle(
@@ -432,7 +463,7 @@ def _build_styles():
             fontName=PDF_FONT_BOLD,
             fontSize=8,
             leading=9,
-            textColor=colors.HexColor("#B45309"),
+            textColor=colors.HexColor(PDF_ACCENT_HEX),
         ),
         "totals_label": ParagraphStyle(
             "TotalsLabel",
@@ -440,7 +471,7 @@ def _build_styles():
             fontName=PDF_FONT_BOLD,
             fontSize=8,
             leading=9,
-            textColor=colors.HexColor("#F97316"),
+            textColor=colors.HexColor(PDF_ACCENT_HEX),
         ),
         "body": ParagraphStyle(
             "Body",
@@ -571,7 +602,7 @@ def _build_styles():
             fontSize=8,
             leading=9,
             alignment=TA_LEFT,
-            textColor=colors.HexColor("#F97316"),
+            textColor=colors.HexColor(PDF_ACCENT_HEX),
             splitLongWords=False,
         ),
         "table_head_center": ParagraphStyle(
@@ -581,7 +612,7 @@ def _build_styles():
             fontSize=8,
             leading=9,
             alignment=TA_CENTER,
-            textColor=colors.HexColor("#F97316"),
+            textColor=colors.HexColor(PDF_ACCENT_HEX),
             splitLongWords=False,
         ),
         "table_head_amount": ParagraphStyle(
@@ -591,7 +622,7 @@ def _build_styles():
             fontSize=8,
             leading=9,
             alignment=TA_RIGHT,
-            textColor=colors.HexColor("#F97316"),
+            textColor=colors.HexColor(PDF_ACCENT_HEX),
             splitLongWords=False,
         ),
         "table_cell": ParagraphStyle(
@@ -818,14 +849,32 @@ def _build_invoice_details(invoice, company, styles, document_type="default"):
             TableStyle(
                 [
                     ("VALIGN", (0, 0), (-1, -1), "TOP"),
-                    ("LEFTPADDING", (0, 0), (-1, -1), 0),
-                    ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+                    # Align both labels with the content inside the
+                    # Invoice Note and Terms frames above.
+                    ("LEFTPADDING", (0, 0), (-1, -1), PDF_INVOICE_CONTENT_PADDING_MM * mm),
+                    ("RIGHTPADDING", (0, 0), (-1, -1), PDF_INVOICE_CONTENT_PADDING_MM * mm),
                     ("TOPPADDING", (0, 0), (-1, -1), 0),
                     ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
                 ]
             )
         )
-        blocks.extend([Spacer(1, 4 * mm), reference_table])
+        blocks.extend(
+            [
+                # Keep about three text lines between the invoice note/terms
+                # section and the Our Reference / Price for row.
+                Spacer(1, PDF_INVOICE_REFERENCE_GAP_MM * mm),
+                reference_table,
+                Spacer(1, 2 * mm),
+                InvoiceWidthHRFlowable(
+                    width=(PDF_INVOICE_COLUMN_WIDTH_MM + PDF_INVOICE_BOX_WIDTH_MM) * mm,
+                    thickness=0.8,
+                    color=colors.HexColor(PDF_ACCENT_HEX),
+                    spaceBefore=0,
+                    spaceAfter=0,
+                    hAlign="LEFT",
+                ),
+            ]
+        )
 
     return blocks
 
@@ -857,7 +906,18 @@ def _build_shipping_document_intro(invoice, company, styles):
             ]
         )
     )
-    return [summary_table]
+    return [
+        summary_table,
+        Spacer(1, 2 * mm),
+        InvoiceWidthHRFlowable(
+            width=(PDF_INVOICE_COLUMN_WIDTH_MM + PDF_INVOICE_BOX_WIDTH_MM) * mm,
+            thickness=0.8,
+            color=colors.HexColor(PDF_ACCENT_HEX),
+            spaceBefore=0,
+            spaceAfter=0,
+            hAlign="LEFT",
+        ),
+    ]
 
 
 def _build_purchase_order_details(purchase_order, company, styles):
@@ -1006,7 +1066,7 @@ def _build_purchase_order_detail_boxes(purchase_order, company, styles):
     left_lines = []
     if getattr(company, "company_name", ""):
         left_lines.append(
-            f'<font color="#F97316"><b>{_format_preserving_layout(company.company_name)}</b></font>'
+            f'<font color="{PDF_ACCENT_HEX}"><b>{_format_preserving_layout(company.company_name)}</b></font>'
         )
     if getattr(company, "siren", ""):
         left_lines.append(f"<b>SIREN:</b> {_format_preserving_layout(company.siren)}")
@@ -1072,9 +1132,9 @@ def _partner_card(
     bottom_padding=None,
     accent_border=False,
 ):
-    left_padding = 5 * mm if left_padding is None else left_padding
-    top_padding = 2 * mm if top_padding is None else top_padding
-    bottom_padding = 4 * mm if bottom_padding is None else bottom_padding
+    left_padding = PDF_INVOICE_CONTENT_PADDING_MM * mm if left_padding is None else left_padding
+    top_padding = 1 * mm if top_padding is None else top_padding
+    bottom_padding = 1 * mm if bottom_padding is None else bottom_padding
 
     lines = []
     if title:
@@ -1107,12 +1167,12 @@ def _partner_card(
         ("BACKGROUND", (0, 0), (-1, -1), colors.white),
         ("VALIGN", (0, 0), (-1, -1), "TOP"),
         ("LEFTPADDING", (0, 0), (-1, -1), left_padding),
-        ("RIGHTPADDING", (0, 0), (-1, -1), 5 * mm),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 1.5 * mm),
         ("TOPPADDING", (0, 0), (-1, -1), top_padding),
         ("BOTTOMPADDING", (0, 0), (-1, -1), bottom_padding),
     ]
     if accent_border:
-        commands.append(("BOX", (0, 0), (-1, -1), 1, colors.HexColor("#F97316")))
+        commands.append(("BOX", (0, 0), (-1, -1), 1, colors.HexColor(PDF_ACCENT_HEX)))
     card.setStyle(TableStyle(commands))
     return card
 
@@ -1134,12 +1194,11 @@ def _info_box(title, text, styles, body_style_key="invoice_box_body", title_gap=
         TableStyle(
             [
                 ("BACKGROUND", (0, 0), (-1, -1), colors.white),
-                ("BOX", (0, 0), (-1, -1), 1, colors.HexColor("#F97316")),
                 ("VALIGN", (0, 0), (-1, -1), "TOP"),
-                ("LEFTPADDING", (0, 0), (-1, -1), 5 * mm),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 5 * mm),
-                ("TOPPADDING", (0, 0), (-1, -1), 2 * mm),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 4 * mm),
+                ("LEFTPADDING", (0, 0), (-1, -1), PDF_INVOICE_CONTENT_PADDING_MM * mm),
+                ("RIGHTPADDING", (0, 0), (-1, -1), PDF_INVOICE_CONTENT_PADDING_MM * mm),
+                ("TOPPADDING", (0, 0), (-1, -1), 1 * mm),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 1 * mm),
             ]
         )
     )
@@ -1168,11 +1227,8 @@ def _format_invoice_note_text(value):
     text = re.sub(r"[ \t]+", " ", text).strip()
     if not text:
         return "-"
-    text = re.sub(r"\. +", ".<br/>", text)
-    text = re.sub(r"[ \t]+(Authorised signature\b)", r"<br/>\1", text, flags=re.IGNORECASE)
     return (
         _escape(text)
-        .replace("&lt;br/&gt;", "<br/>")
         .replace("\n", "<br/>")
     )
 
@@ -2025,7 +2081,7 @@ def _build_report_histogram(*, chart_labels, chart_totals, title):
         chart.bars[(0, index)].strokeWidth = 0.8
 
     drawing.add(chart)
-    drawing.add(String(0, 70 * mm, title, fontName=PDF_FONT_BOLD, fontSize=15, fillColor=colors.HexColor("#EA580C")))
+    drawing.add(String(0, 70 * mm, title, fontName=PDF_FONT_BOLD, fontSize=15, fillColor=colors.HexColor(PDF_ACCENT_HEX)))
     drawing.add(String(0, 64 * mm, "Metric: Total Amount", fontName=PDF_FONT_BOLD, fontSize=10, fillColor=colors.HexColor("#5F6368")))
     drawing.add(String(90 * mm, 4 * mm, "Month", fontName=PDF_FONT_REGULAR, fontSize=10, fillColor=colors.HexColor("#5F6368"), textAnchor="middle"))
     return drawing
