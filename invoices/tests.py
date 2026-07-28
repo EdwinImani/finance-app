@@ -140,6 +140,16 @@ class PdfPaginationTests(TestCase):
             "First sentence. Second sentence<br/><br/>Authorised signature",
         )
 
+    def test_invoice_note_preserves_repeated_spaces_from_company_settings(self):
+        formatted_note = _format_invoice_note_text(
+            "Payment   in    four batches"
+        )
+
+        self.assertEqual(
+            formatted_note,
+            "Payment&nbsp;&nbsp; in&nbsp;&nbsp;&nbsp; four batches",
+        )
+
     def test_invoice_reference_stays_about_five_lines_below_invoice_note(self):
         blocks = _build_invoice_details(
             ProformaInvoice(),

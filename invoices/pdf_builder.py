@@ -16,7 +16,7 @@ PDF_INVOICE_SIDE_MARGIN_MM = 9
 PDF_INVOICE_BOX_TITLE_GAP_MM = 1.5
 PDF_INVOICE_CONTENT_PADDING_MM = 1.5
 PDF_INVOICE_REFERENCE_GAP_MM = 17
-PDF_ACCENT_HEX = "#FF5733"
+PDF_ACCENT_HEX = "#FF3300"
 
 try:
     from reportlab.lib import colors
@@ -1224,14 +1224,10 @@ def _build_info_box_paragraphs(text, styles, body_style_key="invoice_box_body", 
 
 
 def _format_invoice_note_text(value):
-    text = str(value or "").replace("\r\n", "\n").replace("\r", "\n")
-    text = re.sub(r"[ \t]+", " ", text).strip()
+    text = str(value or "").replace("\r\n", "\n").replace("\r", "\n").expandtabs(4).strip()
     if not text:
         return "-"
-    return (
-        _escape(text)
-        .replace("\n", "<br/>")
-    )
+    return _format_preserving_layout(text)
 
 
 def _build_meta_section(invoice, company, styles):
@@ -1894,8 +1890,13 @@ def _format_pdf_title(value):
 
 
 def _format_preserving_layout(value):
-    escaped = _escape(value)
-    escaped = escaped.replace("  ", "&nbsp; ")
+    text = str(value or "").replace("\r\n", "\n").replace("\r", "\n").expandtabs(4)
+    escaped = _escape(text)
+    escaped = re.sub(
+        r" {2,}",
+        lambda match: ("&nbsp;" * (len(match.group(0)) - 1)) + " ",
+        escaped,
+    )
     return escaped.replace("\n", "<br/>")
 
 
