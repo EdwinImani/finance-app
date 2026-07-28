@@ -520,7 +520,7 @@ def _build_styles():
             parent=base["BodyText"],
             fontName=PDF_FONT_REGULAR,
             fontSize=9,
-            leading=9.8,
+            leading=10.6,
             alignment=TA_LEFT,
             textColor=colors.HexColor("#1F2933"),
             splitLongWords=True,
