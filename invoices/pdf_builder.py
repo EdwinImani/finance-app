@@ -994,7 +994,7 @@ def _build_purchase_order_commercial_terms_box(purchase_order, company, styles):
     table = Table(
         [[
             Paragraph("<br/>".join(terms_lines), styles.get("body_left", styles["body"])),
-            [Spacer(1, 10 * mm), *signature_block],
+            [Spacer(1, 2 * mm), *signature_block],
         ]],
         colWidths=[118 * mm, 66 * mm],
         hAlign="LEFT",
