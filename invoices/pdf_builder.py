@@ -1027,6 +1027,15 @@ def _build_purchase_order_info_table(purchase_order, requester, styles):
     requester_lines = [requester.get("name") or "-"]
     requester_lines.extend(address for address in requester.get("addresses", []) if address)
     requester_text = "<br/>".join(_format_preserving_layout(line) for line in requester_lines)
+    table_width = 184 * mm
+    right_padding = 4
+    last_label_width = pdfmetrics.stringWidth(
+        "Condition de prix /",
+        styles["label"].fontName,
+        styles["label"].fontSize,
+    )
+    last_column_width = last_label_width + right_padding
+    regular_column_width = (table_width - last_column_width) / 4
 
     rows = [
         [
@@ -1049,7 +1058,13 @@ def _build_purchase_order_info_table(purchase_order, requester, styles):
     ]
     table = Table(
         rows,
-        colWidths=[36.8 * mm, 36.8 * mm, 36.8 * mm, 36.8 * mm, 36.8 * mm],
+        colWidths=[
+            regular_column_width,
+            regular_column_width,
+            regular_column_width,
+            regular_column_width,
+            last_column_width,
+        ],
         hAlign="LEFT",
     )
     table.setStyle(
@@ -1059,7 +1074,7 @@ def _build_purchase_order_info_table(purchase_order, requester, styles):
                 ("LINEBELOW", (0, -1), (-1, -1), 0.5, colors.HexColor("#D9D9D9")),
                 ("VALIGN", (0, 0), (-1, -1), "TOP"),
                 ("LEFTPADDING", (0, 0), (-1, -1), 4),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+                ("RIGHTPADDING", (0, 0), (-1, -1), right_padding),
                 ("LEFTPADDING", (0, 0), (-1, -1), 0),
                 ("TOPPADDING", (0, 0), (-1, -1), 5),
                 ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
