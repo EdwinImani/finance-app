@@ -960,9 +960,10 @@ def _build_purchase_order_context_blocks(seller, requester, purchase_order, comp
 def _build_purchase_note_currency_box(company, styles):
     note = getattr(company, "note", "") or "-"
     currency = getattr(company, "currency", "") or "-"
+    currency_text = "Euro" if str(currency).strip().upper() in {"EUR", "€", "EURO"} else str(currency).strip()
     return [
         Paragraph(_format_preserving_layout(note), styles["body"]),
-        Paragraph(f"<b>Currency:</b> {_escape(_format_currency_symbol(currency))}", styles["body"]),
+        Paragraph(f"<b>Currency :</b> {_escape(currency_text)}", styles["body"]),
     ]
 
 
@@ -1020,11 +1021,11 @@ def _build_purchase_order_info_table(purchase_order, requester, styles):
 
     rows = [
         [
-            Paragraph("DATE DE<br/>COMMANDE<br/>ORDER DATE", styles["label"]),
-            Paragraph("DEMANDEUR<br/>REQUESTER", styles["label"]),
-            Paragraph("ENVOYER PAR<br/>SEND BY", styles["label"]),
-            Paragraph("EXPÉDITION<br/>SHIPMENT", styles["label"]),
-            Paragraph("CONDITIONS DE PRIX<br/>SALES CONDITIONS", styles["label"]),
+            Paragraph("Date de<br/>commande /<br/>Order Date", styles["label"]),
+            Paragraph("Demander /<br/>Requester", styles["label"]),
+            Paragraph("Envoyer par /<br/>Send By", styles["label"]),
+            Paragraph("Expédition /<br/>Shipment", styles["label"]),
+            Paragraph("Condition de prix /<br/>Sales Conditions", styles["label"]),
         ],
         [
             Paragraph(
