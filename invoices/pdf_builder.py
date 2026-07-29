@@ -1034,7 +1034,7 @@ def _build_purchase_order_info_table(purchase_order, requester, styles):
             Paragraph("Demander /<br/>Requester", styles["label"]),
             Paragraph("Envoyer par /<br/>Send By", styles["label"]),
             Paragraph("Expédition /<br/>Shipment", styles["label"]),
-            Paragraph("Condition de prix /<br/>Sales Conditions", styles["label_right"]),
+            Paragraph("Condition de prix /<br/>Sales Conditions", styles["label"]),
         ],
         [
             Paragraph(
@@ -1044,12 +1044,12 @@ def _build_purchase_order_info_table(purchase_order, requester, styles):
             Paragraph(requester_text, styles["body_left"]),
             Paragraph(_format_preserving_layout(getattr(purchase_order, "sent_by", "") or "-"), styles["table_cell"]),
             Paragraph(_format_preserving_layout(getattr(purchase_order, "shipment", "") or "-"), styles["body_left"]),
-            Paragraph(_format_preserving_layout(getattr(purchase_order, "sales_condition", "") or "-"), styles["table_cell_right"]),
+            Paragraph(_format_preserving_layout(getattr(purchase_order, "sales_condition", "") or "-"), styles["table_cell"]),
         ],
     ]
     table = Table(
         rows,
-        colWidths=[28 * mm, 40 * mm, 40 * mm, 40 * mm, 36 * mm],
+        colWidths=[36.8 * mm, 36.8 * mm, 36.8 * mm, 36.8 * mm, 36.8 * mm],
         hAlign="LEFT",
     )
     table.setStyle(
@@ -1060,7 +1060,7 @@ def _build_purchase_order_info_table(purchase_order, requester, styles):
                 ("VALIGN", (0, 0), (-1, -1), "TOP"),
                 ("LEFTPADDING", (0, 0), (-1, -1), 4),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 4),
-                ("LEFTPADDING", (0, 0), (0, -1), 0),
+                ("LEFTPADDING", (0, 0), (-1, -1), 0),
                 ("TOPPADDING", (0, 0), (-1, -1), 5),
                 ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
                 ("TOPPADDING", (1, 1), (1, 1), 4),
