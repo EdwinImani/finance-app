@@ -1034,7 +1034,7 @@ def _build_purchase_order_info_table(purchase_order, requester, styles):
             Paragraph("Demander /<br/>Requester", styles["label"]),
             Paragraph("Envoyer par /<br/>Send By", styles["label"]),
             Paragraph("Expédition /<br/>Shipment", styles["label"]),
-            Paragraph("Condition de prix /<br/>Sales Conditions", styles["label_right"]),
+            Paragraph("Condition de prix /<br/>Sales Conditions", styles["label"]),
         ],
         [
             Paragraph(
@@ -1044,7 +1044,7 @@ def _build_purchase_order_info_table(purchase_order, requester, styles):
             Paragraph(requester_text, styles["body_left"]),
             Paragraph(_format_preserving_layout(getattr(purchase_order, "sent_by", "") or "-"), styles["table_cell"]),
             Paragraph(_format_preserving_layout(getattr(purchase_order, "shipment", "") or "-"), styles["body_left"]),
-            Paragraph(_format_preserving_layout(getattr(purchase_order, "sales_condition", "") or "-"), styles["table_cell_right"]),
+            Paragraph(_format_preserving_layout(getattr(purchase_order, "sales_condition", "") or "-"), styles["table_cell"]),
         ],
     ]
     table = Table(
