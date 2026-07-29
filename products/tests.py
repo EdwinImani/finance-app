@@ -6,7 +6,7 @@ from django.contrib.admin.sites import AdminSite
 from django.core.management import call_command
 from django.test import RequestFactory, TestCase
 
-from invoices.models import ProformaInvoice
+from invoices.models import CommercialInvoice, CommercialInvoiceItem, ProformaInvoice
 from purchase.models import PurchaseOrder
 from .admin import ProductAdmin
 from .models import Product
@@ -234,6 +234,44 @@ class ProductAdminReturnTests(TestCase):
         self.assertEqual(item.part_number, "RET-PO")
         self.assertEqual(item.hs_code, "8471.30")
         self.assertEqual(item.unit_price, Decimal("7.80"))
+
+    def test_edit_product_keeps_custom_commercial_invoice_hs_code(self):
+        product = Product.objects.create(
+            description="Product Without Default HS",
+            part_number="CUSTOM-HS-001",
+            hs_code="",
+            sale_price=Decimal("12.30"),
+        )
+        invoice = CommercialInvoice.objects.create()
+        item = CommercialInvoiceItem.objects.create(
+            invoice=invoice,
+            product=product,
+            hs_code="CUSTOM-8481.80",
+            quantity=1,
+            unit_price=Decimal("12.30"),
+        )
+        request = self.factory.post(
+            f"/admin/products/product/{product.pk}/change/",
+            {
+                "_return_to": f"/admin/invoices/commercialinvoice/{invoice.pk}/change/",
+                "_return_field": "items-0-product",
+                "_return_item_id": str(item.pk),
+                "_return_product_action": "edit",
+            },
+        )
+        request.get_host = lambda: "127.0.0.1:8000"
+        request.is_secure = lambda: False
+
+        self.admin._update_existing_return_item(
+            request,
+            product,
+            f"/admin/invoices/commercialinvoice/{invoice.pk}/change/",
+        )
+
+        item.refresh_from_db()
+        product.refresh_from_db()
+        self.assertEqual(item.hs_code, "CUSTOM-8481.80")
+        self.assertEqual(product.hs_code, "")
 
 
 class ProductCsvImportTests(TestCase):

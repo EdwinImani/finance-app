@@ -299,7 +299,7 @@ class ProductAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.ModelAd
             item.description = product.description
         if hasattr(item, "part_number"):
             item.part_number = product.part_number or ""
-        if hasattr(item, "hs_code"):
+        if hasattr(item, "hs_code") and not item.hs_code:
             item.hs_code = product.hs_code or "-"
         if hasattr(item, "unit_price"):
             item.unit_price = getattr(product, price_field)
