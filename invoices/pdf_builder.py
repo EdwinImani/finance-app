@@ -1882,6 +1882,13 @@ def _format_plain_decimal(value):
     return _format_decimal_comma(value)
 
 
+def _format_quantity(value):
+    amount = Decimal(value or 0)
+    if amount == amount.to_integral_value():
+        return f"{amount:,.0f}"
+    return f"{amount:,.3f}".rstrip("0").rstrip(".")
+
+
 def _format_weight_kg(value):
     amount = Decimal(value or 0).quantize(Decimal("0.001"))
     return f"{amount:,.3f}"
@@ -2266,7 +2273,7 @@ def _build_purchase_order_items_table(items, currency, styles, amount_from_last_
                 Paragraph(_escape(item["description"]), styles["table_cell"]),
                 Paragraph(_escape(item["part_number"]), styles["table_cell_part_number"]),
                 Paragraph(_escape(item["hs_code"]), styles["table_cell"]),
-                Paragraph(_format_plain_decimal(item["quantity"]), styles["table_cell_amount"]),
+                Paragraph(_format_quantity(item["quantity"]), styles["table_cell_amount"]),
                 _build_money_split_cell(item["unit_price"], currency, styles, 18 * mm),
                 _build_money_split_cell(item["total_amount"], currency, styles, 17 * mm),
                 Paragraph(_format_money(vat_amount, currency), styles["table_cell_amount"]),
@@ -2278,7 +2285,7 @@ def _build_purchase_order_items_table(items, currency, styles, amount_from_last_
 
     table = Table(
         rows,
-        colWidths=[12 * mm, 46 * mm, 29 * mm, 18 * mm, 13 * mm, 25 * mm, 27 * mm, 14 * mm],
+        colWidths=[12 * mm, 46 * mm, 29 * mm, 18 * mm, 9 * mm, 25 * mm, 27 * mm, 18 * mm],
         hAlign="LEFT",
         repeatRows=1,
     )
@@ -2380,7 +2387,7 @@ def _build_purchase_order_page_gross_values_table(page_number, page_gross_value,
     ]]
     table = Table(
         rows,
-        colWidths=[10 * mm, 48 * mm, 29 * mm, 18 * mm, 13 * mm, 25 * mm, 27 * mm, 14 * mm],
+        colWidths=[10 * mm, 48 * mm, 29 * mm, 18 * mm, 9 * mm, 25 * mm, 27 * mm, 18 * mm],
         hAlign="LEFT",
     )
     table.setStyle(
@@ -2410,7 +2417,7 @@ def _build_purchase_order_payment_table(*, gross_value, vat_amount, total_amount
     ]]
     table = Table(
         rows,
-        colWidths=[10 * mm, 48 * mm, 29 * mm, 18 * mm, 13 * mm, 25 * mm, 27 * mm, 14 * mm],
+        colWidths=[10 * mm, 48 * mm, 29 * mm, 18 * mm, 9 * mm, 25 * mm, 27 * mm, 18 * mm],
         hAlign="LEFT",
     )
     table.setStyle(
