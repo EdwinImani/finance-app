@@ -90,19 +90,22 @@ class BaseInvoice(models.Model):
             year = timezone.now().year
 
             previous_invoices = self.__class__.objects.filter(
-                invoice_number__startswith=f"FR/{year}"
+                models.Q(invoice_number__startswith=f"FR-{year}-") |
+                models.Q(invoice_number__startswith=f"FR/{year}/")
             ).values_list("invoice_number", flat=True)
 
             last_number = 0
             for invoice_number in previous_invoices:
-                suffix = str(invoice_number).split("/")[-1]
+                suffix = re.split(r"[-/]", str(invoice_number))[-1]
                 match = re.search(r"(\d+)$", suffix)
                 if match:
                     last_number = max(last_number, int(match.group(1)))
 
             new_number = last_number + 1
 
-            self.invoice_number = f"FR/{year}/{new_number:04d}"
+            self.invoice_number = f"FR-{year}-{new_number:04d}"
+        else:
+            self.invoice_number = self.invoice_number.replace("/", "-")
 
         super().save(*args, **kwargs)
 

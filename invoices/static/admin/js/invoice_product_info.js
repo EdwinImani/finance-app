@@ -146,7 +146,14 @@
             clearUnitPriceEdited(unitPriceInput);
         }
 
-        if (hsCodeInput) {
+        if (
+            hsCodeInput &&
+            (
+                settings.forceDefaultHsCode ||
+                !hsCodeInput.value.trim() ||
+                hsCodeInput.value.trim() === "-"
+            )
+        ) {
             hsCodeInput.value = data.hs_code || "";
         }
 
@@ -188,6 +195,7 @@
             .then(function (data) {
                 updateInvoiceRow(row, data, {
                     forceDefaultPrice: settings.forceDefaultPrice === true || (productChanged && settings.preserveUnitPrice !== true),
+                    forceDefaultHsCode: productChanged,
                 });
                 field.dataset.invoiceLastProductId = productId;
                 document.dispatchEvent(new CustomEvent("invoice:inline-product-updated"));

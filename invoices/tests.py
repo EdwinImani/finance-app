@@ -4,6 +4,7 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.test import override_settings
 from django.urls import reverse
+from django.utils import timezone
 from reportlab.lib.units import mm
 from reportlab.platypus import Spacer
 
@@ -239,6 +240,25 @@ class ProformaConversionTests(TestCase):
             unit_qty=10,
             sale_price=Decimal("25.00"),
         )
+
+    def test_new_invoice_number_uses_hyphens(self):
+        invoice = ProformaInvoice.objects.create(importer=self.importer)
+
+        self.assertRegex(invoice.invoice_number, r"^FR-\d{4}-\d{4}$")
+
+    def test_number_sequence_reads_legacy_slash_numbers(self):
+        year = timezone.now().year
+        legacy_invoice = ProformaInvoice.objects.create(
+            importer=self.importer,
+            invoice_number=f"LEGACY-{year}-0008",
+        )
+        ProformaInvoice.objects.filter(pk=legacy_invoice.pk).update(
+            invoice_number=f"FR/{year}/0008",
+        )
+
+        invoice = ProformaInvoice.objects.create(importer=self.importer)
+
+        self.assertEqual(invoice.invoice_number, f"FR-{year}-0009")
 
     def test_convert_to_commercial_decreases_product_quantity(self):
         proforma = ProformaInvoice.objects.create(importer=self.importer)
@@ -720,6 +740,56 @@ class CommercialInvoiceAdminDraftTests(TestCase):
         self.assertEqual(item.quantity, 5)
         self.assertEqual(item.unit_price, Decimal("58.00"))
         self.assertEqual(response.json()["inline_objects"][0]["id"], str(item.pk))
+
+    def test_autosave_keeps_manual_hs_code_on_invoice_without_updating_product(self):
+        product = Product.objects.create(
+            description="Produit sans HS Code",
+            part_number="NO-HS-001",
+            hs_code="",
+            unit_qty=20,
+            sale_price=Decimal("58.00"),
+        )
+        invoice = CommercialInvoice.objects.create(vat_percent=Decimal("20.00"))
+
+        response = self.client.post(
+            reverse("admin:invoices_commercialinvoice_autosave", args=[invoice.pk]),
+            {
+                "invoice_date": invoice.invoice_date.strftime("%Y-%m-%d"),
+                "importer": "",
+                "end_user": "",
+                "our_order_no": "",
+                "our_reference": "",
+                "price_for": "",
+                "dispatching_note": "",
+                "packing_specification": "",
+                "delivery_time": "",
+                "terms_conditions": "",
+                "freight": "0.00",
+                "discount": "0.00",
+                "vat_percent": "20.00",
+                "items-TOTAL_FORMS": "1",
+                "items-INITIAL_FORMS": "0",
+                "items-MIN_NUM_FORMS": "0",
+                "items-MAX_NUM_FORMS": "1000",
+                "items-0-id": "",
+                "items-0-invoice": str(invoice.pk),
+                "items-0-product": str(product.pk),
+                "items-0-hs_code": "CUSTOM-8481.80",
+                "items-0-part_number": product.part_number,
+                "items-0-quantity": "1",
+                "items-0-unit_price": "58.00",
+                "packing_entries-TOTAL_FORMS": "0",
+                "packing_entries-INITIAL_FORMS": "0",
+                "packing_entries-MIN_NUM_FORMS": "0",
+                "packing_entries-MAX_NUM_FORMS": "1000",
+            },
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+        )
+
+        self.assertEqual(response.status_code, 200, response.content)
+        self.assertEqual(invoice.items.get().hs_code, "CUSTOM-8481.80")
+        product.refresh_from_db()
+        self.assertEqual(product.hs_code, "")
 
     def test_autosave_keeps_new_inline_item_when_only_quantity_changed(self):
         invoice = CommercialInvoice.objects.create(vat_percent=Decimal("20.00"))

@@ -2019,9 +2019,21 @@
         window.sessionStorage.setItem(WINDOW_SESSION_KEY, "1");
     }
 
+    function cameFromLoginPage() {
+        return document.referrer && document.referrer.indexOf("{% url 'admin:login' %}") !== -1;
+    }
+
     function installWindowSessionGuard() {
-        // sessionStorage starts empty in a newly opened tab. That is normal and
-        // must not invalidate the authenticated Django session for every tab.
+        const hasWindowSession = window.sessionStorage.getItem(WINDOW_SESSION_KEY) === "1";
+
+        // A normal admin page reopened in a fresh tab must require credentials
+        // again. PDF responses do not render this template, so opening a PDF in
+        // its own tab does not trigger this logout.
+        if (!hasWindowSession && !cameFromLoginPage()) {
+            logoutDueToInactivity();
+            return false;
+        }
+
         markWindowSession();
         return true;
     }
