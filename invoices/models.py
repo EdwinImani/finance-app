@@ -360,11 +360,11 @@ class CommercialInvoicePacking(models.Model):
     )
 
     no_packing = models.CharField(max_length=255, blank=True)
-    gross_weight = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
-    net_weight = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
-    dimension_length = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
-    dimension_width = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
-    dimension_height = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
+    gross_weight = models.DecimalField(max_digits=11, decimal_places=3, default=Decimal("0.000"))
+    net_weight = models.DecimalField(max_digits=11, decimal_places=3, default=Decimal("0.000"))
+    dimension_length = models.DecimalField(max_digits=11, decimal_places=3, default=Decimal("0.000"))
+    dimension_width = models.DecimalField(max_digits=11, decimal_places=3, default=Decimal("0.000"))
+    dimension_height = models.DecimalField(max_digits=11, decimal_places=3, default=Decimal("0.000"))
 
     def __str__(self):
         label = self.no_packing or "Packing"

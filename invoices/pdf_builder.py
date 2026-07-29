@@ -1389,6 +1389,7 @@ def _build_shipping_items_table(items, styles):
             Paragraph("Item No.", styles["table_head"]),
             Paragraph("Description", styles["table_head"]),
             Paragraph("Part Number", styles["table_head"]),
+            Paragraph("HS Code", styles["table_head"]),
             Paragraph("Qty", styles["table_head"]),
         ]
     ]
@@ -1399,6 +1400,7 @@ def _build_shipping_items_table(items, styles):
                 Paragraph(str(item["index"]), styles["table_cell"]),
                 Paragraph(_escape(item["description"]), styles["table_cell"]),
                 Paragraph(_escape(item["part_number"]), styles["table_cell_part_number"]),
+                Paragraph(_escape(item["hs_code"]), styles["table_cell"]),
                 Paragraph(str(item["quantity"]), styles["table_cell"]),
             ]
         )
@@ -1410,12 +1412,13 @@ def _build_shipping_items_table(items, styles):
                 Paragraph("No items", styles["table_cell"]),
                 Paragraph("-", styles["table_cell"]),
                 Paragraph("-", styles["table_cell"]),
+                Paragraph("-", styles["table_cell"]),
             ]
         )
 
     table = Table(
         rows,
-        colWidths=[18 * mm, 96 * mm, 50 * mm, 20 * mm],
+        colWidths=[16 * mm, 76 * mm, 45 * mm, 27 * mm, 20 * mm],
         repeatRows=1,
     )
     table.setStyle(

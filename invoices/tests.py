@@ -29,6 +29,7 @@ from .pdf_builder import (
     _info_box,
     _build_invoice_details,
     _build_invoice_item_table_styles,
+    _build_shipping_items_table,
     _build_info_box_paragraphs,
     _build_purchase_order_styles,
     _build_styles,
@@ -100,6 +101,23 @@ class PdfPaginationTests(TestCase):
         self.assertFalse(styles["table_head"].splitLongWords)
         self.assertFalse(styles["table_head_center"].splitLongWords)
         self.assertFalse(styles["table_head_amount"].splitLongWords)
+
+    def test_shipping_pdf_table_uses_item_hs_code(self):
+        table = _build_shipping_items_table(
+            [
+                {
+                    "index": 1,
+                    "description": "Test item",
+                    "part_number": "PART-001",
+                    "hs_code": "8481.80",
+                    "quantity": 2,
+                }
+            ],
+            _build_styles(),
+        )
+
+        self.assertEqual(table._cellvalues[0][3].getPlainText(), "HS Code")
+        self.assertEqual(table._cellvalues[1][3].getPlainText(), "8481.80")
 
     def test_pdf_titles_capitalize_each_word(self):
         self.assertEqual(_format_pdf_title("COMMERCIAL INVOICE"), "Commercial Invoice")
