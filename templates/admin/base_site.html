@@ -1999,6 +1999,7 @@
     const ACTIVITY_KEY = "finance_admin_last_activity";
     const WINDOW_SESSION_KEY = "finance_admin_window_session";
     let timeoutId = null;
+    document.documentElement.style.visibility = "hidden";
 
     function now() {
         return Date.now();
@@ -2035,8 +2036,11 @@
         }
 
         markWindowSession();
+        document.documentElement.style.visibility = "visible";
         return true;
     }
+
+    const windowSessionAllowed = installWindowSessionGuard();
 
     function scheduleCheck() {
         window.clearTimeout(timeoutId);
@@ -2058,7 +2062,7 @@
     }
 
     function installInactivityTimer() {
-        if (!installWindowSessionGuard()) {
+        if (!windowSessionAllowed) {
             return;
         }
 

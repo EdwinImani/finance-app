@@ -11,7 +11,7 @@
 </script>
 {% endif %}
 <script src="{% static 'admin/js/invoice_autosave.js' %}?v=20260723-autosave-80ms" defer></script>
-<script src="{% static 'admin/js/product_autofill.js' %}?v=20260723-custom-unit-price" defer></script>
+<script src="{% static 'admin/js/product_autofill.js' %}?v=20260729-manual-hs-code" defer></script>
 <script src="{% static 'admin/js/purchase_partner_type.js' %}?v=20260723-no-duplicate-related" defer></script>
 <script src="{% static 'admin/js/inline_row_tools.js' %}?v=20260723-small-row-number" defer></script>
 <style>
@@ -645,42 +645,6 @@
 </style>
 <script>
 document.addEventListener("DOMContentLoaded", function() {
-    var saveAndPdfSubmit = false;
-
-    function setHiddenValue(form, name, value) {
-        var input = form.querySelector('input[name="' + name + '"]');
-        if (!input) {
-            input = document.createElement("input");
-            input.type = "hidden";
-            input.name = name;
-            form.appendChild(input);
-        }
-        input.value = value;
-    }
-
-    function removeHiddenValue(form, name) {
-        var input = form.querySelector('input[name="' + name + '"]');
-        if (input) {
-            input.remove();
-        }
-    }
-
-    function clearSaveAndPdfMode(form) {
-        saveAndPdfSubmit = false;
-        removeHiddenValue(form, "_save_and_pdf");
-        removeHiddenValue(form, "_save_and_pdf_url");
-        form.removeAttribute("target");
-    }
-
-    var mainForm = document.querySelector("#content-main form");
-    if (mainForm) {
-        mainForm.addEventListener("submit", function() {
-            if (!saveAndPdfSubmit) {
-                clearSaveAndPdfMode(mainForm);
-            }
-        });
-    }
-
     function bindSaveAndPdfButtons() {
         document.querySelectorAll("[data-save-and-pdf-url]").forEach(function(link) {
             if (link.dataset.saveAndPdfBound === "true") {
@@ -688,43 +652,22 @@ document.addEventListener("DOMContentLoaded", function() {
             }
             link.dataset.saveAndPdfBound = "true";
             link.addEventListener("click", function(event) {
-                var form = document.querySelector("#content-main form");
-                if (!form) {
-                    return;
-                }
                 event.preventDefault();
-                saveAndPdfSubmit = true;
-                setHiddenValue(form, "_save_and_pdf", "1");
-                setHiddenValue(form, "_save_and_pdf_url", link.dataset.saveAndPdfUrl || link.href);
+                var pdfUrl = link.dataset.saveAndPdfUrl || link.href;
                 var pdfWindow = window.open("about:blank", "_blank");
-                var formData = new FormData(form);
-                fetch(form.action || window.location.href, {
-                    method: (form.method || "post").toUpperCase(),
-                    body: formData,
-                    credentials: "same-origin",
-                    redirect: "follow"
-                }).then(function(response) {
-                    var contentType = response.headers.get("content-type") || "";
-                    if (!response.ok) {
-                        throw new Error("PDF generation failed (" + response.status + ")");
-                    }
-                    if (contentType.indexOf("application/pdf") !== -1) {
-                        return response.blob().then(function(blob) {
-                            var pdfUrl = URL.createObjectURL(blob);
-                            if (pdfWindow) {
-                                pdfWindow.location.href = pdfUrl;
-                            }
-                        });
-                    }
+                var autosave = window.invoiceAutosaveNow
+                    ? window.invoiceAutosaveNow()
+                    : Promise.resolve();
+
+                autosave.then(function() {
                     if (pdfWindow) {
-                        pdfWindow.location.href = response.url;
+                        pdfWindow.location.replace(pdfUrl);
                     }
-                }).catch(function(error) {
+                }).catch(function() {
                     if (pdfWindow) {
-                        pdfWindow.document.body.textContent = error.message;
+                        pdfWindow.document.body.textContent =
+                            "Autosave needs a valid form before opening the PDF.";
                     }
-                }).finally(function() {
-                    clearSaveAndPdfMode(form);
                 });
             });
         });
@@ -837,7 +780,7 @@ document.addEventListener("DOMContentLoaded", function() {
 {% block object-tools-items %}
 {% if purchase_pdf_url %}
 <li>
-    <a href="{{ purchase_pdf_url }}" data-save-and-pdf-url="{{ purchase_pdf_url }}">Create PDF</a>
+    <a href="{{ purchase_pdf_url }}" data-save-and-pdf-url="{{ purchase_pdf_url }}" target="_blank" rel="noopener">Create PDF</a>
 </li>
 {% endif %}
 {{ block.super }}

@@ -92,12 +92,16 @@ function updatePurchaseOrderItemRow(row, refreshProduct, options) {
             if (partNumberInput) {
                 partNumberInput.value = data.part_number || "";
             }
-            if (hsCodeInput) {
+            if (
+                hsCodeInput &&
+                (!hsCodeInput.value.trim() || hsCodeInput.value.trim() === "-")
+            ) {
                 hsCodeInput.value = data.hs_code || "";
                 hsCodeInput.dispatchEvent(new Event("change", { bubbles: true }));
             }
             if (hsCodeDisplay) {
-                hsCodeDisplay.textContent = data.hs_code || "-";
+                hsCodeDisplay.textContent =
+                    (hsCodeInput && hsCodeInput.value.trim()) || data.hs_code || "-";
             }
             if (partNumberDisplay) {
                 partNumberDisplay.textContent = data.part_number || "-";

@@ -7,7 +7,7 @@ from django.core.management import call_command
 from django.test import RequestFactory, TestCase
 
 from invoices.models import CommercialInvoice, CommercialInvoiceItem, ProformaInvoice
-from purchase.models import PurchaseOrder
+from purchase.models import PurchaseOrder, PurchaseOrderItem
 from .admin import ProductAdmin
 from .models import Product
 
@@ -271,6 +271,47 @@ class ProductAdminReturnTests(TestCase):
         item.refresh_from_db()
         product.refresh_from_db()
         self.assertEqual(item.hs_code, "CUSTOM-8481.80")
+        self.assertEqual(product.hs_code, "")
+
+    def test_edit_product_keeps_custom_purchase_order_hs_code(self):
+        product = Product.objects.create(
+            description="Purchase Product Without Default HS",
+            part_number="PO-CUSTOM-HS-001",
+            hs_code="",
+            purchase_price=Decimal("7.80"),
+        )
+        purchase_order = PurchaseOrder.objects.create()
+        item = PurchaseOrderItem.objects.create(
+            purchase_order=purchase_order,
+            product=product,
+            hs_code="CUSTOM-8504.40",
+            quantity=1,
+            unit_price=Decimal("7.80"),
+        )
+        return_to = (
+            f"/admin/purchase/purchaseorder/{purchase_order.pk}/change/"
+        )
+        request = self.factory.post(
+            f"/admin/products/product/{product.pk}/change/",
+            {
+                "_return_to": return_to,
+                "_return_field": "items-0-product",
+                "_return_item_id": str(item.pk),
+                "_return_product_action": "edit",
+            },
+        )
+        request.get_host = lambda: "127.0.0.1:8000"
+        request.is_secure = lambda: False
+
+        self.admin._update_existing_return_item(
+            request,
+            product,
+            return_to,
+        )
+
+        item.refresh_from_db()
+        product.refresh_from_db()
+        self.assertEqual(item.hs_code, "CUSTOM-8504.40")
         self.assertEqual(product.hs_code, "")
 
 

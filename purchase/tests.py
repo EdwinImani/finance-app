@@ -68,6 +68,9 @@ class PurchaseOrderAdminFormTests(TestCase):
 
         self.assertIn("admin/js/invoice_autosave.js", template_source)
         self.assertIn("20260723-autosave-80ms", template_source)
+        self.assertIn("20260729-manual-hs-code", template_source)
+        self.assertIn("window.invoiceAutosaveNow", template_source)
+        self.assertNotIn("fetch(form.action", template_source)
 
 
 class PurchaseOrderItemTests(TestCase):
@@ -130,6 +133,17 @@ class PurchaseOrderAdminAutosaveTests(TestCase):
             password="password123",
         )
         self.client.force_login(self.user)
+
+    def test_purchase_pdf_keeps_admin_session_authenticated(self):
+        purchase_order = PurchaseOrder.objects.create(vat_percent=Decimal("20.00"))
+
+        response = self.client.get(
+            reverse("admin:purchase_purchaseorder_pdf", args=[purchase_order.pk])
+        )
+
+        self.assertEqual(response.status_code, 200, response.content)
+        self.assertEqual(response["Content-Type"], "application/pdf")
+        self.assertIn("_auth_user_id", self.client.session)
 
     def test_autosave_updates_existing_item_price_without_updating_product_default_price(self):
         product = Product.objects.create(
