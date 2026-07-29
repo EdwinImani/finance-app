@@ -1460,11 +1460,11 @@ def _build_packing_section(*, invoice, packing_entries, styles):
             [
                 Paragraph(str(entry["index"]), styles["table_cell_center"]),
                 Paragraph(_escape(entry["no_packing"]), styles["table_cell"]),
-                Paragraph(_format_weight_kg(entry["gross_weight"]), styles["table_cell_center"]),
-                Paragraph(_format_weight_kg(entry["net_weight"]), styles["table_cell_center"]),
-                Paragraph(_format_plain_decimal(entry["dimension_length"]), styles["table_cell_center"]),
-                Paragraph(_format_plain_decimal(entry["dimension_width"]), styles["table_cell_center"]),
-                Paragraph(_format_plain_decimal(entry["dimension_height"]), styles["table_cell_center"]),
+                Paragraph(_format_measurement(entry["gross_weight"]), styles["table_cell_center"]),
+                Paragraph(_format_measurement(entry["net_weight"]), styles["table_cell_center"]),
+                Paragraph(_format_measurement(entry["dimension_length"]), styles["table_cell_center"]),
+                Paragraph(_format_measurement(entry["dimension_width"]), styles["table_cell_center"]),
+                Paragraph(_format_measurement(entry["dimension_height"]), styles["table_cell_center"]),
             ]
         )
 
@@ -1889,9 +1889,12 @@ def _format_quantity(value):
     return f"{amount:,.3f}".rstrip("0").rstrip(".")
 
 
+def _format_measurement(value):
+    return _format_quantity(value)
+
+
 def _format_weight_kg(value):
-    amount = Decimal(value or 0).quantize(Decimal("0.001"))
-    return f"{amount:,.3f}"
+    return _format_measurement(value)
 
 
 def _clean_lines(*values):

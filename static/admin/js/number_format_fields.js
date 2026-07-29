@@ -6,7 +6,13 @@
         maximumFractionDigits: 2
     });
 
+    var measurementFormatter = new Intl.NumberFormat("en-US", {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 3
+    });
+
     var decimalNamePattern = /(amount|balance|cost|debit|credit|dimension|discount|freight|gross_weight|net_weight|percent|price|rate|subtotal|total|vat|weight)/i;
+    var measurementNamePattern = /(dimension|gross_weight|net_weight)/i;
     var excludedNamePattern = /(date|day|email|hs_code|id$|invoice_number|month|no_packing|number|part_number|phone|price_for|purchase_number|quantity|unit_qty|year|zip)/i;
 
     function fieldKey(field) {
@@ -76,6 +82,16 @@
         return decimalFormatter.format(toNumber(normalized));
     }
 
+    function formatMeasurementValue(value) {
+        var normalized = normalizeValue(value);
+
+        if (!normalized || normalized === "-" || normalized === "." || normalized === "-.") {
+            return "";
+        }
+
+        return measurementFormatter.format(toNumber(normalized));
+    }
+
     function normalizeField(field) {
         if (!isDecimalField(field)) {
             return;
@@ -89,7 +105,9 @@
             return;
         }
 
-        field.value = formatValue(field.value);
+        field.value = measurementNamePattern.test(fieldKey(field))
+            ? formatMeasurementValue(field.value)
+            : formatValue(field.value);
     }
 
     function isSkippableTextParent(element) {
@@ -200,6 +218,7 @@
 
     window.financeNumberFormatting = {
         formatValue: formatValue,
+        formatMeasurementValue: formatMeasurementValue,
         formatDisplayNumbers: formatDisplayNumbers,
         normalizeValue: normalizeValue,
         toNumber: toNumber,

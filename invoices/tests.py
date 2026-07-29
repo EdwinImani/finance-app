@@ -35,6 +35,7 @@ from .pdf_builder import (
     _format_invoice_note_text,
     _format_decimal_comma,
     _format_quantity,
+    _format_measurement,
     _format_pdf_title,
     _partner_card,
     _split_items_for_pages,
@@ -54,6 +55,12 @@ class PdfPaginationTests(TestCase):
         self.assertEqual(_format_quantity(400), "400")
         self.assertEqual(_format_quantity("1200.00"), "1,200")
         self.assertEqual(_format_quantity("2.5"), "2.5")
+
+    def test_packing_measurements_omit_unnecessary_decimals(self):
+        self.assertEqual(_format_measurement("648.000"), "648")
+        self.assertEqual(_format_measurement("60.00"), "60")
+        self.assertEqual(_format_measurement("60.50"), "60.5")
+        self.assertEqual(_format_measurement("60.125"), "60.125")
 
     def test_pdf_item_pages_use_more_available_page_space(self):
         items = list(range(44))
