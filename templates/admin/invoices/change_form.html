@@ -819,56 +819,6 @@
 </style>
 <script>
 document.addEventListener("DOMContentLoaded", function() {
-    var saveAndPdfSubmit = false;
-
-    function setHiddenValue(form, name, value) {
-        var input = form.querySelector('input[name="' + name + '"]');
-        if (!input) {
-            input = document.createElement("input");
-            input.type = "hidden";
-            input.name = name;
-            form.appendChild(input);
-        }
-        input.value = value;
-    }
-
-    function removeHiddenValue(form, name) {
-        var input = form.querySelector('input[name="' + name + '"]');
-        if (input) {
-            input.remove();
-        }
-    }
-
-    function clearSaveAndPdfMode(form) {
-        saveAndPdfSubmit = false;
-        removeHiddenValue(form, "_save_and_pdf");
-        removeHiddenValue(form, "_save_and_pdf_url");
-        form.removeAttribute("target");
-    }
-
-    var mainForm = document.querySelector("#content-main form");
-    if (mainForm) {
-        mainForm.addEventListener("submit", function() {
-            if (!saveAndPdfSubmit) {
-                clearSaveAndPdfMode(mainForm);
-            }
-        });
-    }
-
-    function bindSaveAndPdfButtons() {
-        document.querySelectorAll("[data-save-and-pdf-url]").forEach(function(link) {
-            if (link.dataset.saveAndPdfBound === "true") {
-                return;
-            }
-            link.dataset.saveAndPdfBound = "true";
-            link.addEventListener("click", function(event) {
-                event.preventDefault();
-                var pdfUrl = link.dataset.saveAndPdfUrl || link.getAttribute("href") || link.href;
-                window.open(pdfUrl, "_blank", "noopener");
-            });
-        });
-    }
-
     function showFullProductLabel(root) {
         (root || document).querySelectorAll(".inline-group .field-product select").forEach(function(select) {
             var selectedOption = select.options[select.selectedIndex];
@@ -914,7 +864,6 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
-    bindSaveAndPdfButtons();
 
     var deleteButton = document.querySelector(".submit-row a.deletelink");
     if (!deleteButton) {
@@ -980,12 +929,12 @@ document.addEventListener("DOMContentLoaded", function() {
 {% if invoice_pdf_links %}
 {% for pdf_link in invoice_pdf_links %}
 <li>
-    <a href="{{ pdf_link.url }}" data-save-and-pdf-url="{{ pdf_link.url }}">{{ pdf_link.label }}</a>
+    <a href="{{ pdf_link.url }}" target="_blank" rel="noopener">{{ pdf_link.label }}</a>
 </li>
 {% endfor %}
 {% elif invoice_pdf_url %}
 <li>
-    <a href="{{ invoice_pdf_url }}" data-save-and-pdf-url="{{ invoice_pdf_url }}">Create PDF</a>
+    <a href="{{ invoice_pdf_url }}" target="_blank" rel="noopener">Create PDF</a>
 </li>
 {% endif %}
 {{ block.super }}

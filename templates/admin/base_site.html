@@ -2015,22 +2015,13 @@
         window.location.href = "{% url 'admin:logout' %}";
     }
 
-    function cameFromLoginPage() {
-        return document.referrer && document.referrer.indexOf("{% url 'admin:login' %}") !== -1;
-    }
-
     function markWindowSession() {
         window.sessionStorage.setItem(WINDOW_SESSION_KEY, "1");
     }
 
     function installWindowSessionGuard() {
-        const hasWindowSession = window.sessionStorage.getItem(WINDOW_SESSION_KEY) === "1";
-
-        if (!hasWindowSession && !cameFromLoginPage()) {
-            logoutDueToInactivity();
-            return false;
-        }
-
+        // sessionStorage starts empty in a newly opened tab. That is normal and
+        // must not invalidate the authenticated Django session for every tab.
         markWindowSession();
         return true;
     }
