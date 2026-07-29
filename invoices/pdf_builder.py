@@ -1020,11 +1020,11 @@ def _build_purchase_order_info_table(purchase_order, requester, styles):
 
     rows = [
         [
-            Paragraph("DATE DE<br/>COMMANDE/<br/>Order Date:", styles["label"]),
-            Paragraph("DEMANDEUR/<br/>Requester", styles["label"]),
-            Paragraph("ENVOYER PAR /<br/>SEND BY", styles["label"]),
-            Paragraph("EXPEDITION /<br/>SHIPMENT", styles["label"]),
-            Paragraph("CONDITIONS DE PRIX/<br/>SALES CONDITIONS", styles["label"]),
+            Paragraph("DATE DE<br/>COMMANDE<br/>ORDER DATE", styles["label"]),
+            Paragraph("DEMANDEUR<br/>REQUESTER", styles["label"]),
+            Paragraph("ENVOYER PAR<br/>SEND BY", styles["label"]),
+            Paragraph("EXPÉDITION<br/>SHIPMENT", styles["label"]),
+            Paragraph("CONDITIONS DE PRIX<br/>SALES CONDITIONS", styles["label"]),
         ],
         [
             Paragraph(
@@ -1039,7 +1039,7 @@ def _build_purchase_order_info_table(purchase_order, requester, styles):
     ]
     table = Table(
         rows,
-        colWidths=[24 * mm, 80 * mm, 24 * mm, 25 * mm, 31 * mm],
+        colWidths=[28 * mm, 50 * mm, 35 * mm, 35 * mm, 36 * mm],
         hAlign="LEFT",
     )
     table.setStyle(
@@ -1048,7 +1048,6 @@ def _build_purchase_order_info_table(purchase_order, requester, styles):
                 ("LINEABOVE", (0, 0), (-1, 0), 0.5, colors.HexColor("#D9D9D9")),
                 ("LINEBELOW", (0, -1), (-1, -1), 0.5, colors.HexColor("#D9D9D9")),
                 ("VALIGN", (0, 0), (-1, -1), "TOP"),
-                ("VALIGN", (0, 1), (0, 1), "MIDDLE"),
                 ("LEFTPADDING", (0, 0), (-1, -1), 4),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 4),
                 ("TOPPADDING", (0, 0), (-1, -1), 5),
