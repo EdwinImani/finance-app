@@ -1678,7 +1678,7 @@ def _draw_report_page_frame(canvas, document, *, company, report_title, styles, 
         meta.wrapOn(canvas, 90 * mm, 12 * mm)
         meta.drawOn(canvas, left_x, top_y - 31 * mm)
 
-    logo_path = getattr(getattr(company, "company_logo", None), "path", "")
+    logo_path = _get_file_path(getattr(company, "company_logo", None))
     if logo_path and Path(logo_path).exists():
         logo_width = 22 * mm
         logo_height = 14 * mm
@@ -1725,7 +1725,7 @@ def _draw_page_header(canvas, document, company, invoice, invoice_title, styles)
         invoice_date.wrapOn(canvas, 80 * mm, 5 * mm)
         invoice_date.drawOn(canvas, left_x, top_y - 27 * mm)
 
-    logo_path = getattr(getattr(company, "company_logo", None), "path", "")
+    logo_path = _get_file_path(getattr(company, "company_logo", None))
     if logo_path and Path(logo_path).exists():
         logo_width = 22 * mm
         logo_height = 14 * mm
@@ -1907,6 +1907,15 @@ def _clean_lines(*values):
             if cleaned:
                 lines.append(cleaned)
     return lines
+
+
+def _get_file_path(field_file):
+    if not field_file:
+        return ""
+    try:
+        return field_file.path
+    except (AttributeError, OSError, ValueError):
+        return ""
 
 
 def _escape(value):

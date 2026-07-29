@@ -1060,6 +1060,29 @@ class CommercialInvoiceAdminDraftTests(TestCase):
         self.assertEqual(response["Location"], pdf_url)
         self.assertEqual(invoice.items.count(), 1)
 
+    def test_commercial_pdf_buttons_keep_admin_session_authenticated(self):
+        invoice = CommercialInvoice.objects.create(vat_percent=Decimal("20.00"))
+        pdf_urls = [
+            reverse("admin:invoices_commercialinvoice_pdf", args=[invoice.pk]),
+            reverse("admin:invoices_commercialinvoice_packing_list_pdf", args=[invoice.pk]),
+            reverse("admin:invoices_commercialinvoice_dispatching_note_pdf", args=[invoice.pk]),
+        ]
+
+        for pdf_url in pdf_urls:
+            response = self.client.get(pdf_url)
+
+            self.assertEqual(
+                response.status_code,
+                200,
+                response.content.decode("utf-8", errors="replace"),
+            )
+            self.assertEqual(response["Content-Type"], "application/pdf")
+            self.assertNotIn("/admin/login/", response.get("Location", ""))
+            self.assertEqual(
+                str(self.client.session.get("_auth_user_id")),
+                str(self.user.pk),
+            )
+
     def test_save_button_ignores_stale_save_and_pdf_fields(self):
         invoice = CommercialInvoice.objects.create(vat_percent=Decimal("20.00"))
         pdf_url = reverse("admin:invoices_commercialinvoice_pdf", args=[invoice.pk])

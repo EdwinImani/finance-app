@@ -862,44 +862,9 @@ document.addEventListener("DOMContentLoaded", function() {
             }
             link.dataset.saveAndPdfBound = "true";
             link.addEventListener("click", function(event) {
-                var form = document.querySelector("#content-main form");
-                if (!form) {
-                    return;
-                }
                 event.preventDefault();
-                saveAndPdfSubmit = true;
-                setHiddenValue(form, "_save_and_pdf", "1");
-                setHiddenValue(form, "_save_and_pdf_url", link.dataset.saveAndPdfUrl || link.href);
-                var pdfWindow = window.open("about:blank", "_blank");
-                var formData = new FormData(form);
-                fetch(form.action || window.location.href, {
-                    method: (form.method || "post").toUpperCase(),
-                    body: formData,
-                    credentials: "same-origin",
-                    redirect: "follow"
-                }).then(function(response) {
-                    var contentType = response.headers.get("content-type") || "";
-                    if (!response.ok) {
-                        throw new Error("PDF generation failed (" + response.status + ")");
-                    }
-                    if (contentType.indexOf("application/pdf") !== -1) {
-                        return response.blob().then(function(blob) {
-                            var pdfUrl = URL.createObjectURL(blob);
-                            if (pdfWindow) {
-                                pdfWindow.location.href = pdfUrl;
-                            }
-                        });
-                    }
-                    if (pdfWindow) {
-                        pdfWindow.location.href = response.url;
-                    }
-                }).catch(function(error) {
-                    if (pdfWindow) {
-                        pdfWindow.document.body.textContent = error.message;
-                    }
-                }).finally(function() {
-                    clearSaveAndPdfMode(form);
-                });
+                var pdfUrl = link.dataset.saveAndPdfUrl || link.getAttribute("href") || link.href;
+                window.open(pdfUrl, "_blank", "noopener");
             });
         });
     }
