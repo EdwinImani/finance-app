@@ -1823,7 +1823,7 @@ def _format_currency_symbol(currency):
 
 def _format_decimal_comma(value):
     amount = Decimal(value or 0).quantize(Decimal("0.01"))
-    return f"{amount:.2f}".replace(".", ",")
+    return f"{amount:,.2f}"
 
 
 def _build_money_split_cell(value, currency, styles, width, bold=False):
@@ -2399,7 +2399,7 @@ def _build_purchase_order_page_gross_values_table(page_number, page_gross_value,
 
 def _build_purchase_order_payment_table(*, gross_value, vat_amount, total_amount, currency, styles):
     rows = [[
-        Paragraph("<b>Total Payment</b>", styles["body_right"]),
+        Paragraph("<b>Total Payment</b>", styles["table_cell_center"]),
         "",
         "",
         "",

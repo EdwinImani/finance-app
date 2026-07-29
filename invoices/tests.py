@@ -33,6 +33,7 @@ from .pdf_builder import (
     _build_purchase_order_styles,
     _build_styles,
     _format_invoice_note_text,
+    _format_decimal_comma,
     _format_pdf_title,
     _partner_card,
     _split_items_for_pages,
@@ -41,6 +42,12 @@ from .pdf_builder import (
 
 
 class PdfPaginationTests(TestCase):
+
+    def test_pdf_numbers_use_thousands_separator_and_decimal_point(self):
+        self.assertEqual(_format_decimal_comma(100), "100.00")
+        self.assertEqual(_format_decimal_comma(3390), "3,390.00")
+        self.assertEqual(_format_decimal_comma(339000), "339,000.00")
+        self.assertEqual(_format_decimal_comma(12345678.9), "12,345,678.90")
 
     def test_pdf_item_pages_use_more_available_page_space(self):
         items = list(range(44))
