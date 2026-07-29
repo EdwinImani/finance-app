@@ -2399,13 +2399,13 @@ def _build_purchase_order_page_gross_values_table(page_number, page_gross_value,
 
 def _build_purchase_order_payment_table(*, gross_value, vat_amount, total_amount, currency, styles):
     rows = [[
+        "",
+        "",
+        "",
+        "",
         Paragraph("<b>Total Payment</b>", styles["table_cell_center"]),
         "",
-        "",
-        "",
-        "",
-        _build_purchase_order_total_money_cell(gross_value, currency, styles),
-        "",
+        Paragraph(f"<b>{_format_money(gross_value, currency)}</b>", styles["table_cell_amount"]),
         Paragraph(f"<b>{_format_money(vat_amount, currency)}</b>", styles["table_cell_amount"]),
     ]]
     table = Table(
@@ -2416,11 +2416,10 @@ def _build_purchase_order_payment_table(*, gross_value, vat_amount, total_amount
     table.setStyle(
         TableStyle(
             [
-                ("SPAN", (0, 0), (4, 0)),
-                ("SPAN", (5, 0), (6, 0)),
+                ("SPAN", (4, 0), (5, 0)),
                 ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-                ("ALIGN", (0, 0), (4, 0), "LEFT"),
-                ("ALIGN", (5, 0), (-1, -1), "RIGHT"),
+                ("ALIGN", (4, 0), (5, 0), "CENTER"),
+                ("ALIGN", (6, 0), (-1, -1), "RIGHT"),
                 ("LEFTPADDING", (0, 0), (-1, -1), 4),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 4),
                 ("LEFTPADDING", (4, 0), (-1, -1), 2),
