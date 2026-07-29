@@ -121,7 +121,10 @@ ROOT_URLCONF = 'financeapp.urls'
 LOGIN_URL = "/admin/login/"
 LOGOUT_REDIRECT_URL = "/admin/login/"
 
-SESSION_COOKIE_AGE = 1800
+SESSION_COOKIE_AGE = int(os.getenv(
+    "DJANGO_SESSION_COOKIE_AGE",
+    "28800" if DEBUG else "1800",
+))
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 SESSION_SAVE_EVERY_REQUEST = True
 
