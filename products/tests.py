@@ -261,6 +261,9 @@ class ProductAdminReturnTests(TestCase):
         )
         request.get_host = lambda: "127.0.0.1:8000"
         request.is_secure = lambda: False
+        product.part_number = "UPDATED-CUSTOM-HS-001"
+        product.sale_price = Decimal("19.40")
+        product.save()
 
         self.admin._update_existing_return_item(
             request,
@@ -271,6 +274,8 @@ class ProductAdminReturnTests(TestCase):
         item.refresh_from_db()
         product.refresh_from_db()
         self.assertEqual(item.hs_code, "CUSTOM-8481.80")
+        self.assertEqual(item.part_number, "UPDATED-CUSTOM-HS-001")
+        self.assertEqual(item.unit_price, Decimal("19.40"))
         self.assertEqual(product.hs_code, "")
 
     def test_edit_product_keeps_custom_purchase_order_hs_code(self):
@@ -302,6 +307,10 @@ class ProductAdminReturnTests(TestCase):
         )
         request.get_host = lambda: "127.0.0.1:8000"
         request.is_secure = lambda: False
+        product.description = "Updated Purchase Product"
+        product.part_number = "UPDATED-PO-HS-001"
+        product.purchase_price = Decimal("9.25")
+        product.save()
 
         self.admin._update_existing_return_item(
             request,
@@ -312,6 +321,9 @@ class ProductAdminReturnTests(TestCase):
         item.refresh_from_db()
         product.refresh_from_db()
         self.assertEqual(item.hs_code, "CUSTOM-8504.40")
+        self.assertEqual(item.description, "Updated Purchase Product")
+        self.assertEqual(item.part_number, "UPDATED-PO-HS-001")
+        self.assertEqual(item.unit_price, Decimal("9.25"))
         self.assertEqual(product.hs_code, "")
 
 

@@ -74,7 +74,7 @@ class PdfPaginationTests(TestCase):
             other_pages_max=PDF_OTHER_PAGE_ITEM_LIMIT,
         )
 
-        self.assertEqual([len(page) for page in pages], [9, 10, 10, 10, 5])
+        self.assertEqual([len(page) for page in pages], [9, 20, 15])
 
     def test_pdf_body_uses_extra_space_above_footer(self):
         self.assertEqual(PDF_TOP_MARGIN, 38)

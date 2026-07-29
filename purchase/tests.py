@@ -68,7 +68,7 @@ class PurchaseOrderAdminFormTests(TestCase):
 
         self.assertIn("admin/js/invoice_autosave.js", template_source)
         self.assertIn("20260723-autosave-80ms", template_source)
-        self.assertIn("20260729-manual-hs-code", template_source)
+        self.assertIn("20260729-document-product-overrides", template_source)
         self.assertIn("window.invoiceAutosaveNow", template_source)
         self.assertNotIn("fetch(form.action", template_source)
 

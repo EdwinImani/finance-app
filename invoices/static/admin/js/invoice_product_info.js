@@ -157,7 +157,13 @@
             hsCodeInput.value = data.hs_code || "";
         }
 
-        if (partNumberInput) {
+        if (
+            partNumberInput &&
+            (
+                settings.forceProductDefaults ||
+                !partNumberInput.value.trim()
+            )
+        ) {
             partNumberInput.value = data.part_number || "";
         }
 
@@ -196,6 +202,7 @@
                 updateInvoiceRow(row, data, {
                     forceDefaultPrice: settings.forceDefaultPrice === true || (productChanged && settings.preserveUnitPrice !== true),
                     forceDefaultHsCode: productChanged,
+                    forceProductDefaults: productChanged,
                 });
                 field.dataset.invoiceLastProductId = productId;
                 document.dispatchEvent(new CustomEvent("invoice:inline-product-updated"));
@@ -384,6 +391,10 @@
             if (!option) {
                 option = new Option(productLabel || productId, productId, true, true);
                 field.appendChild(option);
+            }
+            if (productLabel) {
+                option.textContent = productLabel;
+                option.text = productLabel;
             }
             field.value = productId;
             if (window.django && window.django.jQuery) {

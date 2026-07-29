@@ -86,10 +86,16 @@ function updatePurchaseOrderItemRow(row, refreshProduct, options) {
             const partNumberDisplay = row.querySelector('[data-product-field="part_number"]');
             const unitPriceInput = row.querySelector("input[name$='unit_price']") || row.querySelector("input[name$='-unit_price']");
 
-            if (descriptionInput) {
+            if (
+                descriptionInput &&
+                (productChanged || !descriptionInput.value.trim())
+            ) {
                 descriptionInput.value = data.description || "";
             }
-            if (partNumberInput) {
+            if (
+                partNumberInput &&
+                (productChanged || !partNumberInput.value.trim())
+            ) {
                 partNumberInput.value = data.part_number || "";
             }
             if (
@@ -294,6 +300,10 @@ function applyReturnedProductSelection() {
         if (!option) {
             option = new Option(productLabel || productId, productId, true, true);
             field.appendChild(option);
+        }
+        if (productLabel) {
+            option.textContent = productLabel;
+            option.text = productLabel;
         }
         field.value = productId;
         if (window.django && window.django.jQuery) {

@@ -162,7 +162,6 @@
 
         syncChangelistClasses(newDocument);
         replaceNode("#changelist-form", newDocument);
-        replaceNode(".paginator", newDocument);
         replaceNode("#changelist-filter", newDocument);
 
         window.history.replaceState({}, "", url.pathname + url.search + url.hash);
