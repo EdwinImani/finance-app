@@ -1647,6 +1647,61 @@
         display: inline-flex !important;
         visibility: visible !important;
     }
+
+    /* Stable autocomplete sizing: CSS only, so Select2 keeps its native
+       open/search/select behaviour. */
+    body.change-form .form-row.field-importer .related-widget-wrapper,
+    body.change-form .form-row.field-end_user .related-widget-wrapper,
+    body.change-form .form-row.field-seller .related-widget-wrapper {
+        display: flex !important;
+        width: 610px !important;
+        min-width: 610px !important;
+        max-width: none !important;
+        flex-wrap: nowrap !important;
+        align-items: center !important;
+        gap: 10px !important;
+    }
+
+    body.change-form .form-row.field-importer .select2-container,
+    body.change-form .form-row.field-end_user .select2-container,
+    body.change-form .form-row.field-seller .select2-container,
+    body.change-form .inline-group .tabular td.field-product .select2-container {
+        flex: 0 0 500px !important;
+        width: 500px !important;
+        min-width: 500px !important;
+        max-width: 500px !important;
+        box-sizing: border-box !important;
+    }
+
+    body.change-form .inline-group .tabular td.field-product,
+    body.change-form .inline-group .tabular th.column-product {
+        min-width: 520px !important;
+    }
+
+    body.change-form .inline-group .tabular td.field-product .related-widget-wrapper {
+        width: 500px !important;
+        min-width: 500px !important;
+        max-width: 500px !important;
+    }
+
+    @media (max-width: 760px) {
+        body.change-form .form-row.field-importer .related-widget-wrapper,
+        body.change-form .form-row.field-end_user .related-widget-wrapper,
+        body.change-form .form-row.field-seller .related-widget-wrapper {
+            width: 100% !important;
+            min-width: 0 !important;
+            max-width: 100% !important;
+        }
+
+        body.change-form .form-row.field-importer .select2-container,
+        body.change-form .form-row.field-end_user .select2-container,
+        body.change-form .form-row.field-seller .select2-container {
+            flex: 1 1 auto !important;
+            width: calc(100% - 100px) !important;
+            min-width: 220px !important;
+            max-width: calc(100% - 100px) !important;
+        }
+    }
 </style>
 <script>
     (function() {
@@ -1778,6 +1833,9 @@
         }
 
         function installAutocompletePositioning() {
+            // Keep Django Select2's native positioning. Moving its open dropdown
+            // causes the component to lose focus and close immediately.
+            return;
             const $ = window.django && window.django.jQuery;
 
             if (!$) {
@@ -1812,75 +1870,33 @@
     })();
 
     (function() {
-        const partnerFieldIds = ["id_importer", "id_end_user", "id_seller"];
+        const partnerSelectors = "#id_importer, #id_end_user, #id_seller";
 
-        function resizePartnerFields() {
-            partnerFieldIds.forEach(function(fieldId) {
-                const field = document.getElementById(fieldId);
-                if (!field) {
-                    return;
-                }
-
-                const wrapper = field.closest(".related-widget-wrapper") || field.parentElement;
-                const container = wrapper
-                    ? wrapper.querySelector(".select2-container")
-                    : field.nextElementSibling;
+        function applyPartnerWidth() {
+            document.querySelectorAll(partnerSelectors).forEach(function(field) {
+                const wrapper = field.closest(".related-widget-wrapper");
+                const container = wrapper && wrapper.querySelector(".select2-container");
                 if (!wrapper || !container) {
                     return;
                 }
-
-                const row = field.closest(".form-row") || wrapper.parentElement;
-                const availableWidth = Math.max(
-                    280,
-                    (row ? row.getBoundingClientRect().width : window.innerWidth) - 40
-                );
-                const fieldWidth = window.innerWidth <= 900
-                    ? Math.max(280, availableWidth - 100)
-                    : 500;
-                const wrapperWidth = Math.min(availableWidth, fieldWidth + 110);
-
-                wrapper.style.setProperty("display", "flex", "important");
-                wrapper.style.setProperty("width", `${wrapperWidth}px`, "important");
-                wrapper.style.setProperty("max-width", "100%", "important");
-                container.style.setProperty("flex", "0 0 auto", "important");
-                container.style.setProperty("width", `${fieldWidth}px`, "important");
-                container.style.setProperty("min-width", `${Math.min(fieldWidth, 280)}px`, "important");
-                container.style.setProperty("max-width", "calc(100% - 100px)", "important");
+                wrapper.style.setProperty("width", "610px", "important");
+                wrapper.style.setProperty("min-width", "610px", "important");
+                container.style.setProperty("width", "500px", "important");
+                container.style.setProperty("min-width", "500px", "important");
+                container.style.setProperty("max-width", "500px", "important");
             });
         }
 
-        function installWidePartnerFields() {
-            resizePartnerFields();
-            window.setTimeout(resizePartnerFields, 50);
-            window.setTimeout(resizePartnerFields, 250);
-            window.addEventListener("resize", resizePartnerFields);
-
-            const partnerFieldObserver = new MutationObserver(function(mutations) {
-                const hasNewElements = mutations.some(function(mutation) {
-                    return mutation.addedNodes && mutation.addedNodes.length;
-                });
-                if (hasNewElements) {
-                    window.requestAnimationFrame(resizePartnerFields);
-                }
-            });
-            partnerFieldObserver.observe(document.body, {
-                childList: true,
-                subtree: true
-            });
-
-            if (window.django && window.django.jQuery) {
-                window.django.jQuery(document).on(
-                    "select2:open select2:close select2:select",
-                    "#id_importer, #id_end_user, #id_seller",
-                    resizePartnerFields
-                );
-            }
+        function installPartnerWidth() {
+            // Width is controlled by the widget and CSS. Do not manipulate an
+            // open Select2 dropdown, otherwise it can close as soon as it opens.
+            return;
         }
 
         if (document.readyState === "loading") {
-            document.addEventListener("DOMContentLoaded", installWidePartnerFields);
+            document.addEventListener("DOMContentLoaded", installPartnerWidth);
         } else {
-            installWidePartnerFields();
+            installPartnerWidth();
         }
     })();
 
