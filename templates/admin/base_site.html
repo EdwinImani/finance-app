@@ -1506,9 +1506,20 @@
             grid-template-columns: 1fr !important;
         }
 
+        /*
+         * Django renders the filter before the results in the DOM.  Once the
+         * two-column layout collapses, source order would therefore put the
+         * filter above the actual partner/product list.  Keep the results in
+         * the primary position and move the filters underneath them.
+         */
+        body.change-list #changelist .changelist-form-container:has(#changelist-filter) > div {
+            grid-column: 1 !important;
+            grid-row: 1 !important;
+        }
+
         body.change-list #changelist-filter {
             grid-column: 1 !important;
-            grid-row: auto !important;
+            grid-row: 2 !important;
             width: 100% !important;
             min-width: 0 !important;
             max-width: none !important;
