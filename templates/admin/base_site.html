@@ -1506,20 +1506,9 @@
             grid-template-columns: 1fr !important;
         }
 
-        /*
-         * Django renders the filter before the results in the DOM.  Once the
-         * two-column layout collapses, source order would therefore put the
-         * filter above the actual partner/product list.  Keep the results in
-         * the primary position and move the filters underneath them.
-         */
-        body.change-list #changelist .changelist-form-container:has(#changelist-filter) > div {
-            grid-column: 1 !important;
-            grid-row: 1 !important;
-        }
-
         body.change-list #changelist-filter {
             grid-column: 1 !important;
-            grid-row: 2 !important;
+            grid-row: auto !important;
             width: 100% !important;
             min-width: 0 !important;
             max-width: none !important;
@@ -1771,12 +1760,16 @@
             );
 
             dropdownContainer.style.position = "absolute";
-            dropdownContainer.style.left = `${(rect.left + window.scrollX) / zoom}px`;
+            /*
+             * getBoundingClientRect() is expressed in the zoomed viewport,
+             * while Select2's dropdown is appended to the (unzoomed) body.
+             * Only the viewport component must be converted back; scrollX/Y
+             * are already document coordinates.
+             */
+            dropdownContainer.style.left = `${rect.left / zoom + window.scrollX}px`;
             dropdownContainer.style.top = `${
-                (
-                    (openAbove ? rect.top - dropdownHeight : rect.bottom) +
-                    window.scrollY
-                ) / zoom
+                (openAbove ? rect.top - dropdownHeight : rect.bottom) / zoom +
+                window.scrollY
             }px`;
             dropdownContainer.style.width = `${dropdownWidth / zoom}px`;
             dropdownContainer.style.zIndex = "10000";
@@ -1844,9 +1837,6 @@
         }
 
         function installAutocompletePositioning() {
-            // Keep Django Select2's native positioning. Moving its open dropdown
-            // causes the component to lose focus and close immediately.
-            return;
             const $ = window.django && window.django.jQuery;
 
             if (!$) {
