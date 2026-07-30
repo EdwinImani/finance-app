@@ -229,10 +229,31 @@ class PurchaseOrderAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.M
         if (
             company_year and
             self.should_apply_default_year_filter(request) and
-            not self.has_explicit_year_filter(request, "purchase_date")
+            not self.has_explicit_year_filter(request, "purchase_date") and
+            not (request.GET.get("q") or "").strip()
         ):
             queryset = queryset.filter(purchase_date__year=company_year)
         return queryset
+
+    def get_search_results(self, request, queryset, search_term):
+        normalized_term = (search_term or "").strip()
+        if normalized_term:
+            number_variants = {
+                normalized_term,
+                normalized_term.replace("/", "-"),
+            }
+            if normalized_term.startswith("PO-"):
+                number_variants.add(
+                    "PO/" + normalized_term.removeprefix("PO-")
+                )
+
+            exact_numbers = queryset.filter(
+                purchase_number__in=number_variants
+            )
+            if exact_numbers.exists():
+                return exact_numbers, False
+
+        return super().get_search_results(request, queryset, search_term)
 
     def purchase_date_display(self, obj):
         if obj.purchase_date:

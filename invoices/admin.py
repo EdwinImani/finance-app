@@ -291,6 +291,22 @@ class InvoiceAdminMixin:
     def get_invoice_pdf_filename(self, obj):
         return f"{obj.invoice_number or self.model._meta.model_name}.pdf"
 
+    def get_search_results(self, request, queryset, search_term):
+        normalized_term = (search_term or "").strip()
+        if normalized_term:
+            number_variants = {
+                normalized_term,
+                normalized_term.replace("/", "-"),
+                normalized_term.replace("-", "/"),
+            }
+            exact_numbers = queryset.filter(
+                invoice_number__in=number_variants
+            )
+            if exact_numbers.exists():
+                return exact_numbers, False
+
+        return super().get_search_results(request, queryset, search_term)
+
     def get_invoice_pdf_url(self, obj):
         return reverse(f"admin:{self.model._meta.app_label}_{self.model._meta.model_name}_pdf", args=[obj.pk])
 

@@ -1,9 +1,11 @@
 from django.contrib.admin.views.decorators import staff_member_required
 from django.http import JsonResponse
+from django.views.decorators.cache import never_cache
 from products.models import Product
 
 
 @staff_member_required
+@never_cache
 def product_info(request, product_id):
 
     try:

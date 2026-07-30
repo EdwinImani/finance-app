@@ -11,7 +11,7 @@
 </script>
 {% endif %}
 <script src="{% static 'admin/js/invoice_autosave.js' %}?v=20260730-unblock-save" defer></script>
-<script src="{% static 'admin/js/invoice_product_info.js' %}?v=20260730-safe-product-edit" defer></script>
+<script src="{% static 'admin/js/invoice_product_info.js' %}?v=20260730-fresh-product-info" defer></script>
 <script src="{% static 'admin/js/invoice_partner_type.js' %}?v=20260723-no-duplicate-related" defer></script>
 <script src="{% static 'admin/js/inline_row_tools.js' %}?v=20260723-small-row-number" defer></script>
 <style>
@@ -815,6 +815,48 @@
         max-width: 100% !important;
         overflow-x: auto !important;
         overflow-y: hidden !important;
+    }
+
+    body.app-invoices.change-form .form-row.field-importer > div,
+    body.app-invoices.change-form .form-row.field-end_user > div,
+    body.app-invoices.change-form .form-row.field-importer .flex-container,
+    body.app-invoices.change-form .form-row.field-end_user .flex-container,
+    body.app-invoices.change-form .form-row.field-importer .related-widget-wrapper,
+    body.app-invoices.change-form .form-row.field-end_user .related-widget-wrapper {
+        width: min(1120px, calc(100vw - 190px)) !important;
+        max-width: none !important;
+        min-width: 0 !important;
+        box-sizing: border-box !important;
+    }
+
+    body.app-invoices.change-form .form-row.field-importer .related-widget-wrapper,
+    body.app-invoices.change-form .form-row.field-end_user .related-widget-wrapper {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        align-items: center !important;
+    }
+
+    body.app-invoices.change-form .form-row.field-importer .select2-container,
+    body.app-invoices.change-form .form-row.field-end_user .select2-container {
+        flex: 1 1 auto !important;
+        width: min(980px, calc(100vw - 330px)) !important;
+        max-width: none !important;
+        min-width: 520px !important;
+    }
+
+    @media (max-width: 900px) {
+        body.app-invoices.change-form .form-row.field-importer > div,
+        body.app-invoices.change-form .form-row.field-end_user > div,
+        body.app-invoices.change-form .form-row.field-importer .flex-container,
+        body.app-invoices.change-form .form-row.field-end_user .flex-container,
+        body.app-invoices.change-form .form-row.field-importer .related-widget-wrapper,
+        body.app-invoices.change-form .form-row.field-end_user .related-widget-wrapper,
+        body.app-invoices.change-form .form-row.field-importer .select2-container,
+        body.app-invoices.change-form .form-row.field-end_user .select2-container {
+            width: 100% !important;
+            max-width: 100% !important;
+            min-width: 0 !important;
+        }
     }
 </style>
 <script>

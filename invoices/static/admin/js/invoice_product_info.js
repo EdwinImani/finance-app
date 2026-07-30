@@ -194,7 +194,10 @@
             return;
         }
 
-        fetch("/purchase/product-info/" + productId + "/")
+        fetch("/purchase/product-info/" + productId + "/", {
+            cache: "no-store",
+            credentials: "same-origin"
+        })
             .then(function (response) {
                 return response.json();
             })

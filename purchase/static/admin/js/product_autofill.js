@@ -76,7 +76,10 @@ function updatePurchaseOrderItemRow(row, refreshProduct, options) {
 
     defaultQuantityToOne();
 
-    fetch(`/purchase/product-info/${productId}/`)
+    fetch(`/purchase/product-info/${productId}/`, {
+        cache: "no-store",
+        credentials: "same-origin"
+    })
         .then(response => response.json())
         .then(data => {
             const descriptionInput = row.querySelector("input[name$='description']") || row.querySelector("input[name$='-description']");
@@ -147,7 +150,10 @@ function fillMissingPurchaseHsCode(row) {
         return;
     }
 
-    fetch(`/purchase/product-info/${productId}/`)
+    fetch(`/purchase/product-info/${productId}/`, {
+        cache: "no-store",
+        credentials: "same-origin"
+    })
         .then(response => response.json())
         .then(data => {
             hsCodeInput.value = data.hs_code || "-";

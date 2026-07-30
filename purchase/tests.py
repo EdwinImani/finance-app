@@ -1,5 +1,6 @@
 from decimal import Decimal
 
+from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.template.loader import get_template
 from django.test import TestCase
@@ -37,6 +38,7 @@ class ProductInfoViewTests(TestCase):
         response = self.client.get(reverse("product_info", args=[product.id]))
 
         self.assertEqual(response.status_code, 200)
+        self.assertIn("no-cache", response["Cache-Control"])
         self.assertEqual(
             response.json(),
             {
@@ -89,7 +91,7 @@ class PurchaseOrderAdminFormTests(TestCase):
 
         self.assertIn("admin/js/invoice_autosave.js", template_source)
         self.assertIn("20260730-unblock-save", template_source)
-        self.assertIn("20260730-safe-product-edit", template_source)
+        self.assertIn("20260730-fresh-product-info", template_source)
         self.assertIn("window.invoiceAutosaveNow", template_source)
         self.assertNotIn("fetch(form.action", template_source)
 
@@ -105,6 +107,25 @@ class PurchaseOrderItemTests(TestCase):
         purchase_order = PurchaseOrder.objects.create()
 
         self.assertEqual(purchase_order.purchase_number, "PO/2031-0001")
+
+    def test_exact_purchase_number_search_excludes_other_field_matches(self):
+        exact_order = PurchaseOrder.objects.create(
+            purchase_number="PO/2026-0002",
+        )
+        PurchaseOrder.objects.create(
+            purchase_number="PO/2026-0005",
+            shipment="PO/2026-0002",
+        )
+        model_admin = admin.site._registry[PurchaseOrder]
+
+        results, may_have_duplicates = model_admin.get_search_results(
+            None,
+            PurchaseOrder.objects.all(),
+            "PO/2026-0002",
+        )
+
+        self.assertEqual(list(results), [exact_order])
+        self.assertFalse(may_have_duplicates)
 
     def test_item_uses_product_hs_code_and_part_number_by_default(self):
         product = Product.objects.create(
@@ -175,6 +196,23 @@ class PurchaseOrderAdminAutosaveTests(TestCase):
         self.assertEqual(response.status_code, 200, response.content)
         self.assertEqual(response["Content-Type"], "application/pdf")
         self.assertIn("_auth_user_id", self.client.session)
+
+    def test_search_finds_purchase_order_outside_company_setting_year(self):
+        company = CompanySetting.objects.get()
+        company.year = 2026
+        company.save()
+        old_order = PurchaseOrder.objects.create(
+            purchase_number="PO/2024-0002",
+            purchase_date="2024-01-04",
+        )
+
+        response = self.client.get(
+            reverse("admin:purchase_purchaseorder_changelist"),
+            {"q": "PO/2024-0002"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, old_order.purchase_number)
 
     def test_invalid_autosave_does_not_partially_change_purchase_order(self):
         purchase_order = PurchaseOrder.objects.create(

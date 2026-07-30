@@ -1,5 +1,6 @@
 from decimal import Decimal
 
+from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.test import override_settings
@@ -283,6 +284,27 @@ class ProformaConversionTests(TestCase):
         invoice = ProformaInvoice.objects.create(importer=self.importer)
 
         self.assertEqual(invoice.invoice_number, f"FR-{year}-0009")
+
+    def test_exact_invoice_number_search_excludes_other_field_matches(self):
+        exact_invoice = ProformaInvoice.objects.create(
+            importer=self.importer,
+            invoice_number="FR-2024-0002",
+        )
+        ProformaInvoice.objects.create(
+            importer=self.importer,
+            invoice_number="FR-2024-0005",
+            our_reference="FR-2024-0002",
+        )
+        model_admin = admin.site._registry[ProformaInvoice]
+
+        results, may_have_duplicates = model_admin.get_search_results(
+            None,
+            ProformaInvoice.objects.all(),
+            "FR-2024-0002",
+        )
+
+        self.assertEqual(list(results), [exact_invoice])
+        self.assertFalse(may_have_duplicates)
 
     def test_convert_to_commercial_decreases_product_quantity(self):
         proforma = ProformaInvoice.objects.create(importer=self.importer)
