@@ -1802,7 +1802,7 @@
                 const availableWidth = Math.max(280, row.getBoundingClientRect().width - 40);
                 const fieldWidth = window.innerWidth <= 900
                     ? Math.max(280, availableWidth - 100)
-                    : Math.min(720, Math.max(520, availableWidth * 0.55));
+                    : 410;
                 const wrapperWidth = Math.min(availableWidth, fieldWidth + 110);
 
                 wrapper.style.setProperty("display", "flex", "important");
@@ -1820,6 +1820,19 @@
             window.setTimeout(resizePartnerFields, 50);
             window.setTimeout(resizePartnerFields, 250);
             window.addEventListener("resize", resizePartnerFields);
+
+            const partnerFieldObserver = new MutationObserver(function(mutations) {
+                const hasNewElements = mutations.some(function(mutation) {
+                    return mutation.addedNodes && mutation.addedNodes.length;
+                });
+                if (hasNewElements) {
+                    window.requestAnimationFrame(resizePartnerFields);
+                }
+            });
+            partnerFieldObserver.observe(document.body, {
+                childList: true,
+                subtree: true
+            });
 
             if (window.django && window.django.jQuery) {
                 window.django.jQuery(document).on(

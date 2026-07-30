@@ -260,9 +260,9 @@ class PurchaseOrderAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.M
                     "PO/" + normalized_term.removeprefix("PO-")
                 )
 
-            exact_numbers = queryset.filter(
+            exact_numbers = self.model._default_manager.filter(
                 purchase_number__in=number_variants
-            )
+            ).order_by("-purchase_date", "-id")
             if exact_numbers.exists():
                 return exact_numbers, False
 

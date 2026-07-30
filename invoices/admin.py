@@ -309,9 +309,9 @@ class InvoiceAdminMixin:
                 normalized_term.replace("/", "-"),
                 normalized_term.replace("-", "/"),
             }
-            exact_numbers = queryset.filter(
+            exact_numbers = self.model._default_manager.filter(
                 invoice_number__in=number_variants
-            )
+            ).order_by("-invoice_date", "-id")
             if exact_numbers.exists():
                 return exact_numbers, False
 

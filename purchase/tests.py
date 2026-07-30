@@ -110,18 +110,20 @@ class PurchaseOrderItemTests(TestCase):
 
     def test_exact_purchase_number_search_excludes_other_field_matches(self):
         exact_order = PurchaseOrder.objects.create(
-            purchase_number="PO/2026-0002",
+            purchase_number="PO/2024-0002",
+            purchase_date="2024-01-04",
         )
         PurchaseOrder.objects.create(
-            purchase_number="PO/2026-0005",
-            shipment="PO/2026-0002",
+            purchase_number="PO/2024-0005",
+            purchase_date="2024-01-05",
+            shipment="PO/2024-0002",
         )
         model_admin = admin.site._registry[PurchaseOrder]
 
         results, may_have_duplicates = model_admin.get_search_results(
             None,
-            PurchaseOrder.objects.all(),
-            "PO/2026-0002",
+            PurchaseOrder.objects.filter(purchase_date__year=2026),
+            "PO/2024-0002",
         )
 
         self.assertEqual(list(results), [exact_order])

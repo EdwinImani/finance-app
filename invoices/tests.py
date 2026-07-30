@@ -289,17 +289,19 @@ class ProformaConversionTests(TestCase):
         exact_invoice = ProformaInvoice.objects.create(
             importer=self.importer,
             invoice_number="FR-2024-0002",
+            invoice_date="2024-01-04",
         )
         ProformaInvoice.objects.create(
             importer=self.importer,
             invoice_number="FR-2024-0005",
             our_reference="FR-2024-0002",
+            invoice_date="2024-01-05",
         )
         model_admin = admin.site._registry[ProformaInvoice]
 
         results, may_have_duplicates = model_admin.get_search_results(
             None,
-            ProformaInvoice.objects.all(),
+            ProformaInvoice.objects.filter(invoice_date__year=2026),
             "FR-2024-0002",
         )
 
