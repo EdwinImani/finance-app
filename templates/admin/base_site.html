@@ -2068,7 +2068,17 @@
             return;
         }
 
-        window.location.href = "{% url 'admin:logout' %}";
+        // Django accepts admin logout only through POST. During the early
+        // new-tab check, the logout form at the end of the page may not have
+        // been parsed yet, so wait for it instead of issuing an invalid GET.
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", function submitLogoutWhenReady() {
+                const readyLogoutForm = document.getElementById("logout-form");
+                if (readyLogoutForm) {
+                    readyLogoutForm.submit();
+                }
+            }, { once: true });
+        }
     }
 
     function markWindowSession() {
