@@ -809,6 +809,9 @@
     body.app-invoices.change-form .form-row.field-end_user .related-widget-wrapper,
     body.app-purchase.change-form .form-row.field-seller .related-widget-wrapper {
         display: flex !important;
+        width: 610px !important;
+        min-width: 610px !important;
+        max-width: 100% !important;
         align-items: center !important;
         gap: 10px !important;
         flex-wrap: nowrap !important;
@@ -820,10 +823,34 @@
     body.app-invoices.change-form .form-row.field-importer .select2-container,
     body.app-invoices.change-form .form-row.field-end_user .select2-container,
     body.app-purchase.change-form .form-row.field-seller .select2-container {
-        flex: 1 1 auto !important;
-        min-width: min(760px, 100%) !important;
-        width: min(980px, calc(100vw - 430px)) !important;
-        max-width: calc(100% - 150px) !important;
+        flex: 0 0 500px !important;
+        min-width: 500px !important;
+        width: 500px !important;
+        max-width: 500px !important;
+    }
+
+    #id_importer ~ .select2-container,
+    #id_end_user ~ .select2-container,
+    #id_seller ~ .select2-container,
+    .field-importer .select2-container,
+    .field-end_user .select2-container,
+    .field-seller .select2-container {
+        flex: 0 0 500px !important;
+        width: 500px !important;
+        min-width: 500px !important;
+        max-width: 500px !important;
+    }
+
+    .field-importer .related-widget-wrapper,
+    .field-end_user .related-widget-wrapper,
+    .field-seller .related-widget-wrapper {
+        display: flex !important;
+        width: 610px !important;
+        min-width: 610px !important;
+        max-width: 100% !important;
+        align-items: center !important;
+        flex-wrap: nowrap !important;
+        gap: 10px !important;
     }
 
     @media (max-width: 1100px) {
@@ -1785,24 +1812,31 @@
     })();
 
     (function() {
-        const partnerRowSelectors = [
-            "body.app-invoices.change-form .form-row.field-importer",
-            "body.app-invoices.change-form .form-row.field-end_user",
-            "body.app-purchase.change-form .form-row.field-seller"
-        ];
+        const partnerFieldIds = ["id_importer", "id_end_user", "id_seller"];
 
         function resizePartnerFields() {
-            document.querySelectorAll(partnerRowSelectors.join(",")).forEach(function(row) {
-                const wrapper = row.querySelector(".related-widget-wrapper");
-                const container = row.querySelector(".select2-container");
+            partnerFieldIds.forEach(function(fieldId) {
+                const field = document.getElementById(fieldId);
+                if (!field) {
+                    return;
+                }
+
+                const wrapper = field.closest(".related-widget-wrapper") || field.parentElement;
+                const container = wrapper
+                    ? wrapper.querySelector(".select2-container")
+                    : field.nextElementSibling;
                 if (!wrapper || !container) {
                     return;
                 }
 
-                const availableWidth = Math.max(280, row.getBoundingClientRect().width - 40);
+                const row = field.closest(".form-row") || wrapper.parentElement;
+                const availableWidth = Math.max(
+                    280,
+                    (row ? row.getBoundingClientRect().width : window.innerWidth) - 40
+                );
                 const fieldWidth = window.innerWidth <= 900
                     ? Math.max(280, availableWidth - 100)
-                    : 410;
+                    : 500;
                 const wrapperWidth = Math.min(availableWidth, fieldWidth + 110);
 
                 wrapper.style.setProperty("display", "flex", "important");

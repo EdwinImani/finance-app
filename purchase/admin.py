@@ -68,6 +68,9 @@ class PurchaseOrderAdminForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         company = CompanySetting.objects.first()
 
+        if "seller" in self.fields:
+            self.fields["seller"].widget.attrs["style"] = "width: 500px;"
+
         for field_name in ("freight", "vat_percent"):
             self.fields[field_name].required = False
 
