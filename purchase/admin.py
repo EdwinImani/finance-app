@@ -68,6 +68,9 @@ class PurchaseOrderAdminForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         company = CompanySetting.objects.first()
 
+        for field_name in ("freight", "vat_percent"):
+            self.fields[field_name].required = False
+
         if company and not self.instance.pk:
             self.fields["vat_percent"].initial = company.vat_amount
             self.fields["purchase_date"].initial = self._get_default_company_date(company.year)
@@ -88,6 +91,9 @@ class PurchaseOrderAdminForm(forms.ModelForm):
                 return company.vat_amount
 
         return vat_percent
+
+    def clean_freight(self):
+        return self.cleaned_data.get("freight") or Decimal("0.00")
 
 
 # ----------------------

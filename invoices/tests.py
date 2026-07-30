@@ -496,6 +496,29 @@ class ProformaConversionTests(TestCase):
 
 class InvoiceFormVatDefaultTests(TestCase):
 
+    def test_blank_invoice_financial_fields_are_saved_as_zero(self):
+        CompanySetting.objects.create(
+            company_name="Societe Zero",
+            vat_amount=Decimal("20.00"),
+        )
+        form = CommercialInvoiceForm(
+            data={
+                "invoice_number": "",
+                "invoice_date": "2026-07-20",
+                "importer": "",
+                "end_user": "",
+                "freight": "",
+                "discount": "",
+                "vat_percent": "",
+            }
+        )
+
+        self.assertTrue(form.is_valid(), form.errors)
+        invoice = form.save()
+        self.assertEqual(invoice.freight, Decimal("0.00"))
+        self.assertEqual(invoice.discount, Decimal("0.00"))
+        self.assertEqual(invoice.vat_percent, Decimal("20.00"))
+
     def test_proforma_form_uses_company_vat_as_initial_value(self):
         CompanySetting.objects.create(
             company_name="Societe TVA",

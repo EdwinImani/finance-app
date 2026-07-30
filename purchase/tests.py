@@ -53,6 +53,27 @@ class ProductInfoViewTests(TestCase):
 
 class PurchaseOrderAdminFormTests(TestCase):
 
+    def test_blank_purchase_financial_fields_are_saved_as_zero(self):
+        CompanySetting.objects.create(
+            company_name="Societe Zero",
+            vat_amount=Decimal("20.00"),
+        )
+        form = PurchaseOrderAdminForm(
+            data={
+                "purchase_number": "",
+                "purchase_date": "2026-07-20",
+                "seller": "",
+                "requester": "",
+                "freight": "",
+                "vat_percent": "",
+            }
+        )
+
+        self.assertTrue(form.is_valid(), form.errors)
+        purchase_order = form.save()
+        self.assertEqual(purchase_order.freight, Decimal("0.00"))
+        self.assertEqual(purchase_order.vat_percent, Decimal("20.00"))
+
     def test_vat_percent_uses_company_setting_as_initial_value(self):
         CompanySetting.objects.create(
             company_name="Societe Test",

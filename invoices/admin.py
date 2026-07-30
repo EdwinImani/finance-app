@@ -17,6 +17,7 @@ from financeapp.admin_mixins import PageSizeAdminMixin, SaveRedirectToWelcomeMix
 from company.models import CompanySetting
 from partners.models import Partner
 from products.models import Product
+from .forms import CommercialInvoiceForm, ProformaInvoiceForm
 from .pdf_builder import build_commercial_report_pdf, build_invoice_pdf, format_footer_invoice_lines
 from .models import (
     ProformaInvoice,
@@ -569,6 +570,7 @@ class InvoiceAdminMixin:
 @admin.register(ProformaInvoice)
 class ProformaInvoiceAdmin(InvoiceAdminMixin, SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.ModelAdmin):
     changelist_template = "admin/invoices/change_list.html"
+    form = ProformaInvoiceForm
 
     fieldsets = (
         ("Invoice Overview", {
@@ -804,6 +806,7 @@ class CommercialPackingInline(admin.TabularInline):
 @admin.register(CommercialInvoice)
 class CommercialInvoiceAdmin(InvoiceAdminMixin, SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.ModelAdmin):
     changelist_template = "admin/invoices/change_list.html"
+    form = CommercialInvoiceForm
     commercial_document_titles = {
         "default": "Commercial Invoice",
         "packing_list": "Packing List",
