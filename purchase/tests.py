@@ -75,6 +75,16 @@ class PurchaseOrderAdminFormTests(TestCase):
 
 class PurchaseOrderItemTests(TestCase):
 
+    def test_purchase_number_uses_company_setting_year(self):
+        CompanySetting.objects.create(
+            company_name="Year Test",
+            year=2031,
+        )
+
+        purchase_order = PurchaseOrder.objects.create()
+
+        self.assertEqual(purchase_order.purchase_number, "PO/2031-0001")
+
     def test_item_uses_product_hs_code_and_part_number_by_default(self):
         product = Product.objects.create(
             description="Produit PO",

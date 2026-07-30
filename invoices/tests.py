@@ -4,7 +4,6 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.test import override_settings
 from django.urls import reverse
-from django.utils import timezone
 from reportlab.lib.units import mm
 from reportlab.platypus import Spacer
 
@@ -260,10 +259,19 @@ class ProformaConversionTests(TestCase):
     def test_new_invoice_number_uses_hyphens(self):
         invoice = ProformaInvoice.objects.create(importer=self.importer)
 
-        self.assertRegex(invoice.invoice_number, r"^FR-\d{4}-\d{4}$")
+        self.assertRegex(invoice.invoice_number, r"^FR-2026-\d{4}$")
+
+    def test_invoice_number_uses_company_setting_year(self):
+        company = CompanySetting.objects.get()
+        company.year = 2031
+        company.save()
+
+        invoice = ProformaInvoice.objects.create(importer=self.importer)
+
+        self.assertEqual(invoice.invoice_number, "FR-2031-0001")
 
     def test_number_sequence_reads_legacy_slash_numbers(self):
-        year = timezone.now().year
+        year = CompanySetting.objects.get().year
         legacy_invoice = ProformaInvoice.objects.create(
             importer=self.importer,
             invoice_number=f"LEGACY-{year}-0008",

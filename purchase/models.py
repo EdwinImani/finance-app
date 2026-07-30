@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils import timezone
 from decimal import Decimal
+from company.models import CompanySetting
 from partners.models import Partner
 from products.models import Product
 import re
@@ -88,7 +89,8 @@ class PurchaseOrder(models.Model):
     def save(self, *args, **kwargs):
 
         if not self.purchase_number:
-            year = self.purchase_date.year
+            company = CompanySetting.objects.first()
+            year = company.year if company and company.year else timezone.now().year
 
             purchase_numbers = PurchaseOrder.objects.filter(
                 purchase_number__startswith=f"PO/{year}"

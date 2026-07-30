@@ -87,7 +87,8 @@ class BaseInvoice(models.Model):
 
         if not self.invoice_number:
 
-            year = timezone.now().year
+            company = CompanySetting.objects.first()
+            year = company.year if company and company.year else timezone.now().year
 
             previous_invoices = self.__class__.objects.filter(
                 models.Q(invoice_number__startswith=f"FR-{year}-") |
