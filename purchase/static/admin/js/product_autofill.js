@@ -267,11 +267,16 @@ function prepareProductButtons(root) {
                 event.stopImmediatePropagation();
                 const autosave = window.invoiceAutosaveNow ? window.invoiceAutosaveNow() : Promise.resolve();
                 autosave
-                    .catch(function () {})
-                    .finally(function () {
+                    .then(function () {
                         const currentItemId = action === "add" ? "" : getItemId(wrapper, fieldName);
                         prepareProductLink(link, fieldName, currentItemId, action);
                         window.location.href = link.href;
+                    })
+                    .catch(function () {
+                        window.alert(
+                            "Please correct the form errors before editing the product. " +
+                            "Your purchase order information has not been discarded."
+                        );
                     });
             }, true);
         });

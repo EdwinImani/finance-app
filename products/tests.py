@@ -242,7 +242,11 @@ class ProductAdminReturnTests(TestCase):
             hs_code="",
             sale_price=Decimal("12.30"),
         )
-        invoice = CommercialInvoice.objects.create()
+        invoice = CommercialInvoice.objects.create(
+            price_for="Special customer price",
+            freight=Decimal("35.00"),
+            terms_conditions="Keep these invoice conditions",
+        )
         item = CommercialInvoiceItem.objects.create(
             invoice=invoice,
             product=product,
@@ -272,11 +276,15 @@ class ProductAdminReturnTests(TestCase):
         )
 
         item.refresh_from_db()
+        invoice.refresh_from_db()
         product.refresh_from_db()
         self.assertEqual(item.hs_code, "CUSTOM-8481.80")
         self.assertEqual(item.part_number, "UPDATED-CUSTOM-HS-001")
         self.assertEqual(item.unit_price, Decimal("19.40"))
         self.assertEqual(product.hs_code, "")
+        self.assertEqual(invoice.price_for, "Special customer price")
+        self.assertEqual(invoice.freight, Decimal("35.00"))
+        self.assertEqual(invoice.terms_conditions, "Keep these invoice conditions")
 
     def test_edit_product_keeps_custom_purchase_order_hs_code(self):
         product = Product.objects.create(
@@ -285,7 +293,11 @@ class ProductAdminReturnTests(TestCase):
             hs_code="",
             purchase_price=Decimal("7.80"),
         )
-        purchase_order = PurchaseOrder.objects.create()
+        purchase_order = PurchaseOrder.objects.create(
+            freight=Decimal("42.00"),
+            sales_condition="Keep these sales conditions",
+            shipment="Keep this shipment",
+        )
         item = PurchaseOrderItem.objects.create(
             purchase_order=purchase_order,
             product=product,
@@ -319,12 +331,16 @@ class ProductAdminReturnTests(TestCase):
         )
 
         item.refresh_from_db()
+        purchase_order.refresh_from_db()
         product.refresh_from_db()
         self.assertEqual(item.hs_code, "CUSTOM-8504.40")
         self.assertEqual(item.description, "Updated Purchase Product")
         self.assertEqual(item.part_number, "UPDATED-PO-HS-001")
         self.assertEqual(item.unit_price, Decimal("9.25"))
         self.assertEqual(product.hs_code, "")
+        self.assertEqual(purchase_order.freight, Decimal("42.00"))
+        self.assertEqual(purchase_order.sales_condition, "Keep these sales conditions")
+        self.assertEqual(purchase_order.shipment, "Keep this shipment")
 
 
 class ProductCsvImportTests(TestCase):

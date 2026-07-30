@@ -88,6 +88,14 @@ class PdfPaginationTests(TestCase):
 
         self.assertEqual(item_styles["table_cell"].fontSize, styles["table_cell"].fontSize)
         self.assertEqual(item_styles["table_cell_part_number"].fontSize, styles["table_cell_part_number"].fontSize)
+        self.assertEqual(
+            item_styles["table_cell"].fontSize,
+            item_styles["table_cell_part_number"].fontSize,
+        )
+        self.assertEqual(
+            item_styles["table_cell_amount"].fontSize,
+            item_styles["table_cell_part_number"].fontSize,
+        )
 
     def test_purchase_order_item_table_font_size_keeps_normal_pdf_size(self):
         styles = _build_styles()
@@ -95,6 +103,14 @@ class PdfPaginationTests(TestCase):
 
         self.assertEqual(purchase_styles["table_cell"].fontSize, styles["table_cell"].fontSize)
         self.assertEqual(purchase_styles["table_cell_part_number"].fontSize, styles["table_cell_part_number"].fontSize)
+        self.assertEqual(
+            purchase_styles["table_cell"].fontSize,
+            purchase_styles["table_cell_part_number"].fontSize,
+        )
+        self.assertEqual(
+            purchase_styles["table_cell_amount"].fontSize,
+            purchase_styles["table_cell_part_number"].fontSize,
+        )
 
     def test_pdf_table_headers_do_not_split_words(self):
         styles = _build_styles()
