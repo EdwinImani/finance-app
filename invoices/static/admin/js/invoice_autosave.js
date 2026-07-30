@@ -27,6 +27,41 @@
         }
     }
 
+    function collectErrorMessages(value, path, messages) {
+        if (value == null) {
+            return;
+        }
+
+        if (typeof value === "string") {
+            messages.push((path ? path + ": " : "") + value);
+            return;
+        }
+
+        if (Array.isArray(value)) {
+            value.forEach(function (item) {
+                collectErrorMessages(item, path, messages);
+            });
+            return;
+        }
+
+        if (typeof value === "object") {
+            Object.keys(value).forEach(function (key) {
+                const label = key === "__all__" || key === "form"
+                    ? path
+                    : (path ? path + " / " + key : key);
+                collectErrorMessages(value[key], label, messages);
+            });
+        }
+    }
+
+    function autosaveErrorMessage(data) {
+        const messages = [];
+        collectErrorMessages(data && data.errors, "", messages);
+        return messages.length
+            ? "Invalid form — " + messages.slice(0, 3).join("; ")
+            : "Autosave needs a valid form";
+    }
+
     function serializeForm(form) {
         const formData = new FormData(form);
         if (window.financeNumberFormatting && window.financeNumberFormatting.normalizeFormData) {
@@ -120,7 +155,7 @@
                 })
                 .then(function (result) {
                     if (!result.ok || !result.data.ok) {
-                        throw new Error("Autosave failed");
+                        throw new Error(autosaveErrorMessage(result.data));
                     }
                     syncSavedInlineIds(form, result.data.inline_objects);
                     setStatus("Saved " + (result.data.saved_at || ""), "");
@@ -128,10 +163,15 @@
                         window.location.reload();
                     }
                 })
-                .catch(function () {
-                    setStatus("Autosave needs a valid form", "is-error");
+                .catch(function (error) {
+                    setStatus(
+                        error && error.message
+                            ? error.message
+                            : "Autosave needs a valid form",
+                        "is-error"
+                    );
                     if (settings.force) {
-                        throw new Error("Autosave failed");
+                        throw error;
                     }
                     return false;
                 })
@@ -204,47 +244,13 @@
             );
         }
 
-        document.addEventListener("click", function (event) {
-            const saveButton = event.target && event.target.closest(
-                "input[type='submit'][name='_save'], button[type='submit'][name='_save']"
-            );
-
-            if (!saveButton || saveButton.form !== form) {
-                return;
-            }
-
-            event.preventDefault();
-            event.stopImmediatePropagation();
-            window.clearTimeout(timer);
-
-            autosave({ force: true, suppressReload: true })
-                .then(function () {
-                    isSubmitting = true;
-                    if (
-                        window.financeNumberFormatting &&
-                        window.financeNumberFormatting.normalizeForm
-                    ) {
-                        window.financeNumberFormatting.normalizeForm(form);
-                    }
-                    let saveMarker = form.querySelector(
-                        "input[type='hidden'][name='_save'][data-autosave-save-marker]"
-                    );
-                    if (!saveMarker) {
-                        saveMarker = document.createElement("input");
-                        saveMarker.type = "hidden";
-                        saveMarker.name = "_save";
-                        saveMarker.dataset.autosaveSaveMarker = "true";
-                        form.appendChild(saveMarker);
-                    }
-                    saveMarker.value = saveButton.value || "Save";
-                    HTMLFormElement.prototype.submit.call(form);
-                })
-                .catch(function () {
-                    setStatus("Autosave needs a valid form", "is-error");
-                });
-        }, true);
-
         form.addEventListener("submit", function () {
+            if (
+                window.financeNumberFormatting &&
+                window.financeNumberFormatting.normalizeForm
+            ) {
+                window.financeNumberFormatting.normalizeForm(form);
+            }
             isSubmitting = true;
             window.clearTimeout(timer);
         });

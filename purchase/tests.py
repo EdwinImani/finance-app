@@ -88,7 +88,7 @@ class PurchaseOrderAdminFormTests(TestCase):
         template_source = get_template("admin/purchase/purchaseorder/change_form.html").template.source
 
         self.assertIn("admin/js/invoice_autosave.js", template_source)
-        self.assertIn("20260730-normalize-final-save", template_source)
+        self.assertIn("20260730-unblock-save", template_source)
         self.assertIn("20260730-safe-product-edit", template_source)
         self.assertIn("window.invoiceAutosaveNow", template_source)
         self.assertNotIn("fetch(form.action", template_source)

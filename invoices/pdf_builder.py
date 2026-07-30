@@ -1363,7 +1363,7 @@ def _build_items_table(items, currency, styles, amount_from_last_page=None):
 
     table = Table(
         rows,
-        colWidths=[10 * mm, 54 * mm, 31 * mm, 18 * mm, 12 * mm, 27 * mm, 28 * mm],
+        colWidths=[10 * mm, 50 * mm, 31 * mm, 22 * mm, 12 * mm, 27 * mm, 28 * mm],
         repeatRows=1,
     )
     table.setStyle(
@@ -1375,6 +1375,8 @@ def _build_items_table(items, currency, styles, amount_from_last_page=None):
                 ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.white]),
                 ("LEFTPADDING", (0, 0), (-1, -1), 4),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+                ("LEFTPADDING", (3, 0), (3, -1), 2),
+                ("RIGHTPADDING", (3, 0), (3, -1), 2),
                 ("TOPPADDING", (0, 0), (-1, -1), 5),
                 ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
             ]
@@ -2010,7 +2012,7 @@ def _build_page_gross_value_table(*, page_number, total_pages, page_amount, subt
     ]]
     table = Table(
         rows,
-        colWidths=[10 * mm, 54 * mm, 31 * mm, 18 * mm, 12 * mm, 27 * mm, 28 * mm],
+        colWidths=[10 * mm, 50 * mm, 31 * mm, 22 * mm, 12 * mm, 27 * mm, 28 * mm],
     )
     table.setStyle(
         TableStyle(
@@ -2300,7 +2302,7 @@ def _build_purchase_order_items_table(items, currency, styles, amount_from_last_
 
     table = Table(
         rows,
-        colWidths=[12 * mm, 46 * mm, 29 * mm, 18 * mm, 9 * mm, 25 * mm, 27 * mm, 18 * mm],
+        colWidths=[12 * mm, 42 * mm, 29 * mm, 22 * mm, 9 * mm, 25 * mm, 27 * mm, 18 * mm],
         hAlign="LEFT",
         repeatRows=1,
     )
@@ -2313,6 +2315,8 @@ def _build_purchase_order_items_table(items, currency, styles, amount_from_last_
                 ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.white]),
                 ("LEFTPADDING", (0, 0), (-1, -1), 4),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+                ("LEFTPADDING", (3, 0), (3, -1), 2),
+                ("RIGHTPADDING", (3, 0), (3, -1), 2),
                 ("TOPPADDING", (0, 0), (-1, -1), 5),
                 ("TOPPADDING", (1, 1), (1, -1), 6),
                 ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
@@ -2402,7 +2406,7 @@ def _build_purchase_order_page_gross_values_table(page_number, page_gross_value,
     ]]
     table = Table(
         rows,
-        colWidths=[10 * mm, 48 * mm, 29 * mm, 18 * mm, 9 * mm, 25 * mm, 27 * mm, 18 * mm],
+        colWidths=[10 * mm, 44 * mm, 29 * mm, 22 * mm, 9 * mm, 25 * mm, 27 * mm, 18 * mm],
         hAlign="LEFT",
     )
     table.setStyle(
@@ -2432,7 +2436,7 @@ def _build_purchase_order_payment_table(*, gross_value, vat_amount, total_amount
     ]]
     table = Table(
         rows,
-        colWidths=[10 * mm, 48 * mm, 29 * mm, 18 * mm, 9 * mm, 25 * mm, 27 * mm, 18 * mm],
+        colWidths=[10 * mm, 44 * mm, 29 * mm, 22 * mm, 9 * mm, 25 * mm, 27 * mm, 18 * mm],
         hAlign="LEFT",
     )
     table.setStyle(
