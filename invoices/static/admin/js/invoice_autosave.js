@@ -220,6 +220,12 @@
             autosave({ force: true, suppressReload: true })
                 .then(function () {
                     isSubmitting = true;
+                    if (
+                        window.financeNumberFormatting &&
+                        window.financeNumberFormatting.normalizeForm
+                    ) {
+                        window.financeNumberFormatting.normalizeForm(form);
+                    }
                     let saveMarker = form.querySelector(
                         "input[type='hidden'][name='_save'][data-autosave-save-marker]"
                     );
