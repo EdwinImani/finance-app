@@ -246,6 +246,26 @@
             normalizeForm(event.target);
         }, true);
 
+        document.addEventListener("wheel", function (event) {
+            var numberInput = event.target && event.target.closest
+                ? event.target.closest("input[type='number']")
+                : null;
+
+            if (!numberInput || numberInput.disabled || numberInput.readOnly) {
+                return;
+            }
+
+            // Native number inputs change their value when the focused field is
+            // under the mouse wheel. Keep the value stable and scroll the page.
+            event.preventDefault();
+            numberInput.blur();
+            window.scrollBy({
+                top: event.deltaY,
+                left: event.deltaX,
+                behavior: "auto"
+            });
+        }, { capture: true, passive: false });
+
         document.addEventListener("formset:added", function (event) {
             window.setTimeout(function () {
                 setup(event.target || document);
