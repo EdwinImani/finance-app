@@ -412,8 +412,6 @@ class InvoiceAdminMixin:
         finally:
             request.POST = original_post
 
-        partial_update_fields = self._autosave_main_form_fields(form, obj)
-
         if form.is_valid() and all_valid(formsets):
             new_object = self.save_form(request, form, change=True)
             self.save_model(request, new_object, form, change=True)
@@ -425,32 +423,6 @@ class InvoiceAdminMixin:
                     "saved_at": timezone.localtime().strftime("%d/%m/%Y %H:%M:%S"),
                     "invoice_number": new_object.invoice_number or "",
                     "inline_objects": self._collect_saved_inline_objects(formsets),
-                }
-            )
-
-        if all_valid(formsets):
-            for formset in formsets:
-                formset.save()
-            return JsonResponse(
-                {
-                    "ok": True,
-                    "saved_at": timezone.localtime().strftime("%d/%m/%Y %H:%M:%S"),
-                    "invoice_number": obj.invoice_number or "",
-                    "inline_objects": self._collect_saved_inline_objects(formsets),
-                    "partial": True,
-                    "partial_update_fields": partial_update_fields,
-                }
-            )
-
-        if partial_update_fields:
-            return JsonResponse(
-                {
-                    "ok": True,
-                    "saved_at": timezone.localtime().strftime("%d/%m/%Y %H:%M:%S"),
-                    "invoice_number": obj.invoice_number or "",
-                    "inline_objects": [],
-                    "partial": True,
-                    "partial_update_fields": partial_update_fields,
                 }
             )
 

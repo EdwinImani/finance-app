@@ -204,6 +204,40 @@
             );
         }
 
+        document.addEventListener("click", function (event) {
+            const saveButton = event.target && event.target.closest(
+                "input[type='submit'][name='_save'], button[type='submit'][name='_save']"
+            );
+
+            if (!saveButton || saveButton.form !== form) {
+                return;
+            }
+
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            window.clearTimeout(timer);
+
+            autosave({ force: true, suppressReload: true })
+                .then(function () {
+                    isSubmitting = true;
+                    let saveMarker = form.querySelector(
+                        "input[type='hidden'][name='_save'][data-autosave-save-marker]"
+                    );
+                    if (!saveMarker) {
+                        saveMarker = document.createElement("input");
+                        saveMarker.type = "hidden";
+                        saveMarker.name = "_save";
+                        saveMarker.dataset.autosaveSaveMarker = "true";
+                        form.appendChild(saveMarker);
+                    }
+                    saveMarker.value = saveButton.value || "Save";
+                    HTMLFormElement.prototype.submit.call(form);
+                })
+                .catch(function () {
+                    setStatus("Autosave needs a valid form", "is-error");
+                });
+        }, true);
+
         form.addEventListener("submit", function () {
             isSubmitting = true;
             window.clearTimeout(timer);

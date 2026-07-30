@@ -67,7 +67,7 @@ class PurchaseOrderAdminFormTests(TestCase):
         template_source = get_template("admin/purchase/purchaseorder/change_form.html").template.source
 
         self.assertIn("admin/js/invoice_autosave.js", template_source)
-        self.assertIn("20260723-autosave-80ms", template_source)
+        self.assertIn("20260730-valid-save-only", template_source)
         self.assertIn("20260730-safe-product-edit", template_source)
         self.assertIn("window.invoiceAutosaveNow", template_source)
         self.assertNotIn("fetch(form.action", template_source)
@@ -154,6 +154,37 @@ class PurchaseOrderAdminAutosaveTests(TestCase):
         self.assertEqual(response.status_code, 200, response.content)
         self.assertEqual(response["Content-Type"], "application/pdf")
         self.assertIn("_auth_user_id", self.client.session)
+
+    def test_invalid_autosave_does_not_partially_change_purchase_order(self):
+        purchase_order = PurchaseOrder.objects.create(
+            shipment="Original shipment",
+            vat_percent=Decimal("20.00"),
+        )
+
+        response = self.client.post(
+            reverse("admin:purchase_purchaseorder_autosave", args=[purchase_order.pk]),
+            {
+                "purchase_date": "",
+                "seller": "",
+                "requester": "",
+                "sent_by": "",
+                "shipment": "Unsaved invalid change",
+                "freight": "0.00",
+                "vat_percent": "20.00",
+                "sales_condition": "",
+                "payment_condition": "",
+                "delivery_terms": "",
+                "items-TOTAL_FORMS": "0",
+                "items-INITIAL_FORMS": "0",
+                "items-MIN_NUM_FORMS": "0",
+                "items-MAX_NUM_FORMS": "1000",
+            },
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+        )
+
+        self.assertEqual(response.status_code, 400)
+        purchase_order.refresh_from_db()
+        self.assertEqual(purchase_order.shipment, "Original shipment")
 
     def test_autosave_updates_existing_item_price_without_updating_product_default_price(self):
         product = Product.objects.create(

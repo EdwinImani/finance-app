@@ -765,6 +765,44 @@ class CommercialInvoiceAdminDraftTests(TestCase):
         self.assertEqual(item.unit_price, Decimal("58.00"))
         self.assertEqual(response.json()["inline_objects"][0]["id"], str(item.pk))
 
+    def test_invalid_autosave_does_not_partially_change_invoice(self):
+        invoice = CommercialInvoice.objects.create(
+            price_for="Original price condition",
+            vat_percent=Decimal("20.00"),
+        )
+
+        response = self.client.post(
+            reverse("admin:invoices_commercialinvoice_autosave", args=[invoice.pk]),
+            {
+                "invoice_date": "",
+                "importer": "",
+                "end_user": "",
+                "our_order_no": "",
+                "our_reference": "",
+                "price_for": "Unsaved invalid change",
+                "dispatching_note": "",
+                "packing_specification": "",
+                "delivery_time": "",
+                "terms_conditions": "",
+                "freight": "0.00",
+                "discount": "0.00",
+                "vat_percent": "20.00",
+                "items-TOTAL_FORMS": "0",
+                "items-INITIAL_FORMS": "0",
+                "items-MIN_NUM_FORMS": "0",
+                "items-MAX_NUM_FORMS": "1000",
+                "packing_entries-TOTAL_FORMS": "0",
+                "packing_entries-INITIAL_FORMS": "0",
+                "packing_entries-MIN_NUM_FORMS": "0",
+                "packing_entries-MAX_NUM_FORMS": "1000",
+            },
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+        )
+
+        self.assertEqual(response.status_code, 400)
+        invoice.refresh_from_db()
+        self.assertEqual(invoice.price_for, "Original price condition")
+
     def test_autosave_keeps_manual_hs_code_on_invoice_without_updating_product(self):
         product = Product.objects.create(
             description="Produit sans HS Code",
