@@ -223,6 +223,16 @@ class InvoiceAdminMixin:
         return super().render_change_form(request, context, *args, **kwargs)
 
     def changelist_view(self, request, extra_context=None):
+        if (request.GET.get("q") or "").strip():
+            query = request.GET.copy()
+            removed_year_filter = False
+            for key in list(query.keys()):
+                if key.startswith("invoice_date__year"):
+                    query.pop(key, None)
+                    removed_year_filter = True
+            if removed_year_filter:
+                return redirect(f"{request.path}?{query.urlencode()}")
+
         extra_context = extra_context or {}
         try:
             extra_context["draft_add_url"] = self.get_invoice_draft_add_url()

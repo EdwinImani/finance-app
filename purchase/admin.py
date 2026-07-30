@@ -216,6 +216,19 @@ class PurchaseOrderAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.M
         company = CompanySetting.objects.first()
         return company.year if company and company.year else None
 
+    def changelist_view(self, request, extra_context=None):
+        if (request.GET.get("q") or "").strip():
+            query = request.GET.copy()
+            removed_year_filter = False
+            for key in list(query.keys()):
+                if key.startswith("purchase_date__year"):
+                    query.pop(key, None)
+                    removed_year_filter = True
+            if removed_year_filter:
+                return redirect(f"{request.path}?{query.urlencode()}")
+
+        return super().changelist_view(request, extra_context=extra_context)
+
     def has_explicit_year_filter(self, request, field_name):
         return any(key.startswith(field_name) for key in request.GET.keys())
 

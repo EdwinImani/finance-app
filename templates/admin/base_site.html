@@ -1785,6 +1785,59 @@
     })();
 
     (function() {
+        const partnerRowSelectors = [
+            "body.app-invoices.change-form .form-row.field-importer",
+            "body.app-invoices.change-form .form-row.field-end_user",
+            "body.app-purchase.change-form .form-row.field-seller"
+        ];
+
+        function resizePartnerFields() {
+            document.querySelectorAll(partnerRowSelectors.join(",")).forEach(function(row) {
+                const wrapper = row.querySelector(".related-widget-wrapper");
+                const container = row.querySelector(".select2-container");
+                if (!wrapper || !container) {
+                    return;
+                }
+
+                const availableWidth = Math.max(280, row.getBoundingClientRect().width - 40);
+                const fieldWidth = window.innerWidth <= 900
+                    ? Math.max(280, availableWidth - 100)
+                    : Math.min(720, Math.max(520, availableWidth * 0.55));
+                const wrapperWidth = Math.min(availableWidth, fieldWidth + 110);
+
+                wrapper.style.setProperty("display", "flex", "important");
+                wrapper.style.setProperty("width", `${wrapperWidth}px`, "important");
+                wrapper.style.setProperty("max-width", "100%", "important");
+                container.style.setProperty("flex", "0 0 auto", "important");
+                container.style.setProperty("width", `${fieldWidth}px`, "important");
+                container.style.setProperty("min-width", `${Math.min(fieldWidth, 280)}px`, "important");
+                container.style.setProperty("max-width", "calc(100% - 100px)", "important");
+            });
+        }
+
+        function installWidePartnerFields() {
+            resizePartnerFields();
+            window.setTimeout(resizePartnerFields, 50);
+            window.setTimeout(resizePartnerFields, 250);
+            window.addEventListener("resize", resizePartnerFields);
+
+            if (window.django && window.django.jQuery) {
+                window.django.jQuery(document).on(
+                    "select2:open select2:close select2:select",
+                    "#id_importer, #id_end_user, #id_seller",
+                    resizePartnerFields
+                );
+            }
+        }
+
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", installWidePartnerFields);
+        } else {
+            installWidePartnerFields();
+        }
+    })();
+
+    (function() {
         const MONTHS = [
             "janvier", "fevrier", "mars", "avril", "mai", "juin",
             "juillet", "aout", "septembre", "octobre", "novembre", "decembre"

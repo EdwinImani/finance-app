@@ -208,11 +208,16 @@ class PurchaseOrderAdminAutosaveTests(TestCase):
 
         response = self.client.get(
             reverse("admin:purchase_purchaseorder_changelist"),
-            {"q": "PO/2024-0002"},
+            {
+                "q": "PO/2024-0002",
+                "purchase_date__year": "2026",
+            },
+            follow=True,
         )
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, old_order.purchase_number)
+        self.assertNotIn("purchase_date__year", response.request["QUERY_STRING"])
 
     def test_invalid_autosave_does_not_partially_change_purchase_order(self):
         purchase_order = PurchaseOrder.objects.create(

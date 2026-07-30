@@ -756,6 +756,25 @@ class CommercialInvoiceAdminDraftTests(TestCase):
             reverse("admin:invoices_commercialinvoice_draft_add"),
         )
 
+    def test_search_finds_old_proforma_despite_existing_year_filter(self):
+        old_invoice = ProformaInvoice.objects.create(
+            invoice_number="FR-2024-0002",
+            invoice_date="2024-01-04",
+        )
+
+        response = self.client.get(
+            reverse("admin:invoices_proformainvoice_changelist"),
+            {
+                "q": "FR-2024-0002",
+                "invoice_date__year": "2026",
+            },
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, old_invoice.invoice_number)
+        self.assertNotIn("invoice_date__year", response.request["QUERY_STRING"])
+
     def test_autosave_creates_new_inline_item_with_product(self):
         importer = Partner.objects.create(
             description="Client Autosave",
