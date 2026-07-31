@@ -16,19 +16,29 @@ LogEntry._meta.verbose_name_plural = "History"
 
 class WelcomeRedirectUserAdmin(SaveRedirectToWelcomeMixin, UserAdmin):
     def has_module_permission(self, request):
-        return is_administrator(request.user) and super().has_module_permission(request)
+        if request.user.is_superuser:
+            return True
+        return is_administrator(request.user)
 
     def has_view_permission(self, request, obj=None):
-        return is_administrator(request.user) and super().has_view_permission(request, obj)
+        if request.user.is_superuser:
+            return True
+        return is_administrator(request.user)
 
     def has_add_permission(self, request):
-        return is_administrator(request.user) and super().has_add_permission(request)
+        if request.user.is_superuser:
+            return True
+        return is_administrator(request.user)
 
     def has_change_permission(self, request, obj=None):
-        return is_administrator(request.user) and super().has_change_permission(request, obj)
+        if request.user.is_superuser:
+            return True
+        return is_administrator(request.user)
 
     def has_delete_permission(self, request, obj=None):
-        return is_administrator(request.user) and super().has_delete_permission(request, obj)
+        if request.user.is_superuser:
+            return True
+        return is_administrator(request.user)
 
     list_display = (
         "username",
@@ -98,19 +108,29 @@ class WelcomeRedirectUserAdmin(SaveRedirectToWelcomeMixin, UserAdmin):
 
 class WelcomeRedirectGroupAdmin(SaveRedirectToWelcomeMixin, GroupAdmin):
     def has_module_permission(self, request):
-        return is_administrator(request.user) and super().has_module_permission(request)
+        if request.user.is_superuser:
+            return True
+        return is_administrator(request.user)
 
     def has_view_permission(self, request, obj=None):
-        return is_administrator(request.user) and super().has_view_permission(request, obj)
+        if request.user.is_superuser:
+            return True
+        return is_administrator(request.user)
 
     def has_add_permission(self, request):
-        return is_administrator(request.user) and super().has_add_permission(request)
+        if request.user.is_superuser:
+            return True
+        return is_administrator(request.user)
 
     def has_change_permission(self, request, obj=None):
-        return is_administrator(request.user) and super().has_change_permission(request, obj)
+        if request.user.is_superuser:
+            return True
+        return is_administrator(request.user)
 
     def has_delete_permission(self, request, obj=None):
-        return is_administrator(request.user) and super().has_delete_permission(request, obj)
+        if request.user.is_superuser:
+            return True
+        return is_administrator(request.user)
 
     list_display = (
         "name",

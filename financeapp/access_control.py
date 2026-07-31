@@ -1,4 +1,5 @@
 ADMINISTRATOR_GROUP = "Administrator"
+ADMIN_GROUP = "Admin"
 MANAGER_GROUP = "Manager"
 STAFF_GROUP = "Staff"
 
@@ -14,7 +15,8 @@ def user_is_in_group(user, group_name):
 def is_administrator(user):
     """Return whether the user may administer users and groups."""
     return bool(user and user.is_authenticated) and (
-        user.is_superuser or user_is_in_group(user, ADMINISTRATOR_GROUP)
+        user.is_superuser
+        or user.groups.filter(name__in=(ADMIN_GROUP, ADMINISTRATOR_GROUP)).exists()
     )
 
 

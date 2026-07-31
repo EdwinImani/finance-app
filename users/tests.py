@@ -180,7 +180,19 @@ class RoleAccessControlTests(TestCase):
         self.client.force_login(superuser)
 
         delete_url = reverse("admin:auth_user_delete", args=[target.pk])
+        self.assertEqual(
+            self.client.get(reverse("admin:auth_user_changelist")).status_code,
+            200,
+        )
+        self.assertEqual(
+            self.client.get(reverse("admin:auth_user_change", args=[target.pk])).status_code,
+            200,
+        )
         self.assertEqual(self.client.get(delete_url).status_code, 200)
+        self.assertEqual(
+            self.client.get(reverse("admin:auth_group_changelist")).status_code,
+            200,
+        )
         response = self.client.post(delete_url, {"post": "yes"})
 
         self.assertEqual(response.status_code, 302)
