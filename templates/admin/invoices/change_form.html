@@ -847,6 +847,15 @@
         background: #fffdf8 !important;
     }
 
+    /*
+     * Keep Django's __prefix__ template hidden. The visible blank form comes
+     * from InlineModelAdmin.extra = 1. When "Add another Ligne" clones this
+     * template, Django removes .empty-form and the common grid above applies.
+     */
+    body.app-invoices.change-form .invoice-line-row.empty-form {
+        display: none !important;
+    }
+
     body.app-invoices.change-form .invoice-lines-header > th,
     body.app-invoices.change-form .invoice-line-row > td {
         display: block !important;
