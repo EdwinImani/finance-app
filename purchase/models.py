@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 from django.utils import timezone
 from decimal import Decimal
@@ -12,6 +13,16 @@ import re
 # ----------------------
 
 class PurchaseOrder(models.Model):
+
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        related_name="purchase_orders_created",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        editable=False,
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
 
     purchase_number = models.CharField(
         max_length=50,

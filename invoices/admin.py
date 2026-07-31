@@ -2,7 +2,7 @@ from decimal import Decimal
 
 from django import forms
 from django.contrib import admin
-from django.core.exceptions import ValidationError
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.forms.formsets import all_valid
 from django.db.models import Count, DecimalField, ExpressionWrapper, F, Sum, Value
 from django.db.models.functions import Coalesce, TruncMonth
@@ -14,6 +14,7 @@ from django.urls import NoReverseMatch
 from django.utils.html import format_html
 from django.utils import timezone
 from financeapp.admin_mixins import PageSizeAdminMixin, SaveRedirectToWelcomeMixin
+from financeapp.access_control import is_owned_by_user_today, is_staff_role
 from company.models import CompanySetting
 from partners.models import Partner
 from products.models import Product
@@ -167,14 +168,22 @@ class InvoiceAdminMixin:
         company = CompanySetting.objects.first()
         return company.vat_amount if company else Decimal("0.00")
 
-    def create_draft_invoice(self):
+    def create_draft_invoice(self, request=None):
         company = CompanySetting.objects.first()
-        return self.model.objects.create(
+        values = dict(
             invoice_date=self.get_default_invoice_date(),
             vat_percent=self.get_default_vat_percent(),
             delivery_time=company.delivery_time if company else "",
             terms_conditions=company.terms_conditions if company else "",
         )
+        if request and any(field.name == "created_by" for field in self.model._meta.fields):
+            values["created_by"] = request.user
+        return self.model.objects.create(**values)
+
+    def save_model(self, request, obj, form, change):
+        if hasattr(obj, "created_by_id") and not obj.created_by_id:
+            obj.created_by = request.user
+        super().save_model(request, obj, form, change)
 
     def has_explicit_year_filter(self, request, field_name):
         return any(key.startswith(field_name) for key in request.GET.keys())
@@ -259,7 +268,9 @@ class InvoiceAdminMixin:
 
     def add_view(self, request, form_url="", extra_context=None):
         if request.method == "GET" and not request.GET.get("_popup"):
-            draft = self.create_draft_invoice()
+            if not self.has_add_permission(request):
+                raise PermissionDenied
+            draft = self.create_draft_invoice(request)
             return redirect(reverse(
                 f"admin:{self.model._meta.app_label}_{self.model._meta.model_name}_change",
                 args=[draft.pk],
@@ -321,7 +332,12 @@ class InvoiceAdminMixin:
                 normalized_term.replace("/", "-"),
                 normalized_term.replace("-", "/"),
             }
-            exact_numbers = self.model._default_manager.filter(
+            search_queryset = (
+                queryset
+                if request and is_staff_role(request.user)
+                else self.model._default_manager.all()
+            )
+            exact_numbers = search_queryset.filter(
                 invoice_number__in=number_variants
             ).order_by("-invoice_date", "-id")
             if exact_numbers.exists():
@@ -352,7 +368,9 @@ class InvoiceAdminMixin:
         if request.method != "GET":
             return JsonResponse({"ok": False, "error": "GET required."}, status=405)
 
-        draft = self.create_draft_invoice()
+        if not self.has_add_permission(request):
+            raise PermissionDenied
+        draft = self.create_draft_invoice(request)
         return redirect(
             reverse(
                 f"admin:{self.model._meta.app_label}_{self.model._meta.model_name}_change",
@@ -414,6 +432,8 @@ class InvoiceAdminMixin:
             queryset = queryset.prefetch_related("packing_entries")
 
         obj = get_object_or_404(queryset, pk=object_id)
+        if not self.has_view_permission(request, obj):
+            raise PermissionDenied
 
         context = self.get_invoice_pdf_context(request, obj)
         context["document_type"] = document_type
@@ -439,6 +459,8 @@ class InvoiceAdminMixin:
             return JsonResponse({"ok": False, "error": "POST required."}, status=405)
 
         obj = get_object_or_404(self.model, pk=object_id)
+        if not self.has_change_permission(request, obj):
+            raise PermissionDenied
         form_class = self.get_form(request, obj, change=True)
         post_data = request.POST.copy()
         self._remove_new_inline_forms_from_autosave(post_data)
@@ -908,6 +930,23 @@ class CommercialInvoiceAdmin(InvoiceAdminMixin, SaveRedirectToWelcomeMixin, Page
         "packing_entries__no_packing",
     )
 
+    def has_view_permission(self, request, obj=None):
+        allowed = super().has_view_permission(request, obj)
+        if not allowed or not is_staff_role(request.user) or obj is None:
+            return allowed
+        return is_owned_by_user_today(obj, request.user)
+
+    def has_change_permission(self, request, obj=None):
+        allowed = super().has_change_permission(request, obj)
+        if not allowed or not is_staff_role(request.user) or obj is None:
+            return allowed
+        return is_owned_by_user_today(obj, request.user)
+
+    def has_delete_permission(self, request, obj=None):
+        if is_staff_role(request.user):
+            return False
+        return super().has_delete_permission(request, obj)
+
     list_filter = (
         "invoice_date",
         "importer",
@@ -915,6 +954,11 @@ class CommercialInvoiceAdmin(InvoiceAdminMixin, SaveRedirectToWelcomeMixin, Page
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
+        if is_staff_role(request.user):
+            queryset = queryset.filter(
+                created_by=request.user,
+                created_at__date=timezone.localdate(),
+            )
         queryset = queryset.annotate(items_count=Count("items", distinct=True))
         if not request.GET.get("o"):
             queryset = queryset.order_by("-invoice_date", "-id")
@@ -1041,6 +1085,8 @@ class CommercialInvoiceAdmin(InvoiceAdminMixin, SaveRedirectToWelcomeMixin, Page
         return self.export_pdf(request, object_id, document_type="dispatching_note")
 
     def commercial_report(self, request):
+        if not self.has_view_permission(request):
+            raise PermissionDenied
         importers = Partner.objects.filter(partner_type="importer").order_by("description")
         products = Product.objects.all().order_by("description")
         company = CompanySetting.objects.first()
@@ -1082,6 +1128,12 @@ class CommercialInvoiceAdmin(InvoiceAdminMixin, SaveRedirectToWelcomeMixin, Page
                 ),
             )
         )
+
+        if is_staff_role(request.user):
+            queryset = queryset.filter(
+                created_by=request.user,
+                created_at__date=timezone.localdate(),
+            )
 
         if year:
             queryset = queryset.filter(invoice_date__year=year)

@@ -6,7 +6,7 @@ from urllib.parse import unquote, urlparse
 from django.conf import settings
 from django.contrib import admin
 from django import forms
-from django.core.exceptions import ValidationError
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.forms.formsets import all_valid
 from django.db.models import DecimalField, ExpressionWrapper, F, Sum, Value
 from django.db.models.functions import Coalesce, TruncMonth
@@ -18,6 +18,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import format_html
 from financeapp.admin_mixins import PageSizeAdminMixin, SaveRedirectToWelcomeMixin
+from financeapp.access_control import is_owned_by_user_today, is_staff_role
 from financeapp.pdf_rendering import get_pdf_fallback_reason, should_try_weasyprint
 from invoices.pdf_builder import build_purchase_order_pdf, build_purchase_report_pdf, format_currency_symbol
 
@@ -196,11 +197,34 @@ class PurchaseOrderAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.M
         company = CompanySetting.objects.first()
         return company.vat_amount if company else Decimal("0.00")
 
-    def create_draft_purchase_order(self):
+    def create_draft_purchase_order(self, request=None):
         return PurchaseOrder.objects.create(
             purchase_date=self.get_default_purchase_date(),
             vat_percent=self.get_default_vat_percent(),
+            created_by=request.user if request else None,
         )
+
+    def save_model(self, request, obj, form, change):
+        if not obj.created_by_id:
+            obj.created_by = request.user
+        super().save_model(request, obj, form, change)
+
+    def has_view_permission(self, request, obj=None):
+        allowed = super().has_view_permission(request, obj)
+        if not allowed or not is_staff_role(request.user) or obj is None:
+            return allowed
+        return is_owned_by_user_today(obj, request.user)
+
+    def has_change_permission(self, request, obj=None):
+        allowed = super().has_change_permission(request, obj)
+        if not allowed or not is_staff_role(request.user) or obj is None:
+            return allowed
+        return is_owned_by_user_today(obj, request.user)
+
+    def has_delete_permission(self, request, obj=None):
+        if is_staff_role(request.user):
+            return False
+        return super().has_delete_permission(request, obj)
 
     def render_change_form(self, request, context, add=False, change=False, form_url="", obj=None):
         context["invoice_autosave_url"] = self.get_purchase_autosave_url(obj) if obj and obj.pk else ""
@@ -209,7 +233,9 @@ class PurchaseOrderAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.M
 
     def add_view(self, request, form_url="", extra_context=None):
         if request.method == "GET" and not request.GET.get("_popup"):
-            draft = self.create_draft_purchase_order()
+            if not self.has_add_permission(request):
+                raise PermissionDenied
+            draft = self.create_draft_purchase_order(request)
             return redirect(reverse("admin:purchase_purchaseorder_change", args=[draft.pk]))
         return super().add_view(request, form_url, extra_context)
 
@@ -250,6 +276,11 @@ class PurchaseOrderAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.M
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
+        if is_staff_role(request.user):
+            queryset = queryset.filter(
+                created_by=request.user,
+                created_at__date=timezone.localdate(),
+            )
         company_year = self.get_company_year()
         if (
             company_year and
@@ -272,7 +303,12 @@ class PurchaseOrderAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.M
                     "PO/" + normalized_term.removeprefix("PO-")
                 )
 
-            exact_numbers = self.model._default_manager.filter(
+            search_queryset = (
+                queryset
+                if request and is_staff_role(request.user)
+                else self.model._default_manager.all()
+            )
+            exact_numbers = search_queryset.filter(
                 purchase_number__in=number_variants
             ).order_by("-purchase_date", "-id")
             if exact_numbers.exists():
@@ -350,6 +386,8 @@ class PurchaseOrderAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.M
             return JsonResponse({"ok": False, "error": "POST required."}, status=405)
 
         obj = get_object_or_404(PurchaseOrder, pk=object_id)
+        if not self.has_change_permission(request, obj):
+            raise PermissionDenied
         form_class = self.get_form(request, obj, change=True)
         post_data = request.POST.copy()
         self._remove_new_inline_forms_from_autosave(post_data)
@@ -554,6 +592,8 @@ class PurchaseOrderAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.M
             ),
             pk=object_id,
         )
+        if not self.has_view_permission(request, obj):
+            raise PermissionDenied
         company = CompanySetting.objects.first()
         try:
             pdf_bytes = build_purchase_order_pdf(
@@ -632,6 +672,8 @@ class PurchaseOrderAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.M
         return result.getvalue()
 
     def _build_report_context(self, request):
+        if not self.has_view_permission(request):
+            raise PermissionDenied
         company = CompanySetting.objects.first()
         sellers = Partner.objects.filter(partner_type="seller").order_by("description")
         products = Product.objects.all().order_by("description")
@@ -664,6 +706,12 @@ class PurchaseOrderAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.M
                 ),
             )
         )
+
+        if is_staff_role(request.user):
+            queryset = queryset.filter(
+                created_by=request.user,
+                created_at__date=timezone.localdate(),
+            )
 
         if year:
             queryset = queryset.filter(purchase_date__year=year)

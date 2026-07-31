@@ -7,6 +7,7 @@ from django.urls import NoReverseMatch, reverse
 from django.utils.html import format_html
 
 from financeapp.admin_mixins import SaveRedirectToWelcomeMixin
+from financeapp.access_control import is_administrator
 
 
 LogEntry._meta.verbose_name = "History"
@@ -14,6 +15,21 @@ LogEntry._meta.verbose_name_plural = "History"
 
 
 class WelcomeRedirectUserAdmin(SaveRedirectToWelcomeMixin, UserAdmin):
+    def has_module_permission(self, request):
+        return is_administrator(request.user) and super().has_module_permission(request)
+
+    def has_view_permission(self, request, obj=None):
+        return is_administrator(request.user) and super().has_view_permission(request, obj)
+
+    def has_add_permission(self, request):
+        return is_administrator(request.user) and super().has_add_permission(request)
+
+    def has_change_permission(self, request, obj=None):
+        return is_administrator(request.user) and super().has_change_permission(request, obj)
+
+    def has_delete_permission(self, request, obj=None):
+        return is_administrator(request.user) and super().has_delete_permission(request, obj)
+
     list_display = (
         "username",
         "email",
@@ -81,6 +97,21 @@ class WelcomeRedirectUserAdmin(SaveRedirectToWelcomeMixin, UserAdmin):
 
 
 class WelcomeRedirectGroupAdmin(SaveRedirectToWelcomeMixin, GroupAdmin):
+    def has_module_permission(self, request):
+        return is_administrator(request.user) and super().has_module_permission(request)
+
+    def has_view_permission(self, request, obj=None):
+        return is_administrator(request.user) and super().has_view_permission(request, obj)
+
+    def has_add_permission(self, request):
+        return is_administrator(request.user) and super().has_add_permission(request)
+
+    def has_change_permission(self, request, obj=None):
+        return is_administrator(request.user) and super().has_change_permission(request, obj)
+
+    def has_delete_permission(self, request, obj=None):
+        return is_administrator(request.user) and super().has_delete_permission(request, obj)
+
     list_display = (
         "name",
         "permissions_count",

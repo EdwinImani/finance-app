@@ -9,6 +9,7 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.html import format_html
 from urllib.parse import parse_qsl, urlparse, urlunparse
 from financeapp.admin_mixins import PageSizeAdminMixin, SaveRedirectToWelcomeMixin
+from financeapp.access_control import is_staff_role
 from .models import Product
 
 
@@ -96,6 +97,18 @@ class LowStockFilter(admin.SimpleListFilter):
 class ProductAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.ModelAdmin):
     changelist_template = "admin/products/product/change_list.html"
     change_form_template = "admin/products/product/change_form.html"
+
+    def has_add_permission(self, request):
+        return not is_staff_role(request.user) and super().has_add_permission(request)
+
+    def has_change_permission(self, request, obj=None):
+        return not is_staff_role(request.user) and super().has_change_permission(request, obj)
+
+    def has_delete_permission(self, request, obj=None):
+        return not is_staff_role(request.user) and super().has_delete_permission(request, obj)
+
+    def has_view_permission(self, request, obj=None):
+        return super().has_view_permission(request, obj)
 
     list_display = (
         "id",

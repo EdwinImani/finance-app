@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models, transaction
 from django.db.models import F
 from partners.models import Partner
@@ -253,6 +254,16 @@ class ProformaInvoiceItem(models.Model):
 # ----------------------
 
 class CommercialInvoice(BaseInvoice):
+
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        related_name="commercial_invoices_created",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        editable=False,
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
 
     our_order_no = models.CharField(max_length=100, blank=True)
 

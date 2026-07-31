@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.apps import apps
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django.forms.formsets import all_valid
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
@@ -10,6 +10,7 @@ from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
 from urllib.parse import parse_qsl, urlparse, urlunparse
 from financeapp.admin_mixins import PageSizeAdminMixin, SaveRedirectToWelcomeMixin
+from financeapp.access_control import is_staff_role
 from .models import Partner, PartnerAddress, PartnerPhone
 
 
@@ -41,6 +42,18 @@ class PartnerPhoneInline(admin.TabularInline):
 class PartnerAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.ModelAdmin):
     changelist_template = "admin/partners/partner/change_list.html"
     change_form_template = "admin/partners/partner/change_form.html"
+
+    def has_add_permission(self, request):
+        return not is_staff_role(request.user) and super().has_add_permission(request)
+
+    def has_change_permission(self, request, obj=None):
+        return not is_staff_role(request.user) and super().has_change_permission(request, obj)
+
+    def has_delete_permission(self, request, obj=None):
+        return not is_staff_role(request.user) and super().has_delete_permission(request, obj)
+
+    def has_view_permission(self, request, obj=None):
+        return super().has_view_permission(request, obj)
 
     list_display = (
         "description",
@@ -94,6 +107,8 @@ class PartnerAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.ModelAd
 
     def add_view(self, request, form_url="", extra_context=None):
         if request.method == "GET" and not request.GET.get("_popup"):
+            if not self.has_add_permission(request):
+                raise PermissionDenied
             draft = self.create_draft_partner(request)
             change_url = reverse("admin:partners_partner_change", args=[draft.pk])
             return_to = self._get_safe_return_url(request)
@@ -215,6 +230,8 @@ class PartnerAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.ModelAd
             return JsonResponse({"ok": False, "error": "POST required."}, status=405)
 
         obj = get_object_or_404(Partner, pk=object_id)
+        if not self.has_change_permission(request, obj):
+            raise PermissionDenied
         form_class = self.get_form(request, obj, change=True)
         post_data = request.POST.copy()
         self._remove_new_inline_forms_from_autosave(post_data)

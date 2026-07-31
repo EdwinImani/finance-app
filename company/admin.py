@@ -3,6 +3,7 @@ from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.html import format_html
 from financeapp.admin_mixins import SaveRedirectToWelcomeMixin
+from financeapp.access_control import is_staff_role
 from .models import CompanySetting
 
 
@@ -49,11 +50,30 @@ class CompanySettingAdmin(SaveRedirectToWelcomeMixin, admin.ModelAdmin):
     # ----------------------
 
     def has_add_permission(self, request):
-
-        if CompanySetting.objects.exists():
+        if is_staff_role(request.user) or CompanySetting.objects.exists():
             return False
+        return super().has_add_permission(request)
 
-        return True
+    def has_change_permission(self, request, obj=None):
+        if is_staff_role(request.user):
+            return False
+        return super().has_change_permission(request, obj)
+
+    def has_delete_permission(self, request, obj=None):
+        if is_staff_role(request.user):
+            return False
+        return super().has_delete_permission(request, obj)
+
+    def has_view_permission(self, request, obj=None):
+        return super().has_view_permission(request, obj)
+
+    def get_readonly_fields(self, request, obj=None):
+        readonly = list(super().get_readonly_fields(request, obj))
+        if is_staff_role(request.user):
+            readonly.extend(
+                field.name for field in self.model._meta.fields if field.editable
+            )
+        return tuple(dict.fromkeys(readonly))
 
     def _get_return_url(self, request):
         return self.save_redirect_url
