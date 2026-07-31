@@ -125,6 +125,17 @@
 
     function updateRowNumbers(root) {
         getInlineGroups(root).forEach(function (group) {
+            // Product lines already have seven meaningful columns. Do not add
+            // an artificial numbering column that shifts their shared grid.
+            if (group.querySelector(".field-product")) {
+                group.querySelectorAll(
+                    ".inline-row-number-header, .inline-row-number-cell"
+                ).forEach(function(cell) {
+                    cell.remove();
+                });
+                return;
+            }
+
             var rows = getRows(group);
             var allFormRows = Array.from(group.querySelectorAll(".tabular tbody tr.form-row"));
             if (!allFormRows.length) {

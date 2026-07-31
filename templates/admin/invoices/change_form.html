@@ -800,7 +800,6 @@
     /* Compact grid for invoice item inlines only (proforma + commercial). */
     body.app-invoices.change-form .inline-group:has(.field-product) {
         --invoice-item-columns:
-            28px
             minmax(0, 40fr)
             minmax(0, 10fr)
             minmax(0, 12fr)
@@ -836,7 +835,7 @@
     body.app-invoices.change-form .invoice-line-row {
         display: grid !important;
         grid-template-columns: var(--invoice-item-columns) !important;
-        column-gap: 8px !important;
+        column-gap: 4px !important;
         row-gap: 0 !important;
         align-items: center !important;
         width: 100% !important;
@@ -845,6 +844,7 @@
         margin: 0 !important;
         padding: 0 !important;
         box-sizing: border-box !important;
+        background: #fffdf8 !important;
     }
 
     body.app-invoices.change-form .invoice-lines-header > th,
@@ -854,17 +854,29 @@
         min-width: 0 !important;
         max-width: 100% !important;
         margin: 0 !important;
-        padding: 6px 0 !important;
+        padding: 6px 4px !important;
         border-left: 0 !important;
         border-right: 0 !important;
         box-sizing: border-box !important;
         overflow: hidden !important;
-        background: #fffdf8 !important;
+        background: transparent !important;
         align-self: stretch !important;
     }
 
     body.app-invoices.change-form .invoice-lines-header > th {
         background: #ffedd5 !important;
+    }
+
+    body.app-invoices.change-form .invoice-lines-header {
+        background: #ffedd5 !important;
+    }
+
+    body.app-invoices.change-form .invoice-lines-header > th::before,
+    body.app-invoices.change-form .invoice-lines-header > th::after,
+    body.app-invoices.change-form .invoice-line-row > td::before,
+    body.app-invoices.change-form .invoice-line-row > td::after {
+        content: none !important;
+        display: none !important;
     }
 
     body.app-invoices.change-form .inline-group:has(.field-product) .tabular th.original,
