@@ -14,31 +14,58 @@ LogEntry._meta.verbose_name = "History"
 LogEntry._meta.verbose_name_plural = "History"
 
 
-class WelcomeRedirectUserAdmin(SaveRedirectToWelcomeMixin, UserAdmin):
-    def has_module_permission(self, request):
+class SecurityAdminAccessMixin:
+    """Keep auth administration unconditional for superusers."""
+
+    def _can_manage_security(self, request):
         if request.user.is_superuser:
             return True
         return is_administrator(request.user)
+
+    def has_module_permission(self, request):
+        if request.user.is_superuser:
+            return True
+        return self._can_manage_security(request)
 
     def has_view_permission(self, request, obj=None):
         if request.user.is_superuser:
             return True
-        return is_administrator(request.user)
+        return self._can_manage_security(request)
 
     def has_add_permission(self, request):
         if request.user.is_superuser:
             return True
-        return is_administrator(request.user)
+        return self._can_manage_security(request)
 
     def has_change_permission(self, request, obj=None):
         if request.user.is_superuser:
             return True
-        return is_administrator(request.user)
+        return self._can_manage_security(request)
 
     def has_delete_permission(self, request, obj=None):
         if request.user.is_superuser:
             return True
-        return is_administrator(request.user)
+        return self._can_manage_security(request)
+
+    def get_model_perms(self, request):
+        if request.user.is_superuser:
+            return {"add": True, "change": True, "delete": True, "view": True}
+        allowed = self._can_manage_security(request)
+        return {"add": allowed, "change": allowed, "delete": allowed, "view": allowed}
+
+    def get_queryset(self, request):
+        if request.user.is_superuser:
+            return self.model._default_manager.all()
+        if self._can_manage_security(request):
+            return super().get_queryset(request)
+        return self.model._default_manager.none()
+
+
+class WelcomeRedirectUserAdmin(
+    SecurityAdminAccessMixin,
+    SaveRedirectToWelcomeMixin,
+    UserAdmin,
+):
 
     list_display = (
         "username",
@@ -106,32 +133,11 @@ class WelcomeRedirectUserAdmin(SaveRedirectToWelcomeMixin, UserAdmin):
     )
 
 
-class WelcomeRedirectGroupAdmin(SaveRedirectToWelcomeMixin, GroupAdmin):
-    def has_module_permission(self, request):
-        if request.user.is_superuser:
-            return True
-        return is_administrator(request.user)
-
-    def has_view_permission(self, request, obj=None):
-        if request.user.is_superuser:
-            return True
-        return is_administrator(request.user)
-
-    def has_add_permission(self, request):
-        if request.user.is_superuser:
-            return True
-        return is_administrator(request.user)
-
-    def has_change_permission(self, request, obj=None):
-        if request.user.is_superuser:
-            return True
-        return is_administrator(request.user)
-
-    def has_delete_permission(self, request, obj=None):
-        if request.user.is_superuser:
-            return True
-        return is_administrator(request.user)
-
+class WelcomeRedirectGroupAdmin(
+    SecurityAdminAccessMixin,
+    SaveRedirectToWelcomeMixin,
+    GroupAdmin,
+):
     list_display = (
         "name",
         "permissions_count",

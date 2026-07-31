@@ -184,11 +184,14 @@ class RoleAccessControlTests(TestCase):
             self.client.get(reverse("admin:auth_user_changelist")).status_code,
             200,
         )
-        self.assertEqual(
-            self.client.get(reverse("admin:auth_user_change", args=[target.pk])).status_code,
-            200,
+        change_response = self.client.get(
+            reverse("admin:auth_user_change", args=[target.pk])
         )
-        self.assertEqual(self.client.get(delete_url).status_code, 200)
+        self.assertEqual(change_response.status_code, 200)
+        self.assertContains(change_response, delete_url)
+        delete_response = self.client.get(delete_url)
+        self.assertEqual(delete_response.status_code, 200)
+        self.assertContains(delete_response, "Yes, I’m sure")
         self.assertEqual(
             self.client.get(reverse("admin:auth_group_changelist")).status_code,
             200,
