@@ -1,0 +1,50 @@
+/*
+ * Large partner autocomplete controls only.
+ *
+ * Django Select2 hides the original select and inserts its container directly
+ * after it. The two #id selectors below give these rules enough specificity
+ * to override the older form-template sizing without affecting other selects.
+ */
+body.change-form #content-main select.large-partner-autocomplete {
+    width: 1200px !important;
+    max-width: 100% !important;
+}
+
+body.change-form #content-main select.large-partner-autocomplete + .select2-container,
+body.change-form #content-main select.large-partner-autocomplete + .select2-container--admin-autocomplete {
+    flex: 1 1 1200px !important;
+    width: min(1200px, calc(100% - 110px)) !important;
+    min-width: min(900px, calc(100% - 110px)) !important;
+    max-width: 1200px !important;
+    box-sizing: border-box !important;
+}
+
+body.change-form #content-main select.large-partner-autocomplete + .select2-container .select2-selection--single {
+    width: 100% !important;
+    min-height: 72px !important;
+    height: 72px !important;
+    box-sizing: border-box !important;
+}
+
+body.change-form #content-main select.large-partner-autocomplete + .select2-container .select2-selection__rendered {
+    min-height: 72px !important;
+    line-height: 72px !important;
+    padding: 0 56px 0 20px !important;
+    font-size: 22px !important;
+    box-sizing: border-box !important;
+}
+
+body.change-form #content-main select.large-partner-autocomplete + .select2-container .select2-selection__arrow {
+    width: 48px !important;
+    height: 72px !important;
+}
+
+@media (max-width: 900px) {
+    body.change-form #content-main select.large-partner-autocomplete + .select2-container,
+    body.change-form #content-main select.large-partner-autocomplete + .select2-container--admin-autocomplete {
+        flex: 1 1 100% !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+    }
+}

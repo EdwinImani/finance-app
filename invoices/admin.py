@@ -133,9 +133,21 @@ class InvoiceAdminMixin:
     )
 
     class Media:
+        css = {
+            "all": ("admin/css/large_partner_autocomplete.css",),
+        }
         js = (
             "admin/js/raw_id_label_display.js",
         )
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        formfield = super().formfield_for_foreignkey(db_field, request, **kwargs)
+        if db_field.name in {"importer", "end_user"}:
+            existing_classes = formfield.widget.attrs.get("class", "")
+            formfield.widget.attrs["class"] = (
+                f"{existing_classes} large-partner-autocomplete"
+            ).strip()
+        return formfield
 
     def get_company_year(self):
         company = CompanySetting.objects.first()

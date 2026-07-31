@@ -9,10 +9,6 @@ class BaseInvoiceForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         company = CompanySetting.objects.first()
 
-        for field_name in ("importer", "end_user"):
-            if field_name in self.fields:
-                self.fields[field_name].widget.attrs["style"] = "width: 760px;"
-
         for field_name in ("freight", "discount", "vat_percent"):
             if field_name in self.fields:
                 self.fields[field_name].required = False

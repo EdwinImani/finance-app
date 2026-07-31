@@ -1357,3 +1357,24 @@ class CommercialInvoiceAdminDraftTests(TestCase):
         self.assertContains(response, 'name="_addanother"')
         self.assertNotContains(response, 'name="_continue"')
         self.assertNotContains(response, "Save and continue editing")
+
+
+class PartnerAutocompleteWidgetTests(TestCase):
+
+    def test_invoice_partner_autocompletes_have_targeted_large_class(self):
+        model_admin = admin.site._registry[ProformaInvoice]
+
+        for field_name in ("importer", "end_user"):
+            formfield = model_admin.formfield_for_foreignkey(
+                ProformaInvoice._meta.get_field(field_name),
+                request=None,
+            )
+            self.assertIn(
+                "large-partner-autocomplete",
+                formfield.widget.attrs.get("class", "").split(),
+            )
+
+        self.assertIn(
+            "admin/css/large_partner_autocomplete.css",
+            model_admin.media._css["all"],
+        )

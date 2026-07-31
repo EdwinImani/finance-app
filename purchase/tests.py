@@ -55,6 +55,24 @@ class ProductInfoViewTests(TestCase):
 
 class PurchaseOrderAdminFormTests(TestCase):
 
+    def test_partner_autocompletes_have_targeted_large_class(self):
+        model_admin = admin.site._registry[PurchaseOrder]
+
+        for field_name in ("seller", "requester"):
+            formfield = model_admin.formfield_for_foreignkey(
+                PurchaseOrder._meta.get_field(field_name),
+                request=None,
+            )
+            self.assertIn(
+                "large-partner-autocomplete",
+                formfield.widget.attrs.get("class", "").split(),
+            )
+
+        self.assertIn(
+            "admin/css/large_partner_autocomplete.css",
+            model_admin.media._css["all"],
+        )
+
     def test_blank_purchase_financial_fields_are_saved_as_zero(self):
         CompanySetting.objects.create(
             company_name="Societe Zero",
