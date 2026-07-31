@@ -6,40 +6,58 @@
  * to override the older form-template sizing without affecting other selects.
  */
 body.change-form #content-main select.partner-large-select {
-    width: 1200px !important;
+    width: 1400px !important;
     max-width: 100% !important;
+}
+
+body.change-form #content-main .related-widget-wrapper:has(> select.partner-large-select) {
+    display: flex !important;
+    width: min(1500px, 100%) !important;
+    min-width: min(1200px, 100%) !important;
+    max-width: 1500px !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    gap: 12px !important;
+    box-sizing: border-box !important;
 }
 
 body.change-form #content-main select.partner-large-select + .select2-container,
 body.change-form #content-main select.partner-large-select + .select2-container--admin-autocomplete {
-    flex: 1 1 1200px !important;
-    width: min(1200px, calc(100% - 110px)) !important;
-    min-width: min(900px, calc(100% - 110px)) !important;
-    max-width: 1200px !important;
+    flex: 1 1 1400px !important;
+    width: min(1400px, calc(100% - 110px)) !important;
+    min-width: min(1100px, calc(100% - 110px)) !important;
+    max-width: 1400px !important;
     box-sizing: border-box !important;
 }
 
 body.change-form #content-main select.partner-large-select + .select2-container .select2-selection--single {
     width: 100% !important;
-    min-height: 72px !important;
-    height: 72px !important;
+    min-height: 80px !important;
+    height: 80px !important;
     box-sizing: border-box !important;
 }
 
 body.change-form #content-main select.partner-large-select + .select2-container .select2-selection__rendered {
-    min-height: 72px !important;
-    line-height: 72px !important;
+    min-height: 80px !important;
+    line-height: 80px !important;
     padding: 0 56px 0 20px !important;
-    font-size: 22px !important;
+    font-size: 24px !important;
     box-sizing: border-box !important;
 }
 
 body.change-form #content-main select.partner-large-select + .select2-container .select2-selection__arrow {
     width: 48px !important;
-    height: 72px !important;
+    height: 80px !important;
 }
 
 @media (max-width: 900px) {
+    body.change-form #content-main .related-widget-wrapper:has(> select.partner-large-select) {
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        flex-wrap: wrap !important;
+    }
+
     body.change-form #content-main select.partner-large-select + .select2-container,
     body.change-form #content-main select.partner-large-select + .select2-container--admin-autocomplete {
         flex: 1 1 100% !important;
