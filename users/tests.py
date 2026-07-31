@@ -172,7 +172,7 @@ class RoleAccessControlTests(TestCase):
         self.assertEqual(self.client.get(reverse("admin:auth_user_changelist")).status_code, 200)
         self.assertEqual(self.client.get(reverse("admin:auth_group_changelist")).status_code, 200)
 
-    def test_superuser_can_delete_another_user_without_administrator_group(self):
+    def test_superuser_gets_200_on_all_user_admin_pages_and_can_delete(self):
         superuser = User.objects.create_superuser(
             "root-admin", password="test-password", email="root@example.com"
         )
@@ -182,6 +182,10 @@ class RoleAccessControlTests(TestCase):
         delete_url = reverse("admin:auth_user_delete", args=[target.pk])
         self.assertEqual(
             self.client.get(reverse("admin:auth_user_changelist")).status_code,
+            200,
+        )
+        self.assertEqual(
+            self.client.get(reverse("admin:auth_user_add")).status_code,
             200,
         )
         change_response = self.client.get(
