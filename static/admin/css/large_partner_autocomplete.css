@@ -10,10 +10,27 @@ body.change-form #content-main select.partner-large-select {
     max-width: 100% !important;
 }
 
+body.change-form #content-main .form-row:has(select.partner-large-select) {
+    display: block !important;
+    width: 100% !important;
+    max-width: none !important;
+    box-sizing: border-box !important;
+}
+
+body.change-form #content-main .form-row:has(select.partner-large-select) > fieldset,
+body.change-form #content-main .form-row:has(select.partner-large-select) > fieldset > div,
+body.change-form #content-main .form-row:has(select.partner-large-select) .flex-container {
+    display: block !important;
+    width: min(1500px, calc(100vw - 220px)) !important;
+    min-width: 1200px !important;
+    max-width: 1500px !important;
+    box-sizing: border-box !important;
+}
+
 body.change-form #content-main .related-widget-wrapper:has(> select.partner-large-select) {
     display: flex !important;
-    width: min(1500px, 100%) !important;
-    min-width: min(1200px, 100%) !important;
+    width: 1500px !important;
+    min-width: 1200px !important;
     max-width: 1500px !important;
     flex-wrap: nowrap !important;
     align-items: center !important;
@@ -51,6 +68,9 @@ body.change-form #content-main select.partner-large-select + .select2-container 
 }
 
 @media (max-width: 900px) {
+    body.change-form #content-main .form-row:has(select.partner-large-select) > fieldset,
+    body.change-form #content-main .form-row:has(select.partner-large-select) > fieldset > div,
+    body.change-form #content-main .form-row:has(select.partner-large-select) .flex-container,
     body.change-form #content-main .related-widget-wrapper:has(> select.partner-large-select) {
         width: 100% !important;
         min-width: 0 !important;
