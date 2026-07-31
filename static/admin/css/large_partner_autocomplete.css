@@ -49,14 +49,14 @@ body.change-form #content-main select.partner-large-select + .select2-container-
 
 body.change-form #content-main select.partner-large-select + .select2-container .select2-selection--single {
     width: 100% !important;
-    min-height: 80px !important;
-    height: 80px !important;
+    min-height: 46px !important;
+    height: 46px !important;
     box-sizing: border-box !important;
 }
 
 body.change-form #content-main select.partner-large-select + .select2-container .select2-selection__rendered {
-    min-height: 80px !important;
-    line-height: 80px !important;
+    min-height: 46px !important;
+    line-height: 46px !important;
     padding: 0 56px 0 20px !important;
     font-size: 24px !important;
     box-sizing: border-box !important;
@@ -64,7 +64,11 @@ body.change-form #content-main select.partner-large-select + .select2-container 
 
 body.change-form #content-main select.partner-large-select + .select2-container .select2-selection__arrow {
     width: 48px !important;
-    height: 80px !important;
+    height: 46px !important;
+}
+
+body.change-form #content-main .related-widget-wrapper:has(> select.partner-large-select) > .related-widget-wrapper-link {
+    align-self: center !important;
 }
 
 @media (max-width: 900px) {
