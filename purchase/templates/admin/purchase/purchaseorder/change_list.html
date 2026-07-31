@@ -228,37 +228,6 @@
 </style>
 <script>
 document.addEventListener("DOMContentLoaded", function() {
-    var form = document.getElementById("changelist-form");
-    if (form) {
-        form.addEventListener("submit", function(event) {
-            var action = form.querySelector('select[name="action"]');
-            if (!action || action.value !== "delete_selected") {
-                return;
-            }
-
-            var selectedRows = form.querySelectorAll('input.action-select:checked');
-            var selectAcross = form.querySelector('input[name="select_across"]');
-            var selectedAcross = selectAcross && selectAcross.value === "1";
-            if (!selectedRows.length && !selectedAcross) {
-                return;
-            }
-
-            var confirmed = window.confirm("Are you sure you want to delete the selected purchase orders?");
-            if (!confirmed) {
-                event.preventDefault();
-                return;
-            }
-
-            if (!form.querySelector('input[name="post"]')) {
-                var postInput = document.createElement("input");
-                postInput.type = "hidden";
-                postInput.name = "post";
-                postInput.value = "yes";
-                form.appendChild(postInput);
-            }
-        });
-    }
-
     document.querySelectorAll(".change-list .paginator").forEach(function(paginator) {
         Array.from(paginator.childNodes).forEach(function(node) {
             if (node.nodeType !== Node.TEXT_NODE) {
