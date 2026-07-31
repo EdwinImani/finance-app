@@ -2,7 +2,7 @@ from django.contrib import admin
 from datetime import timedelta
 
 from django.contrib.auth.models import Group, Permission, User
-from django.test import TestCase
+from django.test import RequestFactory, TestCase
 from django.urls import reverse
 from django.utils import timezone
 
@@ -146,6 +146,7 @@ class RoleAccessControlTests(TestCase):
         cls.own_invoice = CommercialInvoice.objects.create(created_by=cls.staff_user)
         cls.other_invoice = CommercialInvoice.objects.create(created_by=cls.other_staff)
         cls.old_invoice = CommercialInvoice.objects.create(created_by=cls.staff_user)
+        cls.unowned_invoice = CommercialInvoice.objects.create()
         CommercialInvoice.objects.filter(pk=cls.old_invoice.pk).update(
             created_at=timezone.now() - timedelta(days=1)
         )
@@ -153,6 +154,7 @@ class RoleAccessControlTests(TestCase):
         cls.own_purchase = PurchaseOrder.objects.create(created_by=cls.staff_user)
         cls.other_purchase = PurchaseOrder.objects.create(created_by=cls.other_staff)
         cls.old_purchase = PurchaseOrder.objects.create(created_by=cls.staff_user)
+        cls.unowned_purchase = PurchaseOrder.objects.create()
         PurchaseOrder.objects.filter(pk=cls.old_purchase.pk).update(
             created_at=timezone.now() - timedelta(days=1)
         )
@@ -199,17 +201,19 @@ class RoleAccessControlTests(TestCase):
             403,
         )
 
-    def test_staff_only_sees_own_documents_created_today(self):
+    def test_staff_sees_all_own_documents_regardless_of_creation_date(self):
         self.login(self.staff_user)
         invoice_response = self.client.get(reverse("admin:invoices_commercialinvoice_changelist"))
         self.assertContains(invoice_response, self.own_invoice.invoice_number)
         self.assertNotContains(invoice_response, self.other_invoice.invoice_number)
-        self.assertNotContains(invoice_response, self.old_invoice.invoice_number)
+        self.assertContains(invoice_response, self.old_invoice.invoice_number)
+        self.assertNotContains(invoice_response, self.unowned_invoice.invoice_number)
 
         purchase_response = self.client.get(reverse("admin:purchase_purchaseorder_changelist"))
         self.assertContains(purchase_response, self.own_purchase.purchase_number)
         self.assertNotContains(purchase_response, self.other_purchase.purchase_number)
-        self.assertNotContains(purchase_response, self.old_purchase.purchase_number)
+        self.assertContains(purchase_response, self.old_purchase.purchase_number)
+        self.assertNotContains(purchase_response, self.unowned_purchase.purchase_number)
 
         invoice_search = self.client.get(
             reverse("admin:invoices_commercialinvoice_changelist"),
@@ -237,7 +241,74 @@ class RoleAccessControlTests(TestCase):
             reverse("admin:purchase_purchaseorder_delete", args=[self.own_purchase.pk]),
         )
         for url in protected_urls:
-            self.assertNotEqual(self.client.get(url).status_code, 200)
+            self.assertIn(self.client.get(url).status_code, (403, 404))
+
+        self.assertEqual(
+            self.client.post(
+                reverse("admin:invoices_commercialinvoice_change", args=[self.other_invoice.pk]),
+                {},
+            ).status_code,
+            403,
+        )
+        self.assertEqual(
+            self.client.post(
+                reverse("admin:purchase_purchaseorder_change", args=[self.other_purchase.pk]),
+                {},
+            ).status_code,
+            403,
+        )
+
+    def test_staff_can_open_and_change_own_old_documents(self):
+        self.login(self.staff_user)
+        invoice_url = reverse(
+            "admin:invoices_commercialinvoice_change", args=[self.old_invoice.pk]
+        )
+        purchase_url = reverse(
+            "admin:purchase_purchaseorder_change", args=[self.old_purchase.pk]
+        )
+        self.assertEqual(self.client.get(invoice_url).status_code, 200)
+        self.assertEqual(self.client.get(purchase_url).status_code, 200)
+
+        invoice_admin = admin.site._registry[CommercialInvoice]
+        purchase_admin = admin.site._registry[PurchaseOrder]
+        request = RequestFactory().get("/admin/")
+        request.user = self.staff_user
+        self.assertTrue(invoice_admin.has_change_permission(request, self.old_invoice))
+        self.assertTrue(purchase_admin.has_change_permission(request, self.old_purchase))
+
+    def test_manager_and_administrator_see_all_documents(self):
+        for user in (self.manager, self.administrator):
+            self.login(user)
+            invoice_response = self.client.get(
+                reverse("admin:invoices_commercialinvoice_changelist")
+            )
+            purchase_response = self.client.get(
+                reverse("admin:purchase_purchaseorder_changelist")
+            )
+            invoice_ids = set(
+                invoice_response.context["cl"].result_list.values_list("pk", flat=True)
+            )
+            purchase_ids = set(
+                purchase_response.context["cl"].result_list.values_list("pk", flat=True)
+            )
+            self.assertTrue(
+                {
+                    self.own_invoice.pk,
+                    self.other_invoice.pk,
+                    self.old_invoice.pk,
+                    self.unowned_invoice.pk,
+                }
+                <= invoice_ids
+            )
+            self.assertTrue(
+                {
+                    self.own_purchase.pk,
+                    self.other_purchase.pk,
+                    self.old_purchase.pk,
+                    self.unowned_purchase.pk,
+                }
+                <= purchase_ids
+            )
 
     def test_staff_drafts_are_assigned_to_the_request_user(self):
         self.login(self.staff_user)

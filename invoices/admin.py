@@ -14,7 +14,7 @@ from django.urls import NoReverseMatch
 from django.utils.html import format_html
 from django.utils import timezone
 from financeapp.admin_mixins import PageSizeAdminMixin, SaveRedirectToWelcomeMixin
-from financeapp.access_control import is_owned_by_user_today, is_staff_role
+from financeapp.access_control import is_owned_by_user, is_staff_role
 from company.models import CompanySetting
 from partners.models import Partner
 from products.models import Product
@@ -181,7 +181,7 @@ class InvoiceAdminMixin:
         return self.model.objects.create(**values)
 
     def save_model(self, request, obj, form, change):
-        if hasattr(obj, "created_by_id") and not obj.created_by_id:
+        if not change and hasattr(obj, "created_by_id") and not obj.created_by_id:
             obj.created_by = request.user
         super().save_model(request, obj, form, change)
 
@@ -197,6 +197,7 @@ class InvoiceAdminMixin:
         company_year = self.get_company_year()
         if (
             company_year and
+            not is_staff_role(request.user) and
             self.should_apply_default_year_filter(request) and
             not self.has_explicit_year_filter(request, "invoice_date")
         ):
@@ -867,6 +868,18 @@ class CommercialPackingInline(admin.TabularInline):
 class CommercialInvoiceAdmin(InvoiceAdminMixin, SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.ModelAdmin):
     changelist_template = "admin/invoices/change_list.html"
     form = CommercialInvoiceForm
+    readonly_fields = InvoiceAdminMixin.readonly_fields + ("created_by",)
+
+    def changeform_view(self, request, object_id=None, form_url="", extra_context=None):
+        if (
+            object_id
+            and is_staff_role(request.user)
+            and self.model._default_manager.filter(pk=object_id)
+            .exclude(created_by=request.user)
+            .exists()
+        ):
+            raise PermissionDenied
+        return super().changeform_view(request, object_id, form_url, extra_context)
     commercial_document_titles = {
         "default": "Commercial Invoice",
         "packing_list": "Packing List",
@@ -934,13 +947,13 @@ class CommercialInvoiceAdmin(InvoiceAdminMixin, SaveRedirectToWelcomeMixin, Page
         allowed = super().has_view_permission(request, obj)
         if not allowed or not is_staff_role(request.user) or obj is None:
             return allowed
-        return is_owned_by_user_today(obj, request.user)
+        return is_owned_by_user(obj, request.user)
 
     def has_change_permission(self, request, obj=None):
         allowed = super().has_change_permission(request, obj)
         if not allowed or not is_staff_role(request.user) or obj is None:
             return allowed
-        return is_owned_by_user_today(obj, request.user)
+        return is_owned_by_user(obj, request.user)
 
     def has_delete_permission(self, request, obj=None):
         if is_staff_role(request.user):
@@ -955,10 +968,7 @@ class CommercialInvoiceAdmin(InvoiceAdminMixin, SaveRedirectToWelcomeMixin, Page
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
         if is_staff_role(request.user):
-            queryset = queryset.filter(
-                created_by=request.user,
-                created_at__date=timezone.localdate(),
-            )
+            queryset = queryset.filter(created_by=request.user)
         queryset = queryset.annotate(items_count=Count("items", distinct=True))
         if not request.GET.get("o"):
             queryset = queryset.order_by("-invoice_date", "-id")
@@ -1098,7 +1108,10 @@ class CommercialInvoiceAdmin(InvoiceAdminMixin, SaveRedirectToWelcomeMixin, Page
         date_to = request.GET.get("date_to")
         company_year = self.get_company_year()
 
-        if not year and not date_from and not date_to and company_year:
+        if (
+            not is_staff_role(request.user)
+            and not year and not date_from and not date_to and company_year
+        ):
             year = str(company_year)
 
         line_total = ExpressionWrapper(
@@ -1130,10 +1143,7 @@ class CommercialInvoiceAdmin(InvoiceAdminMixin, SaveRedirectToWelcomeMixin, Page
         )
 
         if is_staff_role(request.user):
-            queryset = queryset.filter(
-                created_by=request.user,
-                created_at__date=timezone.localdate(),
-            )
+            queryset = queryset.filter(created_by=request.user)
 
         if year:
             queryset = queryset.filter(invoice_date__year=year)

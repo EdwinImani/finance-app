@@ -1,6 +1,3 @@
-from django.utils import timezone
-
-
 ADMINISTRATOR_GROUP = "Administrator"
 MANAGER_GROUP = "Manager"
 STAFF_GROUP = "Staff"
@@ -30,11 +27,5 @@ def is_staff_role(user):
     return not is_administrator(user) and user_is_in_group(user, STAFF_GROUP)
 
 
-def is_owned_by_user_today(obj, user):
-    created_at = getattr(obj, "created_at", None)
-    return bool(
-        obj
-        and getattr(obj, "created_by_id", None) == getattr(user, "pk", None)
-        and created_at
-        and timezone.localdate(created_at) == timezone.localdate()
-    )
+def is_owned_by_user(obj, user):
+    return bool(obj) and getattr(obj, "created_by_id", None) == getattr(user, "pk", None)

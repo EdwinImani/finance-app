@@ -18,7 +18,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import format_html
 from financeapp.admin_mixins import PageSizeAdminMixin, SaveRedirectToWelcomeMixin
-from financeapp.access_control import is_owned_by_user_today, is_staff_role
+from financeapp.access_control import is_owned_by_user, is_staff_role
 from financeapp.pdf_rendering import get_pdf_fallback_reason, should_try_weasyprint
 from invoices.pdf_builder import build_purchase_order_pdf, build_purchase_report_pdf, format_currency_symbol
 
@@ -108,10 +108,22 @@ class PurchaseOrderAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.M
     list_max_show_all = 100
     form = PurchaseOrderAdminForm
 
+    def changeform_view(self, request, object_id=None, form_url="", extra_context=None):
+        if (
+            object_id
+            and is_staff_role(request.user)
+            and self.model._default_manager.filter(pk=object_id)
+            .exclude(created_by=request.user)
+            .exists()
+        ):
+            raise PermissionDenied
+        return super().changeform_view(request, object_id, form_url, extra_context)
+
     readonly_fields = (
         "gross_value_display",
         "vat_amount_display",
         "total_amount_display",
+        "created_by",
     )
 
     fieldsets = (
@@ -205,7 +217,7 @@ class PurchaseOrderAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.M
         )
 
     def save_model(self, request, obj, form, change):
-        if not obj.created_by_id:
+        if not change and not obj.created_by_id:
             obj.created_by = request.user
         super().save_model(request, obj, form, change)
 
@@ -213,13 +225,13 @@ class PurchaseOrderAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.M
         allowed = super().has_view_permission(request, obj)
         if not allowed or not is_staff_role(request.user) or obj is None:
             return allowed
-        return is_owned_by_user_today(obj, request.user)
+        return is_owned_by_user(obj, request.user)
 
     def has_change_permission(self, request, obj=None):
         allowed = super().has_change_permission(request, obj)
         if not allowed or not is_staff_role(request.user) or obj is None:
             return allowed
-        return is_owned_by_user_today(obj, request.user)
+        return is_owned_by_user(obj, request.user)
 
     def has_delete_permission(self, request, obj=None):
         if is_staff_role(request.user):
@@ -277,13 +289,11 @@ class PurchaseOrderAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.M
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
         if is_staff_role(request.user):
-            queryset = queryset.filter(
-                created_by=request.user,
-                created_at__date=timezone.localdate(),
-            )
+            queryset = queryset.filter(created_by=request.user)
         company_year = self.get_company_year()
         if (
             company_year and
+            not is_staff_role(request.user) and
             self.should_apply_default_year_filter(request) and
             not self.has_explicit_year_filter(request, "purchase_date") and
             not (request.GET.get("q") or "").strip()
@@ -685,7 +695,10 @@ class PurchaseOrderAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.M
         date_to = request.GET.get("date_to")
         company_year = self.get_company_year()
 
-        if not year and not date_from and not date_to and company_year:
+        if (
+            not is_staff_role(request.user)
+            and not year and not date_from and not date_to and company_year
+        ):
             year = str(company_year)
 
         line_total = ExpressionWrapper(
@@ -708,10 +721,7 @@ class PurchaseOrderAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.M
         )
 
         if is_staff_role(request.user):
-            queryset = queryset.filter(
-                created_by=request.user,
-                created_at__date=timezone.localdate(),
-            )
+            queryset = queryset.filter(created_by=request.user)
 
         if year:
             queryset = queryset.filter(purchase_date__year=year)
