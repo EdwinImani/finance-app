@@ -1652,7 +1652,8 @@
        open/search/select behaviour. */
     body.change-form .form-row.field-importer .related-widget-wrapper,
     body.change-form .form-row.field-end_user .related-widget-wrapper,
-    body.change-form .form-row.field-seller .related-widget-wrapper {
+    body.change-form .form-row.field-seller .related-widget-wrapper,
+    body.change-form .form-row.field-requester .related-widget-wrapper {
         display: flex !important;
         width: 900px !important;
         min-width: 900px !important;
@@ -1665,6 +1666,7 @@
     body.change-form .form-row.field-importer .select2-container,
     body.change-form .form-row.field-end_user .select2-container,
     body.change-form .form-row.field-seller .select2-container,
+    body.change-form .form-row.field-requester .select2-container,
     body.change-form .inline-group .tabular td.field-product .select2-container {
         flex: 0 0 760px !important;
         width: 760px !important;
@@ -1687,7 +1689,8 @@
     @media (max-width: 760px) {
         body.change-form .form-row.field-importer .related-widget-wrapper,
         body.change-form .form-row.field-end_user .related-widget-wrapper,
-        body.change-form .form-row.field-seller .related-widget-wrapper {
+        body.change-form .form-row.field-seller .related-widget-wrapper,
+        body.change-form .form-row.field-requester .related-widget-wrapper {
             width: 100% !important;
             min-width: 0 !important;
             max-width: 100% !important;
@@ -1695,7 +1698,8 @@
 
         body.change-form .form-row.field-importer .select2-container,
         body.change-form .form-row.field-end_user .select2-container,
-        body.change-form .form-row.field-seller .select2-container {
+        body.change-form .form-row.field-seller .select2-container,
+        body.change-form .form-row.field-requester .select2-container {
             flex: 1 1 auto !important;
             width: calc(100% - 100px) !important;
             min-width: 220px !important;
@@ -1838,26 +1842,33 @@
 
         function installAutocompletePositioning() {
             const $ = window.django && window.django.jQuery;
+            const autocompleteSelector = [
+                "select.admin-autocomplete",
+                "#id_importer",
+                "#id_end_user",
+                "#id_seller",
+                "#id_requester"
+            ].join(", ");
 
             if (!$) {
                 window.setTimeout(installAutocompletePositioning, 25);
                 return;
             }
 
-            $(document).on("select2:open", "select.admin-autocomplete", function() {
+            $(document).on("select2:open", autocompleteSelector, function() {
                 activeAutocomplete = this;
                 keepPositioned(this);
                 installAutocompleteObserver();
             });
 
-            $(document).on("select2:close", "select.admin-autocomplete", function() {
+            $(document).on("select2:close", autocompleteSelector, function() {
                 if (activeAutocomplete === this) {
                     activeAutocomplete = null;
                 }
             });
 
             $(document).on("input keyup", ".select2-container--open .select2-search__field", refreshSoon);
-            $(document).on("results:all results:append", "select.admin-autocomplete", refreshSoon);
+            $(document).on("results:all results:append", autocompleteSelector, refreshSoon);
 
             window.addEventListener("scroll", refreshPosition, true);
             window.addEventListener("resize", refreshPosition);
@@ -1871,7 +1882,7 @@
     })();
 
     (function() {
-        const partnerSelectors = "#id_importer, #id_end_user, #id_seller";
+        const partnerSelectors = "#id_importer, #id_end_user, #id_seller, #id_requester";
 
         function applyPartnerWidth() {
             document.querySelectorAll(partnerSelectors).forEach(function(field) {
