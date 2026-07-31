@@ -172,6 +172,24 @@ class RoleAccessControlTests(TestCase):
         self.assertEqual(self.client.get(reverse("admin:auth_user_changelist")).status_code, 200)
         self.assertEqual(self.client.get(reverse("admin:auth_group_changelist")).status_code, 200)
 
+    def test_superuser_can_delete_another_user_without_administrator_group(self):
+        superuser = User.objects.create_superuser(
+            "root-admin", password="test-password", email="root@example.com"
+        )
+        target = User.objects.create_user("user-to-delete", password="test-password")
+        self.client.force_login(superuser)
+
+        delete_url = reverse("admin:auth_user_delete", args=[target.pk])
+        self.assertEqual(self.client.get(delete_url).status_code, 200)
+        response = self.client.post(delete_url, {"post": "yes"})
+
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(User.objects.filter(pk=target.pk).exists())
+        self.assertEqual(
+            self.client.get(reverse("admin:auth_user_changelist")).status_code,
+            200,
+        )
+
     def test_group_form_keeps_django_filtered_permissions_widget(self):
         self.login(self.administrator)
         response = self.client.get(reverse("admin:auth_group_add"))
