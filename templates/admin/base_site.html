@@ -1813,33 +1813,6 @@
             window.setTimeout(refreshPosition, 120);
         }
 
-        function keepLoadedResultsAtBottom() {
-            const results = document.querySelector(
-                ".select2-container--open .select2-results__options"
-            );
-
-            if (!results || results.dataset.stickToBottom !== "1") {
-                return;
-            }
-
-            window.requestAnimationFrame(function() {
-                results.scrollTop = results.scrollHeight;
-            });
-        }
-
-        function trackResultsScroll(event) {
-            const results = event.target;
-
-            if (!results || !results.matches ||
-                !results.matches(".select2-container--open .select2-results__options")) {
-                refreshPosition();
-                return;
-            }
-
-            const remaining = results.scrollHeight - results.scrollTop - results.clientHeight;
-            results.dataset.stickToBottom = remaining <= 12 ? "1" : "0";
-        }
-
         function installAutocompleteObserver() {
             if (autocompleteObserver) {
                 return;
@@ -1857,7 +1830,6 @@
 
                 if (hasSelect2Mutation) {
                     refreshSoon();
-                    keepLoadedResultsAtBottom();
                 }
             });
 
@@ -1895,18 +1867,10 @@
                 }
             });
 
-            $(document).on("input keyup", ".select2-container--open .select2-search__field", function() {
-                const results = document.querySelector(
-                    ".select2-container--open .select2-results__options"
-                );
-                if (results) {
-                    results.dataset.stickToBottom = "0";
-                }
-                refreshSoon();
-            });
+            $(document).on("input keyup", ".select2-container--open .select2-search__field", refreshSoon);
             $(document).on("results:all results:append", autocompleteSelector, refreshSoon);
 
-            window.addEventListener("scroll", trackResultsScroll, true);
+            window.addEventListener("scroll", refreshPosition, true);
             window.addEventListener("resize", refreshPosition);
         }
 

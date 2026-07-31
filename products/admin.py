@@ -118,6 +118,30 @@ class ProductAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.ModelAd
 
     list_filter = (LowStockFilter, PartNumberFilter, HSCodeFilter)
 
+    def get_paginator(
+        self,
+        request,
+        queryset,
+        per_page,
+        orphans=0,
+        allow_empty_first_page=True,
+    ):
+        # The Select2 product widget normally fetches only 20 rows at a time.
+        # Appending another page while the user is at the bottom makes its
+        # scrollbar jump back into the middle. Return the complete filtered
+        # product set for autocomplete requests so the scrollbar stays stable
+        # and its bottom really is the final product.
+        if request.resolver_match and request.resolver_match.url_name == "autocomplete":
+            per_page = max(queryset.count(), 1)
+
+        return super().get_paginator(
+            request,
+            queryset,
+            per_page,
+            orphans=orphans,
+            allow_empty_first_page=allow_empty_first_page,
+        )
+
     def changeform_view(self, request, object_id=None, form_url="", extra_context=None):
         return_to = self._get_safe_return_url(request)
         if (
