@@ -108,6 +108,21 @@
         return cell;
     }
 
+    function normalizeInvoiceLineClasses(group) {
+        if (!isInvoicePage() || !group.querySelector(".field-product")) {
+            return;
+        }
+
+        var headerRow = group.querySelector(".tabular thead tr");
+        if (headerRow) {
+            headerRow.classList.add("invoice-lines-header");
+        }
+
+        group.querySelectorAll(".tabular tbody tr.form-row").forEach(function(row) {
+            row.classList.add("invoice-line-row");
+        });
+    }
+
     function updateRowNumbers(root) {
         getInlineGroups(root).forEach(function (group) {
             var rows = getRows(group);
@@ -316,6 +331,7 @@
     }
 
     function setup(root) {
+        getInlineGroups(root || document).forEach(normalizeInvoiceLineClasses);
         updateRowNumbers(root || document);
         getInlineGroups(root || document).forEach(ensureSamePackingButton);
     }

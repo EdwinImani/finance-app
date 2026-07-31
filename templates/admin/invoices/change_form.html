@@ -361,10 +361,6 @@
         vertical-align: middle;
     }
 
-    .inline-group .tabular .field-hs_code {
-        padding-left: 34px;
-    }
-
     .inline-group .tabular td {
         min-width: 0;
     }
@@ -480,10 +476,6 @@
         vertical-align: top;
     }
 
-    .inline-group.invoice-commercial-items .tabular .field-hs_code {
-        padding-left: 32px;
-    }
-
     .inline-group.invoice-commercial-items .field-product .related-widget-wrapper a.related-widget-wrapper-link {
         width: 28px;
         min-height: 28px;
@@ -546,10 +538,6 @@
     .inline-group.invoice-commercial-packings .tabular td.original p,
     .inline-group.invoice-commercial-packings .tabular td.original .inline_label {
         display: none !important;
-    }
-
-    .inline-group .tabular tr:nth-child(even) td {
-        background: #fffbeb;
     }
 
     .inline-group .tabular tr:hover td {
@@ -823,10 +811,14 @@
     }
 
     body.app-invoices.change-form .inline-group:has(.field-product) > .tabular,
-    body.app-invoices.change-form .inline-group:has(.field-product) > .tabular > fieldset.module {
+    body.app-invoices.change-form .inline-group:has(.field-product) > .tabular > fieldset.module,
+    body.app-invoices.change-form .inline-group:has(.field-product) > .tabular > fieldset.module > .wrapper {
         width: 100% !important;
+        min-width: 0 !important;
         max-width: 100% !important;
-        overflow-x: visible !important;
+        margin: 0 !important;
+        box-sizing: border-box !important;
+        overflow-x: hidden !important;
     }
 
     body.app-invoices.change-form .inline-group:has(.field-product) .tabular table,
@@ -840,29 +832,39 @@
         box-sizing: border-box !important;
     }
 
-    body.app-invoices.change-form .inline-group:has(.field-product) .tabular thead tr,
-    body.app-invoices.change-form .inline-group:has(.field-product) .tabular tbody tr.form-row {
+    body.app-invoices.change-form .invoice-lines-header,
+    body.app-invoices.change-form .invoice-line-row {
         display: grid !important;
         grid-template-columns: var(--invoice-item-columns) !important;
-        gap: 8px !important;
+        column-gap: 8px !important;
+        row-gap: 0 !important;
         align-items: center !important;
         width: 100% !important;
         min-width: 0 !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
         box-sizing: border-box !important;
     }
 
-    body.app-invoices.change-form .inline-group:has(.field-product) .tabular th,
-    body.app-invoices.change-form .inline-group:has(.field-product) .tabular td {
+    body.app-invoices.change-form .invoice-lines-header > th,
+    body.app-invoices.change-form .invoice-line-row > td {
         display: block !important;
         width: 100% !important;
         min-width: 0 !important;
-        max-width: none !important;
+        max-width: 100% !important;
         margin: 0 !important;
-        padding: 7px 5px !important;
+        padding: 6px 0 !important;
         border-left: 0 !important;
         border-right: 0 !important;
         box-sizing: border-box !important;
         overflow: hidden !important;
+        background: #fffdf8 !important;
+        align-self: stretch !important;
+    }
+
+    body.app-invoices.change-form .invoice-lines-header > th {
+        background: #ffedd5 !important;
     }
 
     body.app-invoices.change-form .inline-group:has(.field-product) .tabular th.original,
@@ -896,6 +898,14 @@
         flex: none !important;
     }
 
+    body.app-invoices.change-form .invoice-line-row > td.delete {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 100% !important;
+        min-width: 0 !important;
+    }
+
     body.app-invoices.change-form .inline-group:has(.field-product) .tabular tr.add-row {
         display: block !important;
         width: 100% !important;
@@ -907,8 +917,8 @@
     }
 
     @media (max-width: 900px) {
-        body.app-invoices.change-form .inline-group:has(.field-product) .tabular thead tr,
-        body.app-invoices.change-form .inline-group:has(.field-product) .tabular tbody tr.form-row {
+        body.app-invoices.change-form .invoice-lines-header,
+        body.app-invoices.change-form .invoice-line-row {
             grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
         }
 
