@@ -64,7 +64,7 @@ class PurchaseOrderAdminFormTests(TestCase):
                 request=None,
             )
             self.assertIn(
-                "large-partner-autocomplete",
+                "partner-large-select",
                 formfield.widget.attrs.get("class", "").split(),
             )
 

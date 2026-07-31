@@ -178,7 +178,7 @@ class PurchaseOrderAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.M
         if db_field.name in {"seller", "requester"}:
             existing_classes = formfield.widget.attrs.get("class", "")
             formfield.widget.attrs["class"] = (
-                f"{existing_classes} large-partner-autocomplete"
+                f"{existing_classes} partner-large-select"
             ).strip()
         return formfield
 
