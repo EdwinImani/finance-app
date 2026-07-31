@@ -111,11 +111,16 @@
     function updateRowNumbers(root) {
         getInlineGroups(root).forEach(function (group) {
             var rows = getRows(group);
-            if (!rows.length) {
+            var allFormRows = Array.from(group.querySelectorAll(".tabular tbody tr.form-row"));
+            if (!allFormRows.length) {
                 return;
             }
 
             ensureNumberHeader(group);
+            // Keep the hidden __prefix__ template structurally identical to
+            // saved and dynamically-added rows. Its cell remains blank until
+            // the row becomes a real form row.
+            allFormRows.forEach(ensureNumberCell);
 
             var countedRows = rows.filter(function (row) {
                 return !isDeleted(row) && hasUserData(row);

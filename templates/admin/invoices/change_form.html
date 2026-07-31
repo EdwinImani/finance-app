@@ -350,7 +350,7 @@
 
     .inline-group .tabular table {
         width: 100%;
-        min-width: 2020px;
+        min-width: 0;
         table-layout: fixed;
     }
 
@@ -384,60 +384,26 @@
         display: none !important;
     }
 
-    .inline-group .tabular .field-product {
-        width: 440px;
-    }
-
     .inline-group .tabular .field-item_date {
         width: 180px;
-    }
-
-    .inline-group .tabular .field-hs_code {
-        width: 160px;
     }
 
     .inline-group .tabular .field-product_description {
         width: 240px;
     }
 
-    .inline-group .tabular .field-part_number {
-        width: 150px;
-    }
 
     .inline-group .tabular .field-stock_info {
         width: 100px;
     }
 
     .inline-group .tabular .field-sale_price_info,
-    .inline-group .tabular .field-purchase_price_info,
-    .inline-group .tabular .field-unit_price,
-    .inline-group .tabular .field-total_line {
+    .inline-group .tabular .field-purchase_price_info {
         width: 130px;
-    }
-
-    .inline-group .tabular .field-quantity {
-        width: 110px;
     }
 
     .inline-group .tabular .field-product_note {
         width: 220px;
-    }
-
-    .inline-group .tabular .delete {
-        width: 120px;
-    }
-
-    .inline-group .field-product .related-widget-wrapper {
-        display: grid;
-        grid-template-columns: repeat(3, 38px);
-        gap: 8px 10px;
-        align-items: center;
-        justify-content: start;
-    }
-
-    .inline-group .field-product .related-widget-wrapper select,
-    .inline-group .field-product .related-widget-wrapper .select2-container {
-        grid-column: 1 / -1;
     }
 
     .inline-group .field-product .related-widget-wrapper a.related-widget-wrapper-link {
@@ -445,15 +411,6 @@
         min-height: 36px;
         padding: 0;
         justify-self: center;
-    }
-
-    .inline-group .tabular .field-product {
-        width: 820px !important;
-    }
-
-    .inline-group .field-product .related-widget-wrapper,
-    .inline-group .field-product .related-widget-wrapper .select2-container {
-        min-width: 760px;
     }
 
     .inline-group .tabular input:not([type="checkbox"]):not([type="radio"]),
@@ -514,11 +471,6 @@
         white-space: normal;
     }
 
-    .inline-group.invoice-commercial-items .tabular table {
-        min-width: 0;
-        width: 100%;
-    }
-
     .inline-group.invoice-commercial-items .tabular th,
     .inline-group.invoice-commercial-items .tabular td {
         padding-left: 12px;
@@ -532,59 +484,10 @@
         padding-left: 32px;
     }
 
-    .inline-group.invoice-commercial-items .tabular .field-product {
-        width: 28%;
-    }
-
-    .inline-group.invoice-commercial-items .tabular .field-hs_code {
-        width: 15%;
-    }
-
-    .inline-group.invoice-commercial-items .tabular .field-part_number {
-        width: 13%;
-    }
-
-    .inline-group.invoice-commercial-items .tabular .field-unit_price,
-    .inline-group.invoice-commercial-items .tabular .field-total_line {
-        width: 14%;
-    }
-
-    .inline-group.invoice-commercial-items .tabular .field-quantity {
-        width: 10%;
-    }
-
-    .inline-group.invoice-commercial-items .tabular .delete {
-        width: 10%;
-    }
-
-    .inline-group.invoice-commercial-items .field-product .related-widget-wrapper {
-        grid-template-columns: repeat(3, 30px);
-        gap: 6px;
-        justify-content: start;
-    }
-
-    .inline-group.invoice-commercial-items .field-product .related-widget-wrapper select,
-    .inline-group.invoice-commercial-items .field-product .related-widget-wrapper .select2-container {
-        grid-column: 1 / -1;
-    }
-
     .inline-group.invoice-commercial-items .field-product .related-widget-wrapper a.related-widget-wrapper-link {
         width: 28px;
         min-height: 28px;
         padding: 0;
-    }
-
-    .inline-group.invoice-commercial-items .tabular table {
-        min-width: 1760px;
-    }
-
-    .inline-group.invoice-commercial-items .tabular .field-product {
-        width: 760px !important;
-    }
-
-    .inline-group.invoice-commercial-items .field-product .related-widget-wrapper,
-    .inline-group.invoice-commercial-items .field-product .related-widget-wrapper .select2-container {
-        min-width: 700px;
     }
 
     .inline-group.invoice-commercial-items .tabular input:not([type="checkbox"]):not([type="radio"]),
@@ -907,6 +810,18 @@
     }
 
     /* Compact grid for invoice item inlines only (proforma + commercial). */
+    body.app-invoices.change-form .inline-group:has(.field-product) {
+        --invoice-item-columns:
+            28px
+            minmax(0, 40fr)
+            minmax(0, 10fr)
+            minmax(0, 12fr)
+            minmax(0, 9fr)
+            minmax(0, 9fr)
+            minmax(0, 10fr)
+            minmax(0, 6fr);
+    }
+
     body.app-invoices.change-form .inline-group:has(.field-product) > .tabular,
     body.app-invoices.change-form .inline-group:has(.field-product) > .tabular > fieldset.module {
         width: 100% !important;
@@ -928,15 +843,7 @@
     body.app-invoices.change-form .inline-group:has(.field-product) .tabular thead tr,
     body.app-invoices.change-form .inline-group:has(.field-product) .tabular tbody tr.form-row {
         display: grid !important;
-        grid-template-columns:
-            28px
-            minmax(0, 40fr)
-            minmax(0, 10fr)
-            minmax(0, 12fr)
-            minmax(0, 9fr)
-            minmax(0, 9fr)
-            minmax(0, 10fr)
-            minmax(0, 6fr) !important;
+        grid-template-columns: var(--invoice-item-columns) !important;
         gap: 8px !important;
         align-items: center !important;
         width: 100% !important;
@@ -947,7 +854,7 @@
     body.app-invoices.change-form .inline-group:has(.field-product) .tabular th,
     body.app-invoices.change-form .inline-group:has(.field-product) .tabular td {
         display: block !important;
-        width: auto !important;
+        width: 100% !important;
         min-width: 0 !important;
         max-width: none !important;
         margin: 0 !important;
