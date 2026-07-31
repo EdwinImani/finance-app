@@ -838,6 +838,7 @@
         column-gap: 4px !important;
         row-gap: 0 !important;
         align-items: center !important;
+        justify-items: start !important;
         width: 100% !important;
         min-width: 0 !important;
         max-width: 100% !important;
@@ -870,6 +871,8 @@
         overflow: hidden !important;
         background: transparent !important;
         align-self: stretch !important;
+        text-align: left !important;
+        justify-self: stretch !important;
     }
 
     body.app-invoices.change-form .invoice-lines-header > th {
@@ -895,12 +898,14 @@
 
     body.app-invoices.change-form .inline-group:has(.field-product) .field-product .related-widget-wrapper {
         display: grid !important;
-        grid-template-columns: minmax(0, 1fr) repeat(2, 30px) !important;
+        grid-template-columns: repeat(2, 30px) minmax(0, 1fr) !important;
         gap: 6px !important;
         width: 85% !important;
         min-width: 0 !important;
         max-width: 85% !important;
         box-sizing: border-box !important;
+        justify-items: start !important;
+        text-align: left !important;
     }
 
     body.app-invoices.change-form .inline-group:has(.field-product) .field-product select,
@@ -919,10 +924,23 @@
         flex: none !important;
     }
 
+    body.app-invoices.change-form .inline-group:has(.field-product) .field-product .related-widget-wrapper a.related-widget-wrapper-link {
+        justify-self: start !important;
+        margin: 0 !important;
+    }
+
+    body.app-invoices.change-form .invoice-line-row input,
+    body.app-invoices.change-form .invoice-line-row select,
+    body.app-invoices.change-form .invoice-line-row .select2-container,
+    body.app-invoices.change-form .invoice-line-row .readonly {
+        margin-left: 0 !important;
+        text-align: left !important;
+    }
+
     body.app-invoices.change-form .invoice-line-row > td.delete {
         display: flex !important;
         align-items: center !important;
-        justify-content: center !important;
+        justify-content: flex-start !important;
         width: 100% !important;
         min-width: 0 !important;
     }
