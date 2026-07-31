@@ -642,6 +642,57 @@
             min-width: 0;
         }
     }
+
+    /* Seller and requester match the large product autocomplete control. */
+    body.app-purchase.change-form .form-row.field-seller .related-widget-wrapper,
+    body.app-purchase.change-form .form-row.field-requester .related-widget-wrapper {
+        display: flex !important;
+        width: min(1180px, 100%) !important;
+        min-width: 0 !important;
+        max-width: 1180px !important;
+        flex-wrap: nowrap !important;
+        align-items: center !important;
+        gap: 10px !important;
+    }
+
+    body.app-purchase.change-form .form-row.field-seller .select2-container,
+    body.app-purchase.change-form .form-row.field-requester .select2-container {
+        flex: 1 1 1000px !important;
+        width: min(1000px, calc(100% - 110px)) !important;
+        min-width: min(760px, calc(100% - 110px)) !important;
+        max-width: 1000px !important;
+    }
+
+    body.app-purchase.change-form .form-row.field-seller .select2-selection,
+    body.app-purchase.change-form .form-row.field-requester .select2-selection {
+        min-height: 58px !important;
+        height: 58px !important;
+        font-size: 20px !important;
+    }
+
+    body.app-purchase.change-form .form-row.field-seller .select2-selection__rendered,
+    body.app-purchase.change-form .form-row.field-requester .select2-selection__rendered {
+        min-height: 58px !important;
+        line-height: 58px !important;
+        padding-left: 16px !important;
+        padding-right: 48px !important;
+        font-size: 20px !important;
+    }
+
+    body.app-purchase.change-form .form-row.field-seller .select2-selection__arrow,
+    body.app-purchase.change-form .form-row.field-requester .select2-selection__arrow {
+        height: 58px !important;
+    }
+
+    @media (max-width: 900px) {
+        body.app-purchase.change-form .form-row.field-seller .select2-container,
+        body.app-purchase.change-form .form-row.field-requester .select2-container {
+            flex: 1 1 auto !important;
+            width: 100% !important;
+            min-width: 0 !important;
+            max-width: 100% !important;
+        }
+    }
 </style>
 <script>
 document.addEventListener("DOMContentLoaded", function() {
