@@ -24,6 +24,7 @@ TOTALS_AMOUNT_COLUMN_WIDTH_MM = 35
 TOTALS_CELL_HORIZONTAL_PADDING = 6
 SHIPPING_ITEM_COLUMN_WIDTHS_MM = (22, 70, 45, 27, 20)
 PACKING_COLUMN_WIDTHS_MM = (22, 66, 24, 24, 16, 16, 16)
+PRICE_FOR_AMOUNT_RIGHT_INSET_MM = 6
 PDF_ACCENT_HEX = "#FF3300"
 
 try:
@@ -857,7 +858,12 @@ def _build_invoice_details(invoice, company, styles, document_type="default", cu
 
         reference_table_width_mm = PDF_INVOICE_COLUMN_WIDTH_MM * 2
         reference_width_mm = PDF_INVOICE_COLUMN_WIDTH_MM
-        price_for_width_mm = reference_table_width_mm - reference_width_mm - TOTALS_AMOUNT_COLUMN_WIDTH_MM
+        price_for_width_mm = (
+            reference_table_width_mm
+            - reference_width_mm
+            - TOTALS_AMOUNT_COLUMN_WIDTH_MM
+            - PRICE_FOR_AMOUNT_RIGHT_INSET_MM
+        )
         reference_table = Table(
             [[
                 Paragraph(
@@ -867,8 +873,14 @@ def _build_invoice_details(invoice, company, styles, document_type="default", cu
                 Paragraph(price_for_text, styles["body"]) if price_for_text else Spacer(1, 0),
                 Paragraph(_escape(_format_money(invoice.total_amount(), currency)), styles["body_right"])
                 if price_for_text else Spacer(1, 0),
+                Spacer(1, 0),
             ]],
-            colWidths=[reference_width_mm * mm, price_for_width_mm * mm, TOTALS_AMOUNT_COLUMN_WIDTH_MM * mm],
+            colWidths=[
+                reference_width_mm * mm,
+                price_for_width_mm * mm,
+                TOTALS_AMOUNT_COLUMN_WIDTH_MM * mm,
+                PRICE_FOR_AMOUNT_RIGHT_INSET_MM * mm,
+            ],
             hAlign="LEFT",
         )
         reference_table.setStyle(
@@ -1403,7 +1415,7 @@ def _build_items_table(items, currency, styles, amount_from_last_page=None):
 def _build_shipping_items_table(items, styles):
     rows = [
         [
-            Paragraph("Item No.", styles["table_head"]),
+            Paragraph("Item No", styles["table_head_center"]),
             Paragraph("Description", styles["table_head"]),
             Paragraph("Part Number", styles["table_head"]),
             Paragraph("HS Code", styles["table_head"]),
@@ -1414,7 +1426,7 @@ def _build_shipping_items_table(items, styles):
     for item in items:
         rows.append(
             [
-                Paragraph(str(item["index"]), styles["table_cell"]),
+                Paragraph(str(item["index"]), styles["table_cell_center"]),
                 Paragraph(_escape(item["description"]), styles["table_cell"]),
                 Paragraph(_escape(item["part_number"]), styles["table_cell_part_number"]),
                 Paragraph(_escape(item["hs_code"]), styles["table_cell"]),
@@ -1425,7 +1437,7 @@ def _build_shipping_items_table(items, styles):
     if len(rows) == 1:
         rows.append(
             [
-                Paragraph("-", styles["table_cell"]),
+                Paragraph("-", styles["table_cell_center"]),
                 Paragraph("No items", styles["table_cell"]),
                 Paragraph("-", styles["table_cell"]),
                 Paragraph("-", styles["table_cell"]),
@@ -1465,7 +1477,7 @@ def _build_packing_section(*, invoice, packing_entries, styles):
     ]
 
     header_top = [
-        Paragraph("Item No.", styles["table_head_center"]),
+        Paragraph("Item No", styles["table_head"]),
         Paragraph("No Packing", styles["table_head"]),
         Paragraph("Gross/kg", styles["table_head_center"]),
         Paragraph("Net/kg", styles["table_head_center"]),
