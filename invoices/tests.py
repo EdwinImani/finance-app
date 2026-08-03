@@ -3,6 +3,7 @@ from decimal import Decimal
 from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.contrib.staticfiles import finders
+from django.template.loader import get_template
 from django.test import SimpleTestCase, TestCase
 from django.test import override_settings
 from django.urls import reverse
@@ -57,6 +58,28 @@ class InvoiceProductAutofillJavaScriptTests(SimpleTestCase):
         self.assertIn('hsCodeInput.value = data.hs_code || "";', script)
         self.assertIn('new Event("input", { bubbles: true })', script)
         self.assertIn('new Event("change", { bubbles: true })', script)
+
+    def test_inline_delete_buttons_use_django_delete_fields_and_single_binding(self):
+        with open(finders.find("admin/js/inline_row_tools.js"), encoding="utf-8") as script_file:
+            script = script_file.read()
+
+        self.assertIn("function initializeDeleteButtons(root)", script)
+        self.assertIn('input[name$="-DELETE"]', script)
+        self.assertIn("deleteInput.checked = true", script)
+        self.assertIn('button.dataset.deleteBound === "1"', script)
+        self.assertIn('button.dataset.deleteBound = "1"', script)
+        self.assertIn('button.setAttribute("aria-label", "Supprimer cette ligne")', script)
+        self.assertIn("initializeDeleteButtons(root || document)", script)
+        self.assertIn("totalInput.value = String(total - 1)", script)
+
+    def test_inline_delete_button_css_is_circular(self):
+        template_source = get_template("admin/base_site.html").template.source
+
+        self.assertIn(".inline-delete-button", template_source)
+        self.assertIn("border-radius: 50% !important", template_source)
+        self.assertIn("width: 36px !important", template_source)
+        self.assertIn("height: 36px !important", template_source)
+        self.assertIn('input[type="checkbox"][name$="-DELETE"]', template_source)
 
 
 class PdfFilenameTests(SimpleTestCase):

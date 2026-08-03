@@ -218,6 +218,72 @@
         }
     }
 
+    function decorateDeleteButton(button) {
+        if (!button) {
+            return;
+        }
+        button.classList.add("inline-delete-button");
+        button.textContent = "×";
+        button.setAttribute("aria-label", "Supprimer cette ligne");
+        button.setAttribute("title", "Supprimer cette ligne");
+        if (button.tagName === "BUTTON") {
+            button.type = "button";
+        }
+    }
+
+    function initializeDeleteButtons(root) {
+        (root || document).querySelectorAll(".inline-group .tabular tbody tr.form-row").forEach(function (row) {
+            if (row.classList.contains("empty-form") || row.id.endsWith("-empty")) {
+                return;
+            }
+
+            var deleteCell = row.querySelector("td.delete");
+            if (!deleteCell) {
+                return;
+            }
+
+            var deleteInput = deleteCell.querySelector('input[name$="-DELETE"]');
+            var nativeLink = deleteCell.querySelector(".inline-deletelink");
+            var button = deleteCell.querySelector(".inline-delete-button");
+
+            // Unsaved forms are removed and reindexed by Django's own
+            // inline-deletelink handler. Only normalize its presentation.
+            if (nativeLink) {
+                button = nativeLink;
+            } else if (deleteInput && !button) {
+                button = document.createElement("button");
+                deleteCell.appendChild(button);
+            }
+
+            if (!button) {
+                return;
+            }
+
+            decorateDeleteButton(button);
+            Array.from(deleteCell.querySelectorAll(".inline-delete-button")).forEach(function (candidate) {
+                if (candidate !== button) {
+                    candidate.remove();
+                }
+            });
+
+            if (!deleteInput || nativeLink || button.dataset.deleteBound === "1") {
+                return;
+            }
+
+            button.dataset.deleteBound = "1";
+            button.addEventListener("click", function (event) {
+                event.preventDefault();
+                deleteInput.checked = true;
+                deleteInput.dispatchEvent(new Event("input", { bubbles: true }));
+                deleteInput.dispatchEvent(new Event("change", { bubbles: true }));
+                row.hidden = true;
+                row.classList.add("inline-row-marked-for-deletion");
+                updateRowNumbers(document);
+                notifyAutosave();
+            });
+        });
+    }
+
     function getRealAddLink(group) {
         return group.querySelector(".add-row a.addlink, .add-row a:not(.add-same-inline-row):not(.add-same-commercial-packing)");
     }
@@ -250,11 +316,24 @@
         var link = document.createElement("a");
         link.href = "#";
         link.className = "inline-deletelink";
-        link.textContent = "Remove";
+        decorateDeleteButton(link);
+        link.dataset.deleteBound = "1";
         link.addEventListener("click", function (event) {
             event.preventDefault();
-            row.remove();
-            notifyAutosave();
+            var group = row.closest(".inline-group");
+            var totalInput = group && group.querySelector('input[id$="-TOTAL_FORMS"]');
+            var total = totalInput ? parseInt(totalInput.value || "0", 10) : 0;
+            var rowIndex = parseInt((row.id.match(/-(\d+)$/) || [])[1], 10);
+
+            // fallbackAddRow always appends the highest form index. Decrement
+            // TOTAL_FORMS only for that last unsaved form, keeping Django's
+            // management form and field indices contiguous.
+            if (totalInput && rowIndex === total - 1) {
+                row.remove();
+                totalInput.value = String(total - 1);
+                document.dispatchEvent(new CustomEvent("formset:removed", { detail: { row: row } }));
+                notifyAutosave();
+            }
         });
         wrapper.appendChild(link);
         deleteCell.appendChild(wrapper);
@@ -345,6 +424,7 @@
         getInlineGroups(root || document).forEach(normalizeInvoiceLineClasses);
         updateRowNumbers(root || document);
         getInlineGroups(root || document).forEach(ensureSamePackingButton);
+        initializeDeleteButtons(root || document);
     }
 
     document.addEventListener("DOMContentLoaded", function () {

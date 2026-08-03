@@ -124,6 +124,7 @@ class PurchaseOrderAdminFormTests(TestCase):
         self.assertIn("admin/js/invoice_autosave.js", template_source)
         self.assertIn("20260730-unblock-save", template_source)
         self.assertIn("20260803-hs-code-refresh", template_source)
+        self.assertIn("20260803-formset-delete", template_source)
         self.assertIn("window.invoiceAutosaveNow", template_source)
         self.assertNotIn("fetch(form.action", template_source)
 

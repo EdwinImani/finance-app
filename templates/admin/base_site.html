@@ -1643,6 +1643,47 @@
         box-sizing: border-box !important;
     }
 
+    /* One formset-safe delete control for saved and dynamically-added rows. */
+    body.change-form .inline-group .tabular td.delete input[type="checkbox"][name$="-DELETE"] {
+        position: absolute !important;
+        width: 1px !important;
+        height: 1px !important;
+        min-width: 1px !important;
+        min-height: 1px !important;
+        margin: -1px !important;
+        padding: 0 !important;
+        opacity: 0 !important;
+        overflow: hidden !important;
+        pointer-events: none !important;
+    }
+
+    body.change-form .inline-group .tabular td.delete .inline-delete-button {
+        width: 36px !important;
+        height: 36px !important;
+        min-width: 36px !important;
+        min-height: 36px !important;
+        padding: 0 !important;
+        border: 0 !important;
+        border-radius: 50% !important;
+        background: #9b9b9b !important;
+        color: #fff !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        font-size: 24px !important;
+        line-height: 1 !important;
+        font-weight: 700 !important;
+        text-decoration: none !important;
+        cursor: pointer !important;
+        box-sizing: border-box !important;
+    }
+
+    body.change-form .inline-group .tabular td.delete .inline-delete-button:hover,
+    body.change-form .inline-group .tabular td.delete .inline-delete-button:focus {
+        background: #7f7f7f !important;
+        color: #fff !important;
+    }
+
     body.change-form .related-widget-wrapper-link {
         display: inline-flex !important;
         visibility: visible !important;
