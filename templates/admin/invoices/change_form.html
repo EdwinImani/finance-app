@@ -953,6 +953,23 @@
         margin-right: auto !important;
     }
 
+    /* Packing rows keep Django's nested delete wrapper. Centre the actual
+       control against the DELETE column rather than against that wrapper. */
+    body.app-invoices.change-form .inline-group.invoice-commercial-packings td.delete {
+        position: relative !important;
+        text-align: center !important;
+    }
+
+    body.app-invoices.change-form .inline-group.invoice-commercial-packings td.delete input,
+    body.app-invoices.change-form .inline-group.invoice-commercial-packings td.delete a,
+    body.app-invoices.change-form .inline-group.invoice-commercial-packings td.delete button {
+        position: absolute !important;
+        left: 50% !important;
+        top: 50% !important;
+        margin: 0 !important;
+        transform: translate(-50%, -50%) !important;
+    }
+
     body.app-invoices.change-form .inline-group:has(.field-product) .tabular tr.add-row {
         display: block !important;
         width: 100% !important;

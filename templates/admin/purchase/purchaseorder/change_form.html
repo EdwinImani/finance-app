@@ -487,18 +487,20 @@
     }
 
     body.app-purchase.change-form .inline-group .tabular tbody tr.form-row > td.delete {
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        width: 100% !important;
-        min-width: 0 !important;
+        display: table-cell !important;
+        position: relative !important;
+        text-align: center !important;
+        vertical-align: middle !important;
     }
 
     body.app-purchase.change-form .inline-group .tabular tbody tr.form-row > td.delete input,
     body.app-purchase.change-form .inline-group .tabular tbody tr.form-row > td.delete a,
     body.app-purchase.change-form .inline-group .tabular tbody tr.form-row > td.delete button {
-        margin-left: auto !important;
-        margin-right: auto !important;
+        position: absolute !important;
+        left: 50% !important;
+        top: 50% !important;
+        margin: 0 !important;
+        transform: translate(-50%, -50%) !important;
     }
 
     .purchase-order-hero {
