@@ -218,7 +218,9 @@
         }
     }
 
-    function decorateDeleteButton(button) {
+    /* Custom delete-button handling was removed: Django's native inline
+       formset owns DELETE fields, row removal, and form reindexing. */
+    function unusedDecorateDeleteButton(button) {
         if (!button) {
             return;
         }
@@ -231,7 +233,7 @@
         }
     }
 
-    function initializeDeleteButtons(root) {
+    function unusedInitializeDeleteButtons(root) {
         (root || document).querySelectorAll(".inline-group .tabular tbody tr.form-row").forEach(function (row) {
             if (row.classList.contains("empty-form") || row.id.endsWith("-empty")) {
                 return;
@@ -316,24 +318,11 @@
         var link = document.createElement("a");
         link.href = "#";
         link.className = "inline-deletelink";
-        decorateDeleteButton(link);
-        link.dataset.deleteBound = "1";
+        link.textContent = "Remove";
         link.addEventListener("click", function (event) {
             event.preventDefault();
-            var group = row.closest(".inline-group");
-            var totalInput = group && group.querySelector('input[id$="-TOTAL_FORMS"]');
-            var total = totalInput ? parseInt(totalInput.value || "0", 10) : 0;
-            var rowIndex = parseInt((row.id.match(/-(\d+)$/) || [])[1], 10);
-
-            // fallbackAddRow always appends the highest form index. Decrement
-            // TOTAL_FORMS only for that last unsaved form, keeping Django's
-            // management form and field indices contiguous.
-            if (totalInput && rowIndex === total - 1) {
-                row.remove();
-                totalInput.value = String(total - 1);
-                document.dispatchEvent(new CustomEvent("formset:removed", { detail: { row: row } }));
-                notifyAutosave();
-            }
+            row.remove();
+            notifyAutosave();
         });
         wrapper.appendChild(link);
         deleteCell.appendChild(wrapper);
@@ -424,7 +413,6 @@
         getInlineGroups(root || document).forEach(normalizeInvoiceLineClasses);
         updateRowNumbers(root || document);
         getInlineGroups(root || document).forEach(ensureSamePackingButton);
-        initializeDeleteButtons(root || document);
     }
 
     document.addEventListener("DOMContentLoaded", function () {
