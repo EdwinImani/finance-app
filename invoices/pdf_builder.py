@@ -140,7 +140,7 @@ def build_invoice_pdf(*, invoice, company, items, importer, end_user, invoice_ti
         )
     )
     story.append(Spacer(1, 2 * mm))
-    story.extend(_build_invoice_details(invoice, company, styles, document_type=document_type))
+    story.extend(_build_invoice_details(invoice, company, styles, document_type=document_type, currency=currency))
     story.append(Spacer(1, 6 * mm))
     page_totals = []
     if _is_shipping_document(document_type):
@@ -798,7 +798,7 @@ def _build_partner_blocks(importer, end_user, styles):
     return [table]
 
 
-def _build_invoice_details(invoice, company, styles, document_type="default"):
+def _build_invoice_details(invoice, company, styles, document_type="default", currency="EUR"):
     blocks = []
 
     invoice_note = getattr(company, "invoice_note", "") or "-"
@@ -848,13 +848,37 @@ def _build_invoice_details(invoice, company, styles, document_type="default"):
             price_for = getattr(invoice, "price_for", "") or "-"
             price_for_text = f"<b>Price for:</b> {_format_preserving_layout(price_for)}"
 
+        price_for_row = Spacer(1, 0)
+        if price_for_text:
+            price_for_row = Table(
+                [[
+                    Paragraph(price_for_text, styles["body"]),
+                    Paragraph(_escape(_format_money(invoice.total_amount(), currency)), styles["body_right"]),
+                ]],
+                colWidths=[(PDF_INVOICE_COLUMN_WIDTH_MM - 35) * mm, 35 * mm],
+                hAlign="RIGHT",
+            )
+            price_for_row.setStyle(
+                TableStyle(
+                    [
+                        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                        ("LEFTPADDING", (0, 0), (0, 0), PDF_INVOICE_CONTENT_PADDING_MM * mm),
+                        ("RIGHTPADDING", (0, 0), (0, 0), 0),
+                        ("LEFTPADDING", (1, 0), (1, 0), 6),
+                        ("RIGHTPADDING", (1, 0), (1, 0), 6),
+                        ("TOPPADDING", (0, 0), (-1, -1), 0),
+                        ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
+                    ]
+                )
+            )
+
         reference_table = Table(
             [[
                 Paragraph(
                     f"<b>Our Reference:</b> {_format_preserving_layout(getattr(invoice, 'our_reference', '') or '-')}",
                     styles["body"],
                 ),
-                Paragraph(price_for_text, styles["body"]) if price_for_text else Spacer(1, 0),
+                price_for_row,
             ]],
             colWidths=[PDF_INVOICE_COLUMN_WIDTH_MM * mm, PDF_INVOICE_COLUMN_WIDTH_MM * mm],
             hAlign="LEFT",
@@ -866,7 +890,9 @@ def _build_invoice_details(invoice, company, styles, document_type="default"):
                     # Align both labels with the content inside the
                     # Invoice Note and Terms frames above.
                     ("LEFTPADDING", (0, 0), (-1, -1), PDF_INVOICE_CONTENT_PADDING_MM * mm),
-                    ("RIGHTPADDING", (0, 0), (-1, -1), PDF_INVOICE_CONTENT_PADDING_MM * mm),
+                    ("RIGHTPADDING", (0, 0), (0, 0), PDF_INVOICE_CONTENT_PADDING_MM * mm),
+                    ("RIGHTPADDING", (1, 0), (1, 0), 0),
+                    ("LEFTPADDING", (1, 0), (1, 0), 0),
                     ("TOPPADDING", (0, 0), (-1, -1), 0),
                     ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
                 ]

@@ -248,8 +248,10 @@ class PdfPaginationTests(TestCase):
         )
 
     def test_invoice_reference_stays_about_five_lines_below_invoice_note(self):
+        invoice = ProformaInvoice()
+        invoice.subtotal = lambda: Decimal("0.00")
         blocks = _build_invoice_details(
-            ProformaInvoice(),
+            invoice,
             CompanySetting(invoice_note="Invoice note"),
             _build_styles(),
         )
@@ -260,7 +262,37 @@ class PdfPaginationTests(TestCase):
         reference_table = blocks[2]
         self.assertEqual(
             [cell.leftPadding for cell in reference_table._cellStyles[0]],
-            [PDF_INVOICE_CONTENT_PADDING_MM * mm] * 2,
+            [PDF_INVOICE_CONTENT_PADDING_MM * mm, 0],
+        )
+
+    def test_price_for_row_shows_formatted_grand_total_in_amount_column(self):
+        invoice = ProformaInvoice(
+            price_for="CPT Isfahan / Iran",
+            freight=Decimal("100.00"),
+            discount=Decimal("7.50"),
+            vat_percent=Decimal("20.00"),
+        )
+        invoice.subtotal = lambda: Decimal("516500.00")
+
+        blocks = _build_invoice_details(
+            invoice,
+            CompanySetting(invoice_note="Invoice note"),
+            _build_styles(),
+            currency="EUR",
+        )
+
+        reference_table = blocks[2]
+        price_for_table = reference_table._cellvalues[0][1]
+        self.assertEqual(price_for_table._colWidths[1], 35 * mm)
+        self.assertIn("Price for:", price_for_table._cellvalues[0][0].getPlainText())
+        self.assertIn("CPT Isfahan / Iran", price_for_table._cellvalues[0][0].getPlainText())
+        self.assertEqual(
+            price_for_table._cellvalues[0][1].getPlainText(),
+            "619,892.50 €",
+        )
+        self.assertEqual(
+            price_for_table._cellvalues[0][1].getPlainText(),
+            f"{_format_decimal_comma(invoice.total_amount())} €",
         )
 
     def test_footer_invoice_city_country_moves_to_next_line(self):
