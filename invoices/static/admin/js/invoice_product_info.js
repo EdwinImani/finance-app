@@ -155,6 +155,8 @@
             )
         ) {
             hsCodeInput.value = data.hs_code || "";
+            hsCodeInput.dispatchEvent(new Event("input", { bubbles: true }));
+            hsCodeInput.dispatchEvent(new Event("change", { bubbles: true }));
         }
 
         if (

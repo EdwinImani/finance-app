@@ -19,6 +19,7 @@ from django.utils import timezone
 from django.utils.html import format_html
 from financeapp.admin_mixins import PageSizeAdminMixin, SaveRedirectToWelcomeMixin
 from financeapp.access_control import is_owned_by_user, is_staff_role
+from financeapp.filename_utils import document_pdf_filename
 from financeapp.pdf_rendering import get_pdf_fallback_reason, should_try_weasyprint
 from invoices.pdf_builder import build_purchase_order_pdf, build_purchase_report_pdf, format_currency_symbol
 
@@ -630,7 +631,8 @@ class PurchaseOrderAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.M
             )
 
         response = HttpResponse(pdf_bytes, content_type="application/pdf")
-        response["Content-Disposition"] = f'inline; filename="{obj.purchase_number or "purchase-order"}.pdf"'
+        filename = document_pdf_filename("Purchase-Order", obj.purchase_number)
+        response["Content-Disposition"] = f'attachment; filename="{filename}"'
         return response
 
     def get_purchase_report_pdf_url(self, request):

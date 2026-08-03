@@ -2,7 +2,8 @@ from decimal import Decimal
 
 from django.contrib import admin
 from django.contrib.auth import get_user_model
-from django.test import TestCase
+from django.contrib.staticfiles import finders
+from django.test import SimpleTestCase, TestCase
 from django.test import override_settings
 from django.urls import reverse
 from reportlab.lib.units import mm
@@ -11,6 +12,7 @@ from reportlab.platypus import Spacer
 from company.models import CompanySetting
 from partners.models import Partner
 from products.models import Product
+from financeapp.filename_utils import document_pdf_filename, safe_filename
 
 from .forms import CommercialInvoiceForm, ProformaInvoiceForm
 from .models import CommercialInvoice, CommercialInvoiceItem, ProformaInvoice, ProformaInvoiceItem
@@ -43,6 +45,30 @@ from .pdf_builder import (
     _split_items_for_pages,
     format_footer_invoice_lines,
 )
+
+
+class InvoiceProductAutofillJavaScriptTests(SimpleTestCase):
+
+    def test_product_data_hs_code_maps_to_invoice_inline_field(self):
+        with open(finders.find("admin/js/invoice_product_info.js"), encoding="utf-8") as script_file:
+            script = script_file.read()
+
+        self.assertIn("forceDefaultHsCode: productChanged", script)
+        self.assertIn('hsCodeInput.value = data.hs_code || "";', script)
+        self.assertIn('new Event("input", { bubbles: true })', script)
+        self.assertIn('new Event("change", { bubbles: true })', script)
+
+
+class PdfFilenameTests(SimpleTestCase):
+
+    def test_safe_filename_replaces_forbidden_characters(self):
+        self.assertEqual(safe_filename(' CI/2026\\0015:*?"<>| '), "CI-2026-0015-------")
+
+    def test_document_pdf_filename_uses_readable_prefix(self):
+        self.assertEqual(
+            document_pdf_filename("Commercial-Invoice", "CI/2026/0015"),
+            "Commercial-Invoice-CI-2026-0015.pdf",
+        )
 
 
 class PdfPaginationTests(TestCase):
@@ -1298,6 +1324,45 @@ class CommercialInvoiceAdminDraftTests(TestCase):
                 str(self.client.session.get("_auth_user_id")),
                 str(self.user.pk),
             )
+
+    def test_commercial_pdf_has_safe_download_filename(self):
+        invoice = CommercialInvoice.objects.create(
+            invoice_number="CI-2026-0015",
+            vat_percent=Decimal("20.00"),
+        )
+        CommercialInvoice.objects.filter(pk=invoice.pk).update(
+            invoice_number="CI/2026/0015"
+        )
+
+        response = self.client.get(
+            reverse("admin:invoices_commercialinvoice_pdf", args=[invoice.pk])
+        )
+
+        self.assertEqual(response["Content-Type"], "application/pdf")
+        self.assertEqual(
+            response["Content-Disposition"],
+            'attachment; filename="Commercial-Invoice-CI-2026-0015.pdf"',
+        )
+        self.assertTrue(response.content.startswith(b"%PDF-"))
+        self.assertGreater(len(response.content), 100)
+
+    def test_proforma_pdf_has_safe_download_filename(self):
+        invoice = ProformaInvoice.objects.create(
+            invoice_number="PR-2026-0005",
+            vat_percent=Decimal("20.00"),
+        )
+
+        response = self.client.get(
+            reverse("admin:invoices_proformainvoice_pdf", args=[invoice.pk])
+        )
+
+        self.assertEqual(response["Content-Type"], "application/pdf")
+        self.assertEqual(
+            response["Content-Disposition"],
+            'attachment; filename="Proforma-Invoice-PR-2026-0005.pdf"',
+        )
+        self.assertTrue(response.content.startswith(b"%PDF-"))
+        self.assertGreater(len(response.content), 100)
 
     def test_save_button_ignores_stale_save_and_pdf_fields(self):
         invoice = CommercialInvoice.objects.create(vat_percent=Decimal("20.00"))

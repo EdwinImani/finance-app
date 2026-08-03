@@ -103,9 +103,10 @@ function updatePurchaseOrderItemRow(row, refreshProduct, options) {
             }
             if (
                 hsCodeInput &&
-                (!hsCodeInput.value.trim() || hsCodeInput.value.trim() === "-")
+                (productChanged || !hsCodeInput.value.trim() || hsCodeInput.value.trim() === "-")
             ) {
                 hsCodeInput.value = data.hs_code || "";
+                hsCodeInput.dispatchEvent(new Event("input", { bubbles: true }));
                 hsCodeInput.dispatchEvent(new Event("change", { bubbles: true }));
             }
             if (hsCodeDisplay) {
@@ -157,6 +158,7 @@ function fillMissingPurchaseHsCode(row) {
         .then(response => response.json())
         .then(data => {
             hsCodeInput.value = data.hs_code || "-";
+            hsCodeInput.dispatchEvent(new Event("input", { bubbles: true }));
             hsCodeInput.dispatchEvent(new Event("change", { bubbles: true }));
         });
 }

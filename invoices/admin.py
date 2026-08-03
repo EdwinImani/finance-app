@@ -15,6 +15,7 @@ from django.utils.html import format_html
 from django.utils import timezone
 from financeapp.admin_mixins import PageSizeAdminMixin, SaveRedirectToWelcomeMixin
 from financeapp.access_control import is_owned_by_user, is_staff_role
+from financeapp.filename_utils import document_pdf_filename
 from company.models import CompanySetting
 from partners.models import Partner
 from products.models import Product
@@ -323,7 +324,12 @@ class InvoiceAdminMixin:
         return self.model._meta.verbose_name.replace("_", " ").title()
 
     def get_invoice_pdf_filename(self, obj):
-        return f"{obj.invoice_number or self.model._meta.model_name}.pdf"
+        document_type = (
+            "Proforma-Invoice"
+            if self.model is ProformaInvoice
+            else "Commercial-Invoice"
+        )
+        return document_pdf_filename(document_type, obj.invoice_number)
 
     def get_search_results(self, request, queryset, search_term):
         normalized_term = (search_term or "").strip()
@@ -449,7 +455,7 @@ class InvoiceAdminMixin:
             )
 
         response = HttpResponse(pdf_bytes, content_type="application/pdf")
-        response["Content-Disposition"] = f'inline; filename="{self.get_pdf_filename(obj, document_type=document_type)}"'
+        response["Content-Disposition"] = f'attachment; filename="{self.get_pdf_filename(obj, document_type=document_type)}"'
         response["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
         response["Pragma"] = "no-cache"
         response["Expires"] = "0"
@@ -1043,14 +1049,13 @@ class CommercialInvoiceAdmin(InvoiceAdminMixin, SaveRedirectToWelcomeMixin, Page
         return self.commercial_document_titles.get(document_type, self.commercial_document_titles["default"])
 
     def get_pdf_filename(self, obj, document_type="default"):
-        base_name = (obj.invoice_number or "commercial-invoice").replace("/", "-")
-        suffix_map = {
-            "default": "commercial-invoice",
-            "packing_list": "packing-list",
-            "dispatching_note": "dispatching-note",
+        document_name_map = {
+            "default": "Commercial-Invoice",
+            "packing_list": "Packing-List",
+            "dispatching_note": "Dispatching-Note",
         }
-        suffix = suffix_map.get(document_type, suffix_map["default"])
-        return f"{base_name}-{suffix}.pdf"
+        document_name = document_name_map.get(document_type, document_name_map["default"])
+        return document_pdf_filename(document_name, obj.invoice_number)
 
     def get_urls(self):
         urls = super().get_urls()

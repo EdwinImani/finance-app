@@ -2,8 +2,9 @@ from decimal import Decimal
 
 from django.contrib import admin
 from django.contrib.auth import get_user_model
+from django.contrib.staticfiles import finders
 from django.template.loader import get_template
-from django.test import TestCase
+from django.test import SimpleTestCase, TestCase
 from django.test import override_settings
 from django.urls import reverse
 
@@ -51,6 +52,19 @@ class ProductInfoViewTests(TestCase):
                 "purchase_price": "5.50",
             },
         )
+
+    def test_product_info_returns_updated_hs_code(self):
+        user = get_user_model().objects.create_user(
+            username="fresh-hs-code-staff", password="password123", is_staff=True
+        )
+        product = Product.objects.create(description="Produit actualise", hs_code="85444200")
+        product.hs_code = "85444290"
+        product.save(update_fields=["hs_code"])
+
+        self.client.force_login(user)
+        response = self.client.get(reverse("product_info", args=[product.pk]))
+
+        self.assertEqual(response.json()["hs_code"], "85444290")
 
 
 class PurchaseOrderAdminFormTests(TestCase):
@@ -109,9 +123,18 @@ class PurchaseOrderAdminFormTests(TestCase):
 
         self.assertIn("admin/js/invoice_autosave.js", template_source)
         self.assertIn("20260730-unblock-save", template_source)
-        self.assertIn("20260730-fresh-product-info", template_source)
+        self.assertIn("20260803-hs-code-refresh", template_source)
         self.assertIn("window.invoiceAutosaveNow", template_source)
         self.assertNotIn("fetch(form.action", template_source)
+
+    def test_product_autofill_maps_current_hs_code_when_product_changes(self):
+        with open(finders.find("admin/js/product_autofill.js"), encoding="utf-8") as script_file:
+            script = script_file.read()
+
+        self.assertIn("productChanged || !hsCodeInput.value.trim()", script)
+        self.assertIn('hsCodeInput.value = data.hs_code || "";', script)
+        self.assertIn('new Event("input", { bubbles: true })', script)
+        self.assertIn('new Event("change", { bubbles: true })', script)
 
 
 class PurchaseOrderItemTests(TestCase):
@@ -207,7 +230,10 @@ class PurchaseOrderAdminAutosaveTests(TestCase):
         self.client.force_login(self.user)
 
     def test_purchase_pdf_keeps_admin_session_authenticated(self):
-        purchase_order = PurchaseOrder.objects.create(vat_percent=Decimal("20.00"))
+        purchase_order = PurchaseOrder.objects.create(
+            purchase_number="PO/2026/0012",
+            vat_percent=Decimal("20.00"),
+        )
 
         response = self.client.get(
             reverse("admin:purchase_purchaseorder_pdf", args=[purchase_order.pk])
@@ -215,6 +241,12 @@ class PurchaseOrderAdminAutosaveTests(TestCase):
 
         self.assertEqual(response.status_code, 200, response.content)
         self.assertEqual(response["Content-Type"], "application/pdf")
+        self.assertEqual(
+            response["Content-Disposition"],
+            'attachment; filename="Purchase-Order-PO-2026-0012.pdf"',
+        )
+        self.assertTrue(response.content.startswith(b"%PDF-"))
+        self.assertGreater(len(response.content), 100)
         self.assertIn("_auth_user_id", self.client.session)
 
     def test_search_finds_purchase_order_outside_company_setting_year(self):
