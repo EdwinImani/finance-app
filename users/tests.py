@@ -1,8 +1,11 @@
 from django.contrib import admin
+from django.contrib.auth import authenticate
 from datetime import timedelta
 
 from django.contrib.auth.models import Group, Permission, User
-from django.test import RequestFactory, TestCase
+from django.contrib.staticfiles import finders
+from django.template.loader import get_template
+from django.test import RequestFactory, SimpleTestCase, TestCase
 from django.urls import reverse
 from django.utils import timezone
 
@@ -11,6 +14,151 @@ from invoices.models import CommercialInvoice
 from partners.models import Partner
 from products.models import Product
 from purchase.models import PurchaseOrder
+from users.forms import AdminUserCreationForm
+
+
+class PasswordToggleTests(SimpleTestCase):
+
+    def test_login_and_admin_pages_load_accessible_password_toggle(self):
+        base_template = get_template("admin/base_site.html").template.source
+        with open(finders.find("admin/js/password_toggle.js"), encoding="utf-8") as script_file:
+            script = script_file.read()
+
+        self.assertIn("admin/js/password_toggle.js", base_template)
+        self.assertIn('button.type = "button"', script)
+        self.assertIn('input.type = show ? "text" : "password"', script)
+        self.assertIn("data-password-toggle", script)
+        self.assertIn("Afficher le mot de passe", script)
+        self.assertNotIn("console.log", script)
+
+
+class UserPasswordAuthenticationTests(TestCase):
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.staff_group = Group.objects.create(name="Staff")
+        cls.manager_group = Group.objects.create(name="Manager")
+
+    def creation_form_data(self, **overrides):
+        data = {
+            "username": "created-staff",
+            "first_name": "Created",
+            "last_name": "User",
+            "email": "created@example.com",
+            "password1": "Secure-Test-Password-482!",
+            "password2": "Secure-Test-Password-482!",
+            "is_active": True,
+            "is_staff": False,
+            "groups": [self.staff_group.pk],
+        }
+        data.update(overrides)
+        return data
+
+    def test_admin_creation_form_hashes_password_and_authenticates_staff_role(self):
+        raw_password = "Secure-Test-Password-482!"
+        form = AdminUserCreationForm(data=self.creation_form_data())
+
+        self.assertTrue(form.is_valid(), form.errors)
+        user = form.save()
+
+        self.assertNotEqual(user.password, raw_password)
+        self.assertTrue(user.check_password(raw_password))
+        self.assertTrue(user.has_usable_password())
+        self.assertTrue(user.is_active)
+        self.assertTrue(user.is_staff)
+        self.assertFalse(user.is_superuser)
+        self.assertEqual(authenticate(username=user.username, password=raw_password), user)
+        self.assertIsNone(authenticate(username=user.username, password="wrong-password"))
+
+    def test_django_admin_add_view_creates_login_capable_user(self):
+        administrator = User.objects.create_superuser(
+            username="user-creator",
+            email="creator@example.com",
+            password="Creator-Test-Password-729!",
+        )
+        self.client.force_login(administrator)
+
+        response = self.client.post(
+            reverse("admin:auth_user_add"),
+            self.creation_form_data(username="admin-created-user"),
+        )
+
+        self.assertEqual(response.status_code, 302)
+        user = User.objects.get(username="admin-created-user")
+        self.assertTrue(user.check_password("Secure-Test-Password-482!"))
+        self.assertTrue(user.is_active)
+        self.assertTrue(user.is_staff)
+        self.assertFalse(user.is_superuser)
+
+        self.client.logout()
+        login_response = self.client.post(
+            reverse("admin:login"),
+            {
+                "username": user.username,
+                "password": "Secure-Test-Password-482!",
+                "next": reverse("admin:index"),
+            },
+        )
+        self.assertEqual(login_response.status_code, 302)
+        self.assertEqual(login_response["Location"], reverse("admin:index"))
+
+    def test_manager_role_is_created_as_staff_without_superuser_access(self):
+        form = AdminUserCreationForm(
+            data=self.creation_form_data(
+                username="created-manager",
+                groups=[self.manager_group.pk],
+            )
+        )
+
+        self.assertTrue(form.is_valid(), form.errors)
+        user = form.save()
+
+        self.assertTrue(user.is_staff)
+        self.assertFalse(user.is_superuser)
+
+    def test_creation_form_rejects_mismatched_passwords(self):
+        form = AdminUserCreationForm(
+            data=self.creation_form_data(password2="Different-Test-Password-937!")
+        )
+
+        self.assertFalse(form.is_valid())
+        self.assertIn("password2", form.errors)
+
+    def test_inactive_user_cannot_authenticate(self):
+        user = User.objects.create_user(
+            username="inactive-user",
+            password="Secure-Test-Password-482!",
+            is_active=False,
+            is_staff=True,
+        )
+
+        self.assertIsNone(
+            authenticate(username=user.username, password="Secure-Test-Password-482!")
+        )
+
+    def test_non_staff_user_cannot_enter_admin(self):
+        user = User.objects.create_user(
+            username="site-only-user",
+            password="Secure-Test-Password-482!",
+            is_active=True,
+            is_staff=False,
+        )
+
+        self.client.force_login(user)
+        response = self.client.get(reverse("admin:index"))
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(reverse("admin:login"), response["Location"])
+
+    def test_superuser_keeps_admin_access(self):
+        user = User.objects.create_superuser(
+            username="security-superuser",
+            email="security@example.com",
+            password="Secure-Test-Password-482!",
+        )
+
+        self.client.force_login(user)
+        self.assertEqual(self.client.get(reverse("admin:index")).status_code, 200)
 
 
 class UserAdminConfigurationTests(TestCase):

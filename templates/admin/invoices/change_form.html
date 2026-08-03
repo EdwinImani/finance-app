@@ -940,9 +940,17 @@
     body.app-invoices.change-form .invoice-line-row > td.delete {
         display: flex !important;
         align-items: center !important;
-        justify-content: flex-start !important;
+        justify-content: center !important;
+        text-align: center !important;
         width: 100% !important;
         min-width: 0 !important;
+    }
+
+    body.app-invoices.change-form .invoice-line-row > td.delete input,
+    body.app-invoices.change-form .invoice-line-row > td.delete a,
+    body.app-invoices.change-form .invoice-line-row > td.delete button {
+        margin-left: auto !important;
+        margin-right: auto !important;
     }
 
     body.app-invoices.change-form .inline-group:has(.field-product) .tabular tr.add-row {

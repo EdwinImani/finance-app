@@ -330,6 +330,42 @@
         -webkit-backdrop-filter: blur(8px);
     }
 
+    .password-field-wrapper {
+        position: relative;
+        display: inline-block;
+        width: 100%;
+    }
+
+    .password-field-wrapper input {
+        padding-right: 46px !important;
+        box-sizing: border-box;
+        width: 100%;
+    }
+
+    .password-toggle {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 30px;
+        height: 30px;
+        padding: 4px;
+        border: 0;
+        border-radius: 50%;
+        background: transparent;
+        color: #5f6b7a;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .password-toggle svg {
+        width: 20px;
+        height: 20px;
+        fill: currentColor;
+    }
+
     .timezonewarning {
         display: none !important;
     }
@@ -2122,6 +2158,7 @@
 {{ block.super }}
 <script src="{% static 'admin/js/auto_search.js' %}?v=20260729-pagination-fix" defer></script>
 <script src="{% static 'admin/js/number_format_fields.js' %}?v=20260730-disable-number-wheel" defer></script>
+<script src="{% static 'admin/js/password_toggle.js' %}?v=20260803" defer></script>
 {% if user.is_authenticated %}
 <script>
 (function() {

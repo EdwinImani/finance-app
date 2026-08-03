@@ -482,8 +482,23 @@
     }
 
     .inline-group td.delete {
-        text-align: left;
+        text-align: center !important;
         vertical-align: middle;
+    }
+
+    body.app-purchase.change-form .inline-group .tabular tbody tr.form-row > td.delete {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 100% !important;
+        min-width: 0 !important;
+    }
+
+    body.app-purchase.change-form .inline-group .tabular tbody tr.form-row > td.delete input,
+    body.app-purchase.change-form .inline-group .tabular tbody tr.form-row > td.delete a,
+    body.app-purchase.change-form .inline-group .tabular tbody tr.form-row > td.delete button {
+        margin-left: auto !important;
+        margin-right: auto !important;
     }
 
     .purchase-order-hero {

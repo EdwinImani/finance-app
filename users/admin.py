@@ -8,6 +8,7 @@ from django.utils.html import format_html
 
 from financeapp.admin_mixins import SaveRedirectToWelcomeMixin
 from financeapp.access_control import is_administrator
+from .forms import AdminUserChangeForm, AdminUserCreationForm
 
 
 LogEntry._meta.verbose_name = "History"
@@ -66,6 +67,26 @@ class WelcomeRedirectUserAdmin(
     SaveRedirectToWelcomeMixin,
     UserAdmin,
 ):
+    add_form = AdminUserCreationForm
+    form = AdminUserChangeForm
+    add_fieldsets = (
+        (
+            "Compte et mot de passe",
+            {
+                "classes": ("wide",),
+                "fields": (
+                    "username",
+                    "password1",
+                    "password2",
+                    ("first_name", "last_name"),
+                    "email",
+                    "is_active",
+                    "is_staff",
+                    "groups",
+                ),
+            },
+        ),
+    )
 
     list_display = (
         "username",
