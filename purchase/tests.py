@@ -127,6 +127,8 @@ class PurchaseOrderAdminFormTests(TestCase):
         self.assertIn("20260803-native-formset", template_source)
         self.assertIn("window.invoiceAutosaveNow", template_source)
         self.assertNotIn("fetch(form.action", template_source)
+        self.assertIn('target="_blank"', template_source)
+        self.assertNotIn(" download", template_source)
 
     def test_product_autofill_maps_current_hs_code_when_product_changes(self):
         with open(finders.find("admin/js/product_autofill.js"), encoding="utf-8") as script_file:
@@ -244,7 +246,7 @@ class PurchaseOrderAdminAutosaveTests(TestCase):
         self.assertEqual(response["Content-Type"], "application/pdf")
         self.assertEqual(
             response["Content-Disposition"],
-            'attachment; filename="Purchase-Order-PO-2026-0012.pdf"',
+            'inline; filename="Purchase-Order-PO-2026-0012.pdf"',
         )
         self.assertTrue(response.content.startswith(b"%PDF-"))
         self.assertGreater(len(response.content), 100)

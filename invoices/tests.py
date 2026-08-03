@@ -3,6 +3,7 @@ from decimal import Decimal
 from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.contrib.staticfiles import finders
+from django.template.loader import get_template
 from django.test import SimpleTestCase, TestCase
 from django.test import override_settings
 from django.urls import reverse
@@ -76,6 +77,12 @@ class PdfFilenameTests(SimpleTestCase):
             document_pdf_filename("Commercial-Invoice", "CI/2026/0015"),
             "Commercial-Invoice-CI-2026-0015.pdf",
         )
+
+    def test_invoice_admin_pdf_links_open_new_tab_without_download_attribute(self):
+        template_source = get_template("admin/invoices/change_form.html").template.source
+
+        self.assertIn('target="_blank"', template_source)
+        self.assertNotIn(" download", template_source)
 
 
 class PdfPaginationTests(TestCase):
@@ -1348,7 +1355,7 @@ class CommercialInvoiceAdminDraftTests(TestCase):
         self.assertEqual(response["Content-Type"], "application/pdf")
         self.assertEqual(
             response["Content-Disposition"],
-            'attachment; filename="Commercial-Invoice-CI-2026-0015.pdf"',
+            'inline; filename="Commercial-Invoice-CI-2026-0015.pdf"',
         )
         self.assertTrue(response.content.startswith(b"%PDF-"))
         self.assertGreater(len(response.content), 100)
@@ -1366,7 +1373,7 @@ class CommercialInvoiceAdminDraftTests(TestCase):
         self.assertEqual(response["Content-Type"], "application/pdf")
         self.assertEqual(
             response["Content-Disposition"],
-            'attachment; filename="Proforma-Invoice-PR-2026-0005.pdf"',
+            'inline; filename="Proforma-Invoice-PR-2026-0005.pdf"',
         )
         self.assertTrue(response.content.startswith(b"%PDF-"))
         self.assertGreater(len(response.content), 100)

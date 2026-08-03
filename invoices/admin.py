@@ -455,7 +455,7 @@ class InvoiceAdminMixin:
             )
 
         response = HttpResponse(pdf_bytes, content_type="application/pdf")
-        response["Content-Disposition"] = f'attachment; filename="{self.get_pdf_filename(obj, document_type=document_type)}"'
+        response["Content-Disposition"] = f'inline; filename="{self.get_pdf_filename(obj, document_type=document_type)}"'
         response["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
         response["Pragma"] = "no-cache"
         response["Expires"] = "0"

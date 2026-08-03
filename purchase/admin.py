@@ -632,7 +632,7 @@ class PurchaseOrderAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.M
 
         response = HttpResponse(pdf_bytes, content_type="application/pdf")
         filename = document_pdf_filename("Purchase-Order", obj.purchase_number)
-        response["Content-Disposition"] = f'attachment; filename="{filename}"'
+        response["Content-Disposition"] = f'inline; filename="{filename}"'
         return response
 
     def get_purchase_report_pdf_url(self, request):
