@@ -21,6 +21,7 @@ class PasswordToggleTests(SimpleTestCase):
 
     def test_login_and_admin_pages_load_accessible_password_toggle(self):
         base_template = get_template("admin/base_site.html").template.source
+        login_template = get_template("admin/login.html").template.source
         with open(finders.find("admin/js/password_toggle.js"), encoding="utf-8") as script_file:
             script = script_file.read()
 
@@ -30,6 +31,11 @@ class PasswordToggleTests(SimpleTestCase):
         self.assertIn("data-password-toggle", script)
         self.assertIn("Afficher le mot de passe", script)
         self.assertNotIn("console.log", script)
+        self.assertIn(".password-field-wrapper", login_template)
+        self.assertIn("width: 100% !important", login_template)
+        self.assertIn("height: 44px !important", login_template)
+        self.assertIn("padding: 0 48px 0 16px !important", login_template)
+        self.assertIn("position: absolute !important", login_template)
 
 
 class UserPasswordAuthenticationTests(TestCase):
@@ -115,6 +121,18 @@ class UserPasswordAuthenticationTests(TestCase):
 
         self.assertTrue(user.is_staff)
         self.assertFalse(user.is_superuser)
+
+        self.client.logout()
+        response = self.client.post(
+            reverse("admin:login"),
+            {
+                "username": user.username,
+                "password": "Secure-Test-Password-482!",
+                "next": reverse("admin:index"),
+            },
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], reverse("admin:index"))
 
     def test_creation_form_rejects_mismatched_passwords(self):
         form = AdminUserCreationForm(

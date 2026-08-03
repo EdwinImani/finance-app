@@ -249,11 +249,15 @@
     }
 
     #login-form .login-input input[type="text"],
-    #login-form .login-input input[type="password"] {
+    #login-form .login-input input[type="password"],
+    #login-form .login-input input[type="email"] {
         width: 100% !important;
         max-width: none !important;
-        min-height: 44px;
+        height: 44px !important;
+        min-height: 44px !important;
         padding: 0 16px !important;
+        margin: 0 !important;
+        box-sizing: border-box !important;
         border: 0 !important;
         border-radius: 8px !important;
         background: rgba(255, 255, 255, 0.96) !important;
@@ -264,6 +268,35 @@
         outline: none;
         appearance: none;
         -webkit-appearance: none;
+    }
+
+    #login-form .login-input .password-field-wrapper {
+        position: relative !important;
+        display: block !important;
+        width: 100% !important;
+        height: 44px !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        box-sizing: border-box !important;
+    }
+
+    #login-form .login-input .password-field-wrapper input {
+        width: 100% !important;
+        height: 44px !important;
+        padding: 0 48px 0 16px !important;
+        margin: 0 !important;
+        box-sizing: border-box !important;
+    }
+
+    #login-form .login-input .password-toggle {
+        position: absolute !important;
+        right: 10px !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
+        width: 30px !important;
+        height: 30px !important;
+        margin: 0 !important;
+        padding: 4px !important;
     }
 
     #login-form .login-input input[type="text"]::placeholder,
