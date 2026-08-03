@@ -1477,7 +1477,7 @@ def _build_packing_section(*, invoice, packing_entries, styles):
     ]
 
     header_top = [
-        Paragraph("Item No", styles["table_head"]),
+        Paragraph("Item No", styles["table_head_center"]),
         Paragraph("No Packing", styles["table_head"]),
         Paragraph("Gross/kg", styles["table_head_center"]),
         Paragraph("Net/kg", styles["table_head_center"]),

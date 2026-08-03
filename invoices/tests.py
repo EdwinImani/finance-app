@@ -211,7 +211,11 @@ class PdfPaginationTests(TestCase):
         self.assertNotIn("Item\nNo.", header.text)
         self.assertEqual(packing_table._colWidths[0], PACKING_COLUMN_WIDTHS_MM[0] * mm)
         self.assertLessEqual(height, header.style.leading)
-        self.assertEqual(header.style.alignment, 0)
+        shipping_header = _build_shipping_items_table([], _build_styles())._cellvalues[0][0]
+        self.assertEqual(header.style.name, shipping_header.style.name)
+        self.assertEqual(header.style.fontName, shipping_header.style.fontName)
+        self.assertEqual(header.style.fontSize, shipping_header.style.fontSize)
+        self.assertEqual(header.style.alignment, shipping_header.style.alignment)
 
     def test_pdf_titles_capitalize_each_word(self):
         self.assertEqual(_format_pdf_title("COMMERCIAL INVOICE"), "Commercial Invoice")
