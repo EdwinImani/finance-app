@@ -30,9 +30,11 @@ from .pdf_builder import (
     PDF_OTHER_PAGE_ITEM_LIMIT,
     PDF_SECOND_PAGE_ITEM_LIMIT,
     PDF_TOP_MARGIN,
+    INVOICE_AMOUNT_COLUMN_WIDTH_MM,
     _info_box,
     _build_invoice_details,
     _build_invoice_item_table_styles,
+    _build_items_table,
     _build_shipping_items_table,
     _build_info_box_paragraphs,
     _build_purchase_order_styles,
@@ -262,7 +264,7 @@ class PdfPaginationTests(TestCase):
         reference_table = blocks[2]
         self.assertEqual(
             [cell.leftPadding for cell in reference_table._cellStyles[0]],
-            [PDF_INVOICE_CONTENT_PADDING_MM * mm, 0],
+            [4, 4, 4],
         )
 
     def test_price_for_row_shows_formatted_grand_total_in_amount_column(self):
@@ -282,18 +284,21 @@ class PdfPaginationTests(TestCase):
         )
 
         reference_table = blocks[2]
-        price_for_table = reference_table._cellvalues[0][1]
-        self.assertEqual(price_for_table._colWidths[1], 35 * mm)
-        self.assertIn("Price for:", price_for_table._cellvalues[0][0].getPlainText())
-        self.assertIn("CPT Isfahan / Iran", price_for_table._cellvalues[0][0].getPlainText())
+        items_table = _build_items_table([], "EUR", _build_styles())
+        self.assertEqual(sum(reference_table._colWidths), sum(items_table._colWidths))
+        self.assertEqual(reference_table._colWidths[-1], items_table._colWidths[-1])
+        self.assertEqual(reference_table._colWidths[-1], INVOICE_AMOUNT_COLUMN_WIDTH_MM * mm)
+        self.assertIn("Price for:", reference_table._cellvalues[0][1].getPlainText())
+        self.assertIn("CPT Isfahan / Iran", reference_table._cellvalues[0][1].getPlainText())
         self.assertEqual(
-            price_for_table._cellvalues[0][1].getPlainText(),
+            reference_table._cellvalues[0][2].getPlainText(),
             "619,892.50 €",
         )
         self.assertEqual(
-            price_for_table._cellvalues[0][1].getPlainText(),
+            reference_table._cellvalues[0][2].getPlainText(),
             f"{_format_decimal_comma(invoice.total_amount())} €",
         )
+        self.assertEqual(reference_table._cellStyles[0][2].alignment, "RIGHT")
 
     def test_footer_invoice_city_country_moves_to_next_line(self):
         lines = format_footer_invoice_lines(
