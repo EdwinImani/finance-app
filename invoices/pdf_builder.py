@@ -19,6 +19,11 @@ PDF_INVOICE_CONTENT_PADDING_MM = 1.5
 PDF_INVOICE_REFERENCE_GAP_MM = 17
 INVOICE_ITEM_COLUMN_WIDTHS_MM = (10, 50, 31, 22, 12, 27, 28)
 INVOICE_AMOUNT_COLUMN_WIDTH_MM = INVOICE_ITEM_COLUMN_WIDTHS_MM[-1]
+TOTALS_LABEL_COLUMN_WIDTH_MM = 50
+TOTALS_AMOUNT_COLUMN_WIDTH_MM = 35
+TOTALS_CELL_HORIZONTAL_PADDING = 6
+SHIPPING_ITEM_COLUMN_WIDTHS_MM = (22, 70, 45, 27, 20)
+PACKING_COLUMN_WIDTHS_MM = (22, 66, 24, 24, 16, 16, 16)
 PDF_ACCENT_HEX = "#FF3300"
 
 try:
@@ -850,9 +855,9 @@ def _build_invoice_details(invoice, company, styles, document_type="default", cu
             price_for = getattr(invoice, "price_for", "") or "-"
             price_for_text = f"<b>Price for:</b> {_format_preserving_layout(price_for)}"
 
-        item_table_width_mm = sum(INVOICE_ITEM_COLUMN_WIDTHS_MM)
-        reference_width_mm = item_table_width_mm / 2
-        price_for_width_mm = item_table_width_mm - reference_width_mm - INVOICE_AMOUNT_COLUMN_WIDTH_MM
+        reference_table_width_mm = PDF_INVOICE_COLUMN_WIDTH_MM * 2
+        reference_width_mm = PDF_INVOICE_COLUMN_WIDTH_MM
+        price_for_width_mm = reference_table_width_mm - reference_width_mm - TOTALS_AMOUNT_COLUMN_WIDTH_MM
         reference_table = Table(
             [[
                 Paragraph(
@@ -863,8 +868,8 @@ def _build_invoice_details(invoice, company, styles, document_type="default", cu
                 Paragraph(_escape(_format_money(invoice.total_amount(), currency)), styles["body_right"])
                 if price_for_text else Spacer(1, 0),
             ]],
-            colWidths=[reference_width_mm * mm, price_for_width_mm * mm, INVOICE_AMOUNT_COLUMN_WIDTH_MM * mm],
-            hAlign="CENTER",
+            colWidths=[reference_width_mm * mm, price_for_width_mm * mm, TOTALS_AMOUNT_COLUMN_WIDTH_MM * mm],
+            hAlign="LEFT",
         )
         reference_table.setStyle(
             TableStyle(
@@ -873,7 +878,9 @@ def _build_invoice_details(invoice, company, styles, document_type="default", cu
                     # Align both labels with the content inside the
                     # Invoice Note and Terms frames above.
                     ("LEFTPADDING", (0, 0), (-1, -1), 4),
-                    ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+                    ("RIGHTPADDING", (0, 0), (1, 0), 4),
+                    ("LEFTPADDING", (2, 0), (2, 0), TOTALS_CELL_HORIZONTAL_PADDING),
+                    ("RIGHTPADDING", (2, 0), (2, 0), TOTALS_CELL_HORIZONTAL_PADDING),
                     ("ALIGN", (2, 0), (2, 0), "RIGHT"),
                     ("TOPPADDING", (0, 0), (-1, -1), 0),
                     ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
@@ -1428,7 +1435,7 @@ def _build_shipping_items_table(items, styles):
 
     table = Table(
         rows,
-        colWidths=[16 * mm, 76 * mm, 45 * mm, 27 * mm, 20 * mm],
+        colWidths=[width * mm for width in SHIPPING_ITEM_COLUMN_WIDTHS_MM],
         repeatRows=1,
     )
     table.setStyle(
@@ -1496,7 +1503,7 @@ def _build_packing_section(*, invoice, packing_entries, styles):
 
     packing_table = Table(
         rows,
-        colWidths=[18 * mm, 70 * mm, 24 * mm, 24 * mm, 16 * mm, 16 * mm, 16 * mm],
+        colWidths=[width * mm for width in PACKING_COLUMN_WIDTHS_MM],
         repeatRows=1,
     )
     packing_table.setStyle(
@@ -1550,15 +1557,19 @@ def _build_totals_table_from_values(*, gross_value, freight, vat_amount, discoun
         [Paragraph(_escape(label), styles["totals_label"]), Paragraph(_escape(value), styles["body_right"])]
         for label, value in rows
     ]
-    table = Table(cells, colWidths=[50 * mm, 35 * mm], hAlign="RIGHT")
+    table = Table(
+        cells,
+        colWidths=[TOTALS_LABEL_COLUMN_WIDTH_MM * mm, TOTALS_AMOUNT_COLUMN_WIDTH_MM * mm],
+        hAlign="RIGHT",
+    )
     table.setStyle(
         TableStyle(
             [
                 ("BACKGROUND", (0, total_row_index), (-1, total_row_index), colors.white),
                 ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
                 ("TOPPADDING", (0, 0), (-1, -1), 4),
-                ("LEFTPADDING", (0, 0), (-1, -1), 6),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 6),
+                ("LEFTPADDING", (0, 0), (-1, -1), TOTALS_CELL_HORIZONTAL_PADDING),
+                ("RIGHTPADDING", (0, 0), (-1, -1), TOTALS_CELL_HORIZONTAL_PADDING),
             ]
         )
     )

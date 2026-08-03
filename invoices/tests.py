@@ -30,12 +30,16 @@ from .pdf_builder import (
     PDF_OTHER_PAGE_ITEM_LIMIT,
     PDF_SECOND_PAGE_ITEM_LIMIT,
     PDF_TOP_MARGIN,
-    INVOICE_AMOUNT_COLUMN_WIDTH_MM,
+    TOTALS_AMOUNT_COLUMN_WIDTH_MM,
+    TOTALS_CELL_HORIZONTAL_PADDING,
+    SHIPPING_ITEM_COLUMN_WIDTHS_MM,
+    PACKING_COLUMN_WIDTHS_MM,
     _info_box,
     _build_invoice_details,
     _build_invoice_item_table_styles,
-    _build_items_table,
+    _build_totals_table,
     _build_shipping_items_table,
+    _build_packing_section,
     _build_info_box_paragraphs,
     _build_purchase_order_styles,
     _build_styles,
@@ -178,6 +182,33 @@ class PdfPaginationTests(TestCase):
         self.assertEqual(table._cellvalues[0][3].getPlainText(), "HS Code")
         self.assertEqual(table._cellvalues[1][3].getPlainText(), "8481.80")
 
+    def test_shipping_item_number_header_stays_on_one_line(self):
+        table = _build_shipping_items_table([], _build_styles())
+        header = table._cellvalues[0][0]
+        available_width = table._colWidths[0] - 8
+        _width, height = header.wrap(available_width, 100 * mm)
+
+        self.assertEqual(header.getPlainText(), "Item No.")
+        self.assertNotIn("Item\nNo.", header.text)
+        self.assertEqual(table._colWidths[0], SHIPPING_ITEM_COLUMN_WIDTHS_MM[0] * mm)
+        self.assertLessEqual(height, header.style.leading)
+
+    def test_packing_item_number_header_stays_on_one_line(self):
+        invoice = CommercialInvoice(packing_specification="Boxes")
+        packing_table = _build_packing_section(
+            invoice=invoice,
+            packing_entries=[],
+            styles=_build_styles(),
+        )[-1]
+        header = packing_table._cellvalues[0][0]
+        available_width = packing_table._colWidths[0] - 8
+        _width, height = header.wrap(available_width, 100 * mm)
+
+        self.assertEqual(header.getPlainText(), "Item No.")
+        self.assertNotIn("Item\nNo.", header.text)
+        self.assertEqual(packing_table._colWidths[0], PACKING_COLUMN_WIDTHS_MM[0] * mm)
+        self.assertLessEqual(height, header.style.leading)
+
     def test_pdf_titles_capitalize_each_word(self):
         self.assertEqual(_format_pdf_title("COMMERCIAL INVOICE"), "Commercial Invoice")
         self.assertEqual(_format_pdf_title("Proforma Invoice"), "Proforma Invoice")
@@ -264,7 +295,7 @@ class PdfPaginationTests(TestCase):
         reference_table = blocks[2]
         self.assertEqual(
             [cell.leftPadding for cell in reference_table._cellStyles[0]],
-            [4, 4, 4],
+            [4, 4, TOTALS_CELL_HORIZONTAL_PADDING],
         )
 
     def test_price_for_row_shows_formatted_grand_total_in_amount_column(self):
@@ -284,10 +315,17 @@ class PdfPaginationTests(TestCase):
         )
 
         reference_table = blocks[2]
-        items_table = _build_items_table([], "EUR", _build_styles())
-        self.assertEqual(sum(reference_table._colWidths), sum(items_table._colWidths))
-        self.assertEqual(reference_table._colWidths[-1], items_table._colWidths[-1])
-        self.assertEqual(reference_table._colWidths[-1], INVOICE_AMOUNT_COLUMN_WIDTH_MM * mm)
+        totals_table = _build_totals_table(invoice, "EUR", _build_styles())
+        self.assertEqual(reference_table._colWidths[-1], totals_table._colWidths[-1])
+        self.assertEqual(reference_table._colWidths[-1], TOTALS_AMOUNT_COLUMN_WIDTH_MM * mm)
+        self.assertEqual(sum(reference_table._colWidths), PDF_INVOICE_COLUMN_WIDTH_MM * 2 * mm)
+        self.assertEqual(reference_table._cellStyles[0][2].rightPadding, TOTALS_CELL_HORIZONTAL_PADDING)
+        self.assertEqual(
+            reference_table._cellStyles[0][2].rightPadding,
+            totals_table._cellStyles[0][1].rightPadding,
+        )
+        self.assertEqual(reference_table.hAlign, "LEFT")
+        self.assertEqual(totals_table.hAlign, "RIGHT")
         self.assertIn("Price for:", reference_table._cellvalues[0][1].getPlainText())
         self.assertIn("CPT Isfahan / Iran", reference_table._cellvalues[0][1].getPlainText())
         self.assertEqual(
