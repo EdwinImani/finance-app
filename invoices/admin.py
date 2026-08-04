@@ -2,6 +2,7 @@ from decimal import Decimal
 
 from django import forms
 from django.contrib import admin
+from django.contrib.admin.models import ADDITION, LogEntry
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.forms.formsets import all_valid
 from django.db.models import Count, DecimalField, ExpressionWrapper, F, Sum, Value
@@ -638,7 +639,7 @@ class InvoiceAdminMixin:
 class ProformaInvoiceAdmin(InvoiceAdminMixin, SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.ModelAdmin):
     changelist_template = "admin/invoices/change_list.html"
     form = ProformaInvoiceForm
-    readonly_fields = InvoiceAdminMixin.readonly_fields + ("created_by",)
+    readonly_fields = InvoiceAdminMixin.readonly_fields + ("created_by_display",)
 
     fieldsets = (
         ("Invoice Overview", {
@@ -648,7 +649,7 @@ class ProformaInvoiceAdmin(InvoiceAdminMixin, SaveRedirectToWelcomeMixin, PageSi
                 "end_user",
                 "our_reference",
                 "price_for",
-                "created_by",
+                "created_by_display",
                 ("delivery_time", "terms_conditions"),
             )
         }),
@@ -671,7 +672,7 @@ class ProformaInvoiceAdmin(InvoiceAdminMixin, SaveRedirectToWelcomeMixin, PageSi
         "invoice_date_display",
         "importer",
         "end_user",
-        "created_by",
+        "created_by_display",
         "amount_display",
         "pdf_link",
     )
@@ -698,6 +699,36 @@ class ProformaInvoiceAdmin(InvoiceAdminMixin, SaveRedirectToWelcomeMixin, PageSi
         "invoice_date",
         "importer",
     )
+
+    def create_draft_invoice(self, request=None):
+        draft = super().create_draft_invoice(request)
+        if request:
+            LogEntry.objects.log_actions(
+                user_id=request.user.pk,
+                queryset=[draft],
+                action_flag=ADDITION,
+                change_message="Proforma invoice draft created.",
+                single_object=True,
+            )
+        return draft
+
+    def created_by_display(self, obj):
+        if not obj or not obj.pk:
+            return "-"
+        creation = (
+            LogEntry.objects.filter(
+                content_type__app_label=obj._meta.app_label,
+                content_type__model=obj._meta.model_name,
+                object_id=str(obj.pk),
+                action_flag=ADDITION,
+            )
+            .select_related("user")
+            .order_by("action_time", "pk")
+            .first()
+        )
+        return creation.user if creation else "-"
+
+    created_by_display.short_description = "Created by"
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)

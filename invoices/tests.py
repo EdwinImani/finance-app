@@ -111,7 +111,6 @@ class InvoiceCreatorAuditTests(TestCase):
         self.client.force_login(self.creator)
 
         for model, url_name in (
-            (ProformaInvoice, "admin:invoices_proformainvoice_add"),
             (CommercialInvoice, "admin:invoices_commercialinvoice_add"),
         ):
             response = self.client.get(reverse(url_name))
@@ -128,8 +127,8 @@ class InvoiceCreatorAuditTests(TestCase):
             self.assertContains(response, self.creator.get_username())
 
     def test_creator_is_not_replaced_when_document_is_edited(self):
-        document = ProformaInvoice.objects.create(created_by=self.creator)
-        model_admin = admin.site._registry[ProformaInvoice]
+        document = CommercialInvoice.objects.create(created_by=self.creator)
+        model_admin = admin.site._registry[CommercialInvoice]
         request = type("Request", (), {"user": self.other_user})()
 
         model_admin.save_model(request, document, form=None, change=True)
@@ -163,6 +162,21 @@ class ProformaStaffAccessTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 200)
+
+    def test_proforma_creator_is_recorded_in_native_admin_log(self):
+        user = get_user_model().objects.create_superuser(
+            username="proforma-creator",
+            password="password123",
+            email="proforma-creator@example.com",
+        )
+        self.client.force_login(user)
+
+        response = self.client.get(reverse("admin:invoices_proformainvoice_add"))
+
+        self.assertEqual(response.status_code, 302)
+        proforma = ProformaInvoice.objects.latest("pk")
+        model_admin = admin.site._registry[ProformaInvoice]
+        self.assertEqual(model_admin.created_by_display(proforma), user)
 
 
 class PdfPaginationTests(TestCase):
