@@ -1,2 +1,2 @@
 release: python manage.py migrate --noinput
-web: gunicorn financeapp.wsgi:application --log-file -
+web: python manage.py migrate --noinput && gunicorn financeapp.wsgi:application --log-file -
