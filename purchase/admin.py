@@ -280,6 +280,8 @@ class PurchaseOrderAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.M
             if removed_year_filter:
                 return redirect(f"{request.path}?{query.urlencode()}")
 
+        extra_context = extra_context or {}
+        extra_context["can_view_reports"] = not is_staff_role(request.user)
         return super().changelist_view(request, extra_context=extra_context)
 
     def has_explicit_year_filter(self, request, field_name):
@@ -686,6 +688,8 @@ class PurchaseOrderAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.M
         return result.getvalue()
 
     def _build_report_context(self, request):
+        if is_staff_role(request.user):
+            raise PermissionDenied
         if not self.has_view_permission(request):
             raise PermissionDenied
         company = CompanySetting.objects.first()

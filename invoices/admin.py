@@ -258,6 +258,7 @@ class InvoiceAdminMixin:
                 return redirect(f"{request.path}?{query.urlencode()}")
 
         extra_context = extra_context or {}
+        extra_context["can_view_reports"] = not is_staff_role(request.user)
         try:
             extra_context["draft_add_url"] = self.get_invoice_draft_add_url()
         except NoReverseMatch:
@@ -730,8 +731,49 @@ class ProformaInvoiceAdmin(InvoiceAdminMixin, SaveRedirectToWelcomeMixin, PageSi
 
     created_by_display.short_description = "Created by"
 
+    def _is_created_by(self, obj, user):
+        return bool(obj and obj.pk) and LogEntry.objects.filter(
+            content_type__app_label=obj._meta.app_label,
+            content_type__model=obj._meta.model_name,
+            object_id=str(obj.pk),
+            action_flag=ADDITION,
+            user=user,
+        ).exists()
+
+    def changeform_view(self, request, object_id=None, form_url="", extra_context=None):
+        if object_id and is_staff_role(request.user):
+            obj = self.model._default_manager.filter(pk=object_id).first()
+            if obj and not self._is_created_by(obj, request.user):
+                raise PermissionDenied
+        return super().changeform_view(request, object_id, form_url, extra_context)
+
+    def has_view_permission(self, request, obj=None):
+        allowed = super().has_view_permission(request, obj)
+        if not allowed or not is_staff_role(request.user) or obj is None:
+            return allowed
+        return self._is_created_by(obj, request.user)
+
+    def has_change_permission(self, request, obj=None):
+        allowed = super().has_change_permission(request, obj)
+        if not allowed or not is_staff_role(request.user) or obj is None:
+            return allowed
+        return self._is_created_by(obj, request.user)
+
+    def has_delete_permission(self, request, obj=None):
+        if is_staff_role(request.user):
+            return False
+        return super().has_delete_permission(request, obj)
+
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
+        if is_staff_role(request.user):
+            object_ids = LogEntry.objects.filter(
+                content_type__app_label=self.model._meta.app_label,
+                content_type__model=self.model._meta.model_name,
+                action_flag=ADDITION,
+                user=request.user,
+            ).values_list("object_id", flat=True)
+            queryset = queryset.filter(pk__in=list(object_ids))
         queryset = queryset.annotate(items_count=Count("items", distinct=True))
         if not request.GET.get("o"):
             queryset = queryset.order_by("-invoice_date", "-id")
@@ -1139,6 +1181,8 @@ class CommercialInvoiceAdmin(InvoiceAdminMixin, SaveRedirectToWelcomeMixin, Page
         return self.export_pdf(request, object_id, document_type="dispatching_note")
 
     def commercial_report(self, request):
+        if is_staff_role(request.user):
+            raise PermissionDenied
         if not self.has_view_permission(request):
             raise PermissionDenied
         importers = Partner.objects.filter(partner_type="importer").order_by("description")

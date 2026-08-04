@@ -264,8 +264,10 @@ document.addEventListener("DOMContentLoaded", function() {
 {% endblock %}
 
 {% block object-tools-items %}
-<li>
-    <a href="report/">Purchase Report</a>
-</li>
+{% if can_view_reports %}
+    <li>
+        <a href="report/">Purchase Report</a>
+    </li>
+{% endif %}
 {{ block.super }}
 {% endblock %}

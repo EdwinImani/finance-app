@@ -99,7 +99,7 @@ class ProductAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.ModelAd
     change_form_template = "admin/products/product/change_form.html"
 
     def has_add_permission(self, request):
-        return not is_staff_role(request.user) and super().has_add_permission(request)
+        return super().has_add_permission(request)
 
     def has_change_permission(self, request, obj=None):
         return not is_staff_role(request.user) and super().has_change_permission(request, obj)

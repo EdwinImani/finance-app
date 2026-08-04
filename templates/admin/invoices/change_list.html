@@ -292,7 +292,7 @@
 {% endblock %}
 
 {% block object-tools-items %}
-{% if cl.opts.model_name == "commercialinvoice" %}
+{% if cl.opts.model_name == "commercialinvoice" and can_view_reports %}
 <li>
     <a href="report/">Commercial Report</a>
 </li>

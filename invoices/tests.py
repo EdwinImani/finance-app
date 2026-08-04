@@ -179,6 +179,74 @@ class ProformaStaffAccessTests(TestCase):
         self.assertEqual(model_admin.created_by_display(proforma), user)
 
 
+class StaffInvoiceScopeTests(TestCase):
+
+    def setUp(self):
+        group = Group.objects.create(name="Staff")
+        group.permissions.add(
+            *Permission.objects.filter(
+                content_type__app_label="invoices",
+                codename__in=(
+                    "view_proformainvoice",
+                    "add_proformainvoice",
+                    "change_proformainvoice",
+                    "view_commercialinvoice",
+                    "add_commercialinvoice",
+                    "change_commercialinvoice",
+                ),
+            )
+        )
+        self.user = get_user_model().objects.create_user(
+            username="scoped-invoice-staff",
+            password="password123",
+            is_active=True,
+            is_staff=True,
+        )
+        self.user.groups.add(group)
+        self.client.force_login(self.user)
+
+    def test_staff_sees_only_own_commercial_invoices(self):
+        own = CommercialInvoice.objects.create(created_by=self.user)
+        other = CommercialInvoice.objects.create()
+
+        response = self.client.get(
+            reverse("admin:invoices_commercialinvoice_changelist")
+        )
+
+        self.assertContains(response, own.invoice_number)
+        self.assertNotContains(response, other.invoice_number)
+        self.assertEqual(
+            self.client.get(
+                reverse("admin:invoices_commercialinvoice_change", args=[other.pk])
+            ).status_code,
+            403,
+        )
+
+    def test_staff_sees_only_proformas_created_through_own_session(self):
+        response = self.client.get(reverse("admin:invoices_proformainvoice_add"))
+        self.assertEqual(response.status_code, 302)
+        own = ProformaInvoice.objects.latest("pk")
+        other = ProformaInvoice.objects.create()
+
+        response = self.client.get(
+            reverse("admin:invoices_proformainvoice_changelist")
+        )
+
+        self.assertContains(response, own.invoice_number)
+        self.assertNotContains(response, other.invoice_number)
+        self.assertEqual(
+            self.client.get(
+                reverse("admin:invoices_proformainvoice_change", args=[other.pk])
+            ).status_code,
+            403,
+        )
+
+    def test_staff_cannot_open_commercial_reports(self):
+        response = self.client.get(reverse("admin:commercial_invoice_report"))
+
+        self.assertEqual(response.status_code, 403)
+
+
 class PdfPaginationTests(TestCase):
 
     def test_pdf_numbers_use_thousands_separator_and_decimal_point(self):

@@ -1,6 +1,9 @@
 from decimal import Decimal
 from django.contrib import admin
+from django.contrib.admin.views.decorators import staff_member_required
+from django.core.exceptions import PermissionDenied
 from django.shortcuts import render
+from financeapp.access_control import is_staff_role
 from .models import PurchaseOrder
 from .forms import PurchaseReportForm
 
@@ -12,17 +15,26 @@ def purchase_admin_context(request, extra_context=None):
     return context
 
 
+@staff_member_required
 def purchase_home(request):
+    if is_staff_role(request.user):
+        raise PermissionDenied
     orders = PurchaseOrder.objects.all().prefetch_related("items", "seller").order_by("-purchase_date")
     return render(request, "purchase/home.html", purchase_admin_context(request, {"orders": orders}))
 
 
+@staff_member_required
 def purchase_report_filter(request):
+    if is_staff_role(request.user):
+        raise PermissionDenied
     form = PurchaseReportForm(request.GET or None)
     return render(request, "purchase/report_filter.html", purchase_admin_context(request, {"form": form}))
 
 
+@staff_member_required
 def purchase_report_result(request):
+    if is_staff_role(request.user):
+        raise PermissionDenied
     form = PurchaseReportForm(request.GET or None)
 
     orders = PurchaseOrder.objects.all().prefetch_related("items", "items__product", "seller")

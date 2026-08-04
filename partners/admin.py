@@ -44,7 +44,7 @@ class PartnerAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.ModelAd
     change_form_template = "admin/partners/partner/change_form.html"
 
     def has_add_permission(self, request):
-        return not is_staff_role(request.user) and super().has_add_permission(request)
+        return super().has_add_permission(request)
 
     def has_change_permission(self, request, obj=None):
         return not is_staff_role(request.user) and super().has_change_permission(request, obj)
@@ -106,6 +106,9 @@ class PartnerAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.ModelAd
         )
 
     def add_view(self, request, form_url="", extra_context=None):
+        if is_staff_role(request.user):
+            return super().add_view(request, form_url, extra_context)
+
         if request.method == "GET" and not request.GET.get("_popup"):
             if not self.has_add_permission(request):
                 raise PermissionDenied

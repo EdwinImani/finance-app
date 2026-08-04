@@ -2,6 +2,7 @@ from decimal import Decimal
 
 from django.contrib import admin
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group, Permission
 from django.contrib.staticfiles import finders
 from django.template.loader import get_template
 from django.test import SimpleTestCase, TestCase
@@ -52,6 +53,68 @@ class PurchaseOrderCreatorAuditTests(TestCase):
 
         self.assertEqual(purchase_order.created_by, self.creator)
 
+
+class StaffPurchaseOrderScopeTests(TestCase):
+
+    def setUp(self):
+        group = Group.objects.create(name="Staff")
+        group.permissions.add(
+            *Permission.objects.filter(
+                content_type__app_label="purchase",
+                codename__in=(
+                    "view_purchaseorder",
+                    "add_purchaseorder",
+                    "change_purchaseorder",
+                ),
+            )
+        )
+        self.user = get_user_model().objects.create_user(
+            username="scoped-purchase-staff",
+            password="password123",
+            is_active=True,
+            is_staff=True,
+        )
+        self.user.groups.add(group)
+        self.client.force_login(self.user)
+
+    def test_staff_sees_only_own_purchase_orders(self):
+        own = PurchaseOrder.objects.create(created_by=self.user)
+        other = PurchaseOrder.objects.create()
+
+        response = self.client.get(
+            reverse("admin:purchase_purchaseorder_changelist")
+        )
+
+        self.assertContains(response, own.purchase_number)
+        self.assertNotContains(response, other.purchase_number)
+        self.assertEqual(
+            self.client.get(
+                reverse("admin:purchase_purchaseorder_change", args=[other.pk])
+            ).status_code,
+            403,
+        )
+
+    def test_staff_cannot_open_purchase_reports(self):
+        self.assertEqual(
+            self.client.get(reverse("purchase_home")).status_code,
+            403,
+        )
+        self.assertEqual(
+            self.client.get(reverse("purchase_report_filter")).status_code,
+            403,
+        )
+        self.assertEqual(
+            self.client.get(reverse("purchase_report_result")).status_code,
+            403,
+        )
+        self.assertEqual(
+            self.client.get(reverse("admin:purchase_report")).status_code,
+            403,
+        )
+        self.assertEqual(
+            self.client.get(reverse("admin:purchase_report_pdf")).status_code,
+            403,
+        )
 
 class ProductInfoViewTests(TestCase):
 

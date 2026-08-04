@@ -389,12 +389,20 @@ class RoleAccessControlTests(TestCase):
             self.login(user)
             self.assertEqual(self.client.get(reverse("admin:password_change")).status_code, 200)
 
-    def test_staff_product_and_partner_are_read_only(self):
+    def test_staff_can_add_products_and_partners_but_existing_records_are_read_only(self):
         self.login(self.staff_user)
         self.assertEqual(self.client.get(reverse("admin:products_product_changelist")).status_code, 200)
         self.assertEqual(self.client.get(reverse("admin:partners_partner_changelist")).status_code, 200)
-        self.assertEqual(self.client.get(reverse("admin:products_product_add")).status_code, 403)
-        self.assertEqual(self.client.get(reverse("admin:partners_partner_add")).status_code, 403)
+        self.assertEqual(self.client.get(reverse("admin:products_product_add")).status_code, 200)
+        self.assertEqual(self.client.get(reverse("admin:partners_partner_add")).status_code, 200)
+        product_response = self.client.get(
+            reverse("admin:products_product_change", args=[self.product.pk])
+        )
+        partner_response = self.client.get(
+            reverse("admin:partners_partner_change", args=[self.partner.pk])
+        )
+        self.assertNotContains(product_response, 'name="_save"')
+        self.assertNotContains(partner_response, 'name="_save"')
         self.assertEqual(
             self.client.get(reverse("admin:products_product_delete", args=[self.product.pk])).status_code,
             403,

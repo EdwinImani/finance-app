@@ -1,8 +1,47 @@
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group, Permission
 from django.test import TestCase
 from django.urls import reverse
 
 from partners.models import Partner, PartnerAddress, PartnerPhone
+
+
+class StaffPartnerPermissionTests(TestCase):
+
+    def setUp(self):
+        group = Group.objects.create(name="Staff")
+        group.permissions.add(
+            Permission.objects.get(
+                content_type__app_label="partners", codename="view_partner"
+            ),
+            Permission.objects.get(
+                content_type__app_label="partners", codename="add_partner"
+            ),
+        )
+        self.user = get_user_model().objects.create_user(
+            username="partner-staff",
+            password="password123",
+            is_active=True,
+            is_staff=True,
+        )
+        self.user.groups.add(group)
+        self.client.force_login(self.user)
+
+    def test_staff_can_add_but_cannot_change_existing_partner(self):
+        partner = Partner.objects.create(
+            description="Existing partner",
+            partner_type="seller",
+        )
+
+        self.assertEqual(
+            self.client.get(reverse("admin:partners_partner_add")).status_code,
+            200,
+        )
+        response = self.client.get(
+            reverse("admin:partners_partner_change", args=[partner.pk])
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, 'name="_save"')
 
 
 class PartnerAdminAutosaveTests(TestCase):
