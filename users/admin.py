@@ -83,6 +83,7 @@ class WelcomeRedirectUserAdmin(
                     "is_active",
                     "is_staff",
                     "groups",
+                    "can_view_all_documents",
                 ),
             },
         ),
@@ -131,6 +132,7 @@ class WelcomeRedirectUserAdmin(
                     "is_superuser",
                     "groups",
                     "user_permissions",
+                    "can_view_all_documents",
                 )
             },
         ),

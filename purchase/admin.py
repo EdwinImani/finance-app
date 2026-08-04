@@ -18,7 +18,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import format_html
 from financeapp.admin_mixins import PageSizeAdminMixin, SaveRedirectToWelcomeMixin
-from financeapp.access_control import is_owned_by_user, is_staff_role
+from financeapp.access_control import can_view_all_documents, is_owned_by_user, is_staff_role
 from financeapp.filename_utils import document_pdf_filename
 from financeapp.pdf_rendering import get_pdf_fallback_reason, should_try_weasyprint
 from invoices.pdf_builder import build_purchase_order_pdf, build_purchase_report_pdf, format_currency_symbol
@@ -112,7 +112,7 @@ class PurchaseOrderAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.M
     def changeform_view(self, request, object_id=None, form_url="", extra_context=None):
         if (
             object_id
-            and is_staff_role(request.user)
+            and not can_view_all_documents(request.user)
             and self.model._default_manager.filter(pk=object_id)
             .exclude(created_by=request.user)
             .exists()
@@ -226,13 +226,13 @@ class PurchaseOrderAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.M
 
     def has_view_permission(self, request, obj=None):
         allowed = super().has_view_permission(request, obj)
-        if not allowed or not is_staff_role(request.user) or obj is None:
+        if not allowed or can_view_all_documents(request.user) or obj is None:
             return allowed
         return is_owned_by_user(obj, request.user)
 
     def has_change_permission(self, request, obj=None):
         allowed = super().has_change_permission(request, obj)
-        if not allowed or not is_staff_role(request.user) or obj is None:
+        if not allowed or can_view_all_documents(request.user) or obj is None:
             return allowed
         return is_owned_by_user(obj, request.user)
 
@@ -293,7 +293,7 @@ class PurchaseOrderAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.M
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
-        if is_staff_role(request.user):
+        if not can_view_all_documents(request.user):
             queryset = queryset.filter(created_by=request.user)
         company_year = self.get_company_year()
         if (
@@ -320,7 +320,7 @@ class PurchaseOrderAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.M
 
             search_queryset = (
                 queryset
-                if request and is_staff_role(request.user)
+                if request and not can_view_all_documents(request.user)
                 else self.model._default_manager.all()
             )
             exact_numbers = search_queryset.filter(

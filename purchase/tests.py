@@ -116,6 +116,23 @@ class StaffPurchaseOrderScopeTests(TestCase):
             403,
         )
 
+    def test_global_document_permission_reveals_all_purchase_orders(self):
+        other = PurchaseOrder.objects.create()
+        self.user.user_permissions.add(
+            Permission.objects.get(
+                content_type__app_label="invoices",
+                codename="view_all_documents",
+            )
+        )
+        self.user = get_user_model().objects.get(pk=self.user.pk)
+        self.client.force_login(self.user)
+
+        response = self.client.get(
+            reverse("admin:purchase_purchaseorder_changelist")
+        )
+
+        self.assertContains(response, other.purchase_number)
+
 class ProductInfoViewTests(TestCase):
 
     def test_product_info_returns_invoice_and_purchase_fields(self):

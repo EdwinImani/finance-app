@@ -2,6 +2,7 @@ ADMINISTRATOR_GROUP = "Administrator"
 ADMIN_GROUP = "Admin"
 MANAGER_GROUP = "Manager"
 STAFF_GROUP = "Staff"
+VIEW_ALL_DOCUMENTS_PERMISSION = "invoices.view_all_documents"
 
 
 def user_is_in_group(user, group_name):
@@ -31,3 +32,11 @@ def is_staff_role(user):
 
 def is_owned_by_user(obj, user):
     return bool(obj) and getattr(obj, "created_by_id", None) == getattr(user, "pk", None)
+
+
+def can_view_all_documents(user):
+    """Return whether a user may see documents created by other users."""
+    return bool(user and user.is_authenticated) and (
+        is_administrator(user)
+        or user.has_perm(VIEW_ALL_DOCUMENTS_PERMISSION)
+    )

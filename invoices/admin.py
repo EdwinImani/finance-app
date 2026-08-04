@@ -15,7 +15,7 @@ from django.urls import NoReverseMatch
 from django.utils.html import format_html
 from django.utils import timezone
 from financeapp.admin_mixins import PageSizeAdminMixin, SaveRedirectToWelcomeMixin
-from financeapp.access_control import is_owned_by_user, is_staff_role
+from financeapp.access_control import can_view_all_documents, is_owned_by_user, is_staff_role
 from financeapp.filename_utils import document_pdf_filename
 from company.models import CompanySetting
 from partners.models import Partner
@@ -343,7 +343,7 @@ class InvoiceAdminMixin:
             }
             search_queryset = (
                 queryset
-                if request and is_staff_role(request.user)
+                if request and not can_view_all_documents(request.user)
                 else self.model._default_manager.all()
             )
             exact_numbers = search_queryset.filter(
@@ -741,7 +741,7 @@ class ProformaInvoiceAdmin(InvoiceAdminMixin, SaveRedirectToWelcomeMixin, PageSi
         ).exists()
 
     def changeform_view(self, request, object_id=None, form_url="", extra_context=None):
-        if object_id and is_staff_role(request.user):
+        if object_id and not can_view_all_documents(request.user):
             obj = self.model._default_manager.filter(pk=object_id).first()
             if obj and not self._is_created_by(obj, request.user):
                 raise PermissionDenied
@@ -749,13 +749,13 @@ class ProformaInvoiceAdmin(InvoiceAdminMixin, SaveRedirectToWelcomeMixin, PageSi
 
     def has_view_permission(self, request, obj=None):
         allowed = super().has_view_permission(request, obj)
-        if not allowed or not is_staff_role(request.user) or obj is None:
+        if not allowed or can_view_all_documents(request.user) or obj is None:
             return allowed
         return self._is_created_by(obj, request.user)
 
     def has_change_permission(self, request, obj=None):
         allowed = super().has_change_permission(request, obj)
-        if not allowed or not is_staff_role(request.user) or obj is None:
+        if not allowed or can_view_all_documents(request.user) or obj is None:
             return allowed
         return self._is_created_by(obj, request.user)
 
@@ -766,7 +766,7 @@ class ProformaInvoiceAdmin(InvoiceAdminMixin, SaveRedirectToWelcomeMixin, PageSi
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
-        if is_staff_role(request.user):
+        if not can_view_all_documents(request.user):
             object_ids = LogEntry.objects.filter(
                 content_type__app_label=self.model._meta.app_label,
                 content_type__model=self.model._meta.model_name,
@@ -958,7 +958,7 @@ class CommercialInvoiceAdmin(InvoiceAdminMixin, SaveRedirectToWelcomeMixin, Page
     def changeform_view(self, request, object_id=None, form_url="", extra_context=None):
         if (
             object_id
-            and is_staff_role(request.user)
+            and not can_view_all_documents(request.user)
             and self.model._default_manager.filter(pk=object_id)
             .exclude(created_by=request.user)
             .exists()
@@ -1032,13 +1032,13 @@ class CommercialInvoiceAdmin(InvoiceAdminMixin, SaveRedirectToWelcomeMixin, Page
 
     def has_view_permission(self, request, obj=None):
         allowed = super().has_view_permission(request, obj)
-        if not allowed or not is_staff_role(request.user) or obj is None:
+        if not allowed or can_view_all_documents(request.user) or obj is None:
             return allowed
         return is_owned_by_user(obj, request.user)
 
     def has_change_permission(self, request, obj=None):
         allowed = super().has_change_permission(request, obj)
-        if not allowed or not is_staff_role(request.user) or obj is None:
+        if not allowed or can_view_all_documents(request.user) or obj is None:
             return allowed
         return is_owned_by_user(obj, request.user)
 
@@ -1054,7 +1054,7 @@ class CommercialInvoiceAdmin(InvoiceAdminMixin, SaveRedirectToWelcomeMixin, Page
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
-        if is_staff_role(request.user):
+        if not can_view_all_documents(request.user):
             queryset = queryset.filter(created_by=request.user)
         queryset = queryset.annotate(items_count=Count("items", distinct=True))
         if not request.GET.get("o"):

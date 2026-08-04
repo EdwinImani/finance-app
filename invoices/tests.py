@@ -246,6 +246,28 @@ class StaffInvoiceScopeTests(TestCase):
 
         self.assertEqual(response.status_code, 403)
 
+    def test_global_document_permission_reveals_all_invoices(self):
+        other_commercial = CommercialInvoice.objects.create()
+        other_proforma = ProformaInvoice.objects.create()
+        self.user.user_permissions.add(
+            Permission.objects.get(
+                content_type__app_label="invoices",
+                codename="view_all_documents",
+            )
+        )
+        self.user = get_user_model().objects.get(pk=self.user.pk)
+        self.client.force_login(self.user)
+
+        commercial_response = self.client.get(
+            reverse("admin:invoices_commercialinvoice_changelist")
+        )
+        proforma_response = self.client.get(
+            reverse("admin:invoices_proformainvoice_changelist")
+        )
+
+        self.assertContains(commercial_response, other_commercial.invoice_number)
+        self.assertContains(proforma_response, other_proforma.invoice_number)
+
 
 class PdfPaginationTests(TestCase):
 

@@ -14,7 +14,7 @@ from invoices.models import CommercialInvoice
 from partners.models import Partner
 from products.models import Product
 from purchase.models import PurchaseOrder
-from users.forms import AdminUserCreationForm
+from users.forms import AdminUserChangeForm, AdminUserCreationForm
 
 
 class PasswordToggleTests(SimpleTestCase):
@@ -107,6 +107,26 @@ class UserPasswordAuthenticationTests(TestCase):
         )
         self.assertEqual(login_response.status_code, 302)
         self.assertEqual(login_response["Location"], reverse("admin:index"))
+
+    def test_admin_add_view_saves_global_document_access_checkbox(self):
+        administrator = User.objects.create_superuser(
+            username="document-permission-admin",
+            email="documents-admin@example.com",
+            password="Creator-Test-Password-729!",
+        )
+        self.client.force_login(administrator)
+
+        response = self.client.post(
+            reverse("admin:auth_user_add"),
+            self.creation_form_data(
+                username="global-document-user",
+                can_view_all_documents="on",
+            ),
+        )
+
+        self.assertEqual(response.status_code, 302)
+        user = User.objects.get(username="global-document-user")
+        self.assertTrue(user.has_perm("invoices.view_all_documents"))
 
     def test_manager_role_is_created_as_staff_without_superuser_access(self):
         form = AdminUserCreationForm(
@@ -267,6 +287,28 @@ class UserAdminConfigurationTests(TestCase):
         self.assertEqual(permissions, ["add", "change", "delete", "view"])
         self.assertEqual(self.group_admin.permissions_count(group), 0)
 
+    def test_user_form_exposes_and_saves_global_document_access_checkbox(self):
+        user = User.objects.create_user("document-access-user", password="test-password")
+        permission = Permission.objects.get(
+            content_type__app_label="invoices",
+            codename="view_all_documents",
+        )
+        form = AdminUserChangeForm(instance=user)
+
+        self.assertIn("can_view_all_documents", form.fields)
+        self.assertEqual(
+            form.fields["can_view_all_documents"].label,
+            "Can view all users' invoices and purchase orders",
+        )
+
+        form.cleaned_data = {"can_view_all_documents": True}
+        form._sync_document_access_permission()
+        self.assertTrue(user.user_permissions.filter(pk=permission.pk).exists())
+
+        form.cleaned_data = {"can_view_all_documents": False}
+        form._sync_document_access_permission()
+        self.assertFalse(user.user_permissions.filter(pk=permission.pk).exists())
+
 
 class RoleAccessControlTests(TestCase):
 
@@ -298,10 +340,14 @@ class RoleAccessControlTests(TestCase):
 
         # Give broad native permissions deliberately. Role rules must only remove access.
         all_permissions = Permission.objects.all()
+        scoped_staff_permissions = all_permissions.exclude(
+            content_type__app_label="invoices",
+            codename="view_all_documents",
+        )
         cls.administrator.user_permissions.set(all_permissions)
         cls.manager.user_permissions.set(all_permissions)
-        cls.staff_user.user_permissions.set(all_permissions)
-        cls.other_staff.user_permissions.set(all_permissions)
+        cls.staff_user.user_permissions.set(scoped_staff_permissions)
+        cls.other_staff.user_permissions.set(scoped_staff_permissions)
 
         cls.product = Product.objects.create(description="Test product")
         cls.partner = Partner.objects.create(

@@ -255,6 +255,14 @@ class ProformaInvoiceItem(models.Model):
 
 class CommercialInvoice(BaseInvoice):
 
+    class Meta:
+        permissions = (
+            (
+                "view_all_documents",
+                "Can view all users' invoices and purchase orders",
+            ),
+        )
+
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         related_name="commercial_invoices_created",
