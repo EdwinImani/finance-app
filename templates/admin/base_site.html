@@ -1237,6 +1237,73 @@
         height: 56px !important;
     }
 
+    /* User Groups and Permissions use Django's two-panel selector. Keep the
+       selector and its help text as separate full-width rows. */
+    body.app-auth.model-user .form-row.field-groups,
+    body.app-auth.model-user .form-row.field-user_permissions {
+        display: block !important;
+        width: 100% !important;
+        padding: 20px 18px 26px !important;
+        box-sizing: border-box !important;
+    }
+
+    body.app-auth.model-user .form-row.field-groups > div,
+    body.app-auth.model-user .form-row.field-user_permissions > div,
+    body.app-auth.model-user .form-row.field-groups .flex-container,
+    body.app-auth.model-user .form-row.field-user_permissions .flex-container {
+        display: block !important;
+        width: 100% !important;
+        min-width: 0 !important;
+    }
+
+    body.app-auth.model-user .form-row.field-groups label,
+    body.app-auth.model-user .form-row.field-user_permissions label {
+        display: block !important;
+        width: 100% !important;
+        max-width: none !important;
+        margin: 0 0 10px !important;
+        padding: 0 !important;
+    }
+
+    body.app-auth.model-user .form-row.field-groups .selector,
+    body.app-auth.model-user .form-row.field-user_permissions .selector {
+        width: min(1500px, 100%) !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+    }
+
+    body.app-auth.model-user .form-row.field-user_permissions .selector {
+        grid-template-columns: minmax(480px, 1fr) 92px minmax(480px, 1fr) !important;
+    }
+
+    body.app-auth.model-user .form-row.field-groups .help,
+    body.app-auth.model-user .form-row.field-groups div.help,
+    body.app-auth.model-user .form-row.field-groups p.help,
+    body.app-auth.model-user .form-row.field-user_permissions .help,
+    body.app-auth.model-user .form-row.field-user_permissions div.help,
+    body.app-auth.model-user .form-row.field-user_permissions p.help {
+        display: block !important;
+        clear: both !important;
+        width: min(1200px, 100%) !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        margin: 12px 0 0 !important;
+        padding: 0 !important;
+        font-size: 16px !important;
+        line-height: 1.45 !important;
+        white-space: normal !important;
+        overflow-wrap: normal !important;
+        word-break: normal !important;
+    }
+
+    @media (max-width: 1100px) {
+        body.app-auth.model-user .form-row.field-groups .selector,
+        body.app-auth.model-user .form-row.field-user_permissions .selector {
+            grid-template-columns: minmax(280px, 1fr) 72px minmax(280px, 1fr) !important;
+            gap: 12px !important;
+        }
+    }
+
     body.app-auth.model-user.change-form .form-row.field-usable_password {
         align-items: flex-start !important;
     }

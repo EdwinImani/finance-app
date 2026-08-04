@@ -309,6 +309,20 @@ class UserAdminConfigurationTests(TestCase):
         form._sync_document_access_permission()
         self.assertFalse(user.user_permissions.filter(pk=permission.pk).exists())
 
+    def test_user_group_and_permission_help_layout_has_full_width_overrides(self):
+        template_source = get_template("admin/base_site.html").template.source
+
+        self.assertIn(
+            "body.app-auth.model-user .form-row.field-groups .help",
+            template_source,
+        )
+        self.assertIn(
+            "body.app-auth.model-user .form-row.field-user_permissions .help",
+            template_source,
+        )
+        self.assertIn("width: min(1200px, 100%) !important", template_source)
+        self.assertIn("word-break: normal !important", template_source)
+
 
 class RoleAccessControlTests(TestCase):
 
