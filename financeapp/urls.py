@@ -22,6 +22,10 @@ from django.conf import settings
 from django.conf.urls.static import static
 from financeapp import views
 
+admin.site.site_header = "VERTEA S.A.S"
+admin.site.site_title = "VERTEA S.A.S"
+admin.site.index_title = "Administration"
+
 urlpatterns = [
     path('', RedirectView.as_view(url='/admin/login/', permanent=False), name='home'),
     path(

@@ -44,6 +44,57 @@ class PasswordToggleTests(SimpleTestCase):
         self.assertIn("display: block !important", login_template)
 
 
+class AdminBrandingMetadataTests(TestCase):
+
+    def test_admin_site_branding_values(self):
+        self.assertEqual(admin.site.site_header, "VERTEA S.A.S")
+        self.assertEqual(admin.site.site_title, "VERTEA S.A.S")
+        self.assertEqual(admin.site.index_title, "Administration")
+
+    def test_login_title_and_social_metadata(self):
+        response = self.client.get(reverse("admin:login"))
+        content = response.content.decode()
+
+        self.assertContains(response, "<title>Login | VERTEA S.A.S</title>", html=True)
+        self.assertContains(
+            response,
+            '<meta property="og:title" content="Login | VERTEA S.A.S">',
+            html=True,
+        )
+        self.assertContains(
+            response,
+            '<meta property="og:site_name" content="VERTEA S.A.S">',
+            html=True,
+        )
+        self.assertContains(
+            response,
+            '<meta name="application-name" content="VERTEA S.A.S">',
+            html=True,
+        )
+        self.assertNotIn("Django site admin", content)
+        self.assertNotIn("Django administration", content)
+
+    def test_internal_admin_page_uses_company_site_title(self):
+        user = User.objects.create_superuser(
+            "branding-admin",
+            password="test-password",
+            email="branding@example.com",
+        )
+        self.client.force_login(user)
+
+        response = self.client.get(reverse("admin:auth_user_changelist"))
+        content = response.content.decode()
+
+        self.assertContains(response, "Select user to change | VERTEA S.A.S")
+        self.assertContains(
+            response,
+            '<meta property="og:site_name" content="VERTEA S.A.S">',
+            html=True,
+        )
+        self.assertNotIn("Django site admin", content)
+        self.assertNotIn("Django administration", content)
+
+
 class UserPasswordAuthenticationTests(TestCase):
 
     @classmethod

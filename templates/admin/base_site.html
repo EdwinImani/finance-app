@@ -1,7 +1,7 @@
 {% extends "admin/base.html" %}
 {% load i18n static %}
 
-{% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+{% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | VERTEA S.A.S{% endblock %}
 
 {% block extrastyle %}
 {{ block.super }}
@@ -2223,6 +2223,10 @@
 
 {% block extrahead %}
 {{ block.super }}
+<meta property="og:title" content="{% block og_title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | VERTEA S.A.S{% endblock %}">
+<meta property="og:site_name" content="VERTEA S.A.S">
+<meta name="application-name" content="VERTEA S.A.S">
+<meta name="apple-mobile-web-app-title" content="VERTEA S.A.S">
 <script src="{% static 'admin/js/auto_search.js' %}?v=20260729-pagination-fix" defer></script>
 <script src="{% static 'admin/js/number_format_fields.js' %}?v=20260730-disable-number-wheel" defer></script>
 <script src="{% static 'admin/js/password_toggle.js' %}?v=20260803" defer></script>
@@ -2508,7 +2512,7 @@ document.addEventListener("DOMContentLoaded", function() {
   </a>
   {% endif %}
   <a href="{% url 'admin:index' %}">
-    {{ company_brand_name|default:site_header|default:_('Django administration') }}
+    {{ company_brand_name|default:site_header|default:'VERTEA S.A.S' }}
   </a>
 </div>
 {% if user.is_anonymous %}
