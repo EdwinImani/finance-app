@@ -2,6 +2,7 @@ from decimal import Decimal
 
 from django.contrib import admin
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group, Permission
 from django.contrib.staticfiles import finders
 from django.template.loader import get_template
 from django.test import SimpleTestCase, TestCase
@@ -110,7 +111,6 @@ class InvoiceCreatorAuditTests(TestCase):
         self.client.force_login(self.creator)
 
         for model, url_name in (
-            (ProformaInvoice, "admin:invoices_proformainvoice_add"),
             (CommercialInvoice, "admin:invoices_commercialinvoice_add"),
         ):
             response = self.client.get(reverse(url_name))
@@ -127,14 +127,41 @@ class InvoiceCreatorAuditTests(TestCase):
             self.assertContains(response, self.creator.get_username())
 
     def test_creator_is_not_replaced_when_document_is_edited(self):
-        document = ProformaInvoice.objects.create(created_by=self.creator)
-        model_admin = admin.site._registry[ProformaInvoice]
+        document = CommercialInvoice.objects.create(created_by=self.creator)
+        model_admin = admin.site._registry[CommercialInvoice]
         request = type("Request", (), {"user": self.other_user})()
 
         model_admin.save_model(request, document, form=None, change=True)
         document.refresh_from_db()
 
         self.assertEqual(document.created_by, self.creator)
+
+
+class ProformaStaffAccessTests(TestCase):
+
+    def test_staff_account_can_open_proforma_changelist(self):
+        staff_group = Group.objects.create(name="Staff")
+        user = get_user_model().objects.create_user(
+            username="proforma-staff",
+            password="password123",
+            is_active=True,
+            is_staff=True,
+        )
+        user.groups.add(staff_group)
+        user.user_permissions.add(
+            Permission.objects.get(
+                content_type__app_label="invoices",
+                codename="view_proformainvoice",
+            )
+        )
+        ProformaInvoice.objects.create()
+        self.client.force_login(user)
+
+        response = self.client.get(
+            reverse("admin:invoices_proformainvoice_changelist")
+        )
+
+        self.assertEqual(response.status_code, 200)
 
 
 class PdfPaginationTests(TestCase):

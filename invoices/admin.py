@@ -638,7 +638,6 @@ class InvoiceAdminMixin:
 class ProformaInvoiceAdmin(InvoiceAdminMixin, SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.ModelAdmin):
     changelist_template = "admin/invoices/change_list.html"
     form = ProformaInvoiceForm
-    readonly_fields = InvoiceAdminMixin.readonly_fields + ("created_by",)
 
     fieldsets = (
         ("Invoice Overview", {
@@ -648,7 +647,6 @@ class ProformaInvoiceAdmin(InvoiceAdminMixin, SaveRedirectToWelcomeMixin, PageSi
                 "end_user",
                 "our_reference",
                 "price_for",
-                "created_by",
                 ("delivery_time", "terms_conditions"),
             )
         }),
@@ -671,7 +669,6 @@ class ProformaInvoiceAdmin(InvoiceAdminMixin, SaveRedirectToWelcomeMixin, PageSi
         "invoice_date_display",
         "importer",
         "end_user",
-        "created_by",
         "amount_display",
         "pdf_link",
     )
