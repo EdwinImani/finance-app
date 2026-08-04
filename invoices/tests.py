@@ -252,7 +252,7 @@ class StaffInvoiceScopeTests(TestCase):
         self.user.user_permissions.add(
             Permission.objects.get(
                 content_type__app_label="invoices",
-                codename="view_reports",
+                codename="view_commercial_invoice_reports",
             )
         )
         self.user = get_user_model().objects.get(pk=self.user.pk)

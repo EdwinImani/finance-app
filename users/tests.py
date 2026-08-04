@@ -345,15 +345,23 @@ class UserAdminConfigurationTests(TestCase):
         self.assertEqual(permissions, ["add", "change", "delete", "view"])
         self.assertEqual(self.group_admin.permissions_count(group), 0)
 
-    def test_report_access_permission_is_available_to_users_and_groups(self):
-        permission = Permission.objects.get(
+    def test_separate_report_access_permissions_are_available_to_users_and_groups(self):
+        commercial_permission = Permission.objects.get(
             content_type__app_label="invoices",
-            codename="view_reports",
+            codename="view_commercial_invoice_reports",
+        )
+        purchase_permission = Permission.objects.get(
+            content_type__app_label="purchase",
+            codename="view_purchase_order_reports",
         )
 
         self.assertEqual(
-            permission.name,
-            "Can access invoice and purchase order reports",
+            commercial_permission.name,
+            "Can access Commercial Invoice reports",
+        )
+        self.assertEqual(
+            purchase_permission.name,
+            "Can access Purchase Order reports",
         )
 
     def test_user_form_exposes_and_saves_global_document_access_checkbox(self):

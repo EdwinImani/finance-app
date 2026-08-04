@@ -138,8 +138,8 @@ class StaffPurchaseOrderScopeTests(TestCase):
         other = PurchaseOrder.objects.create()
         self.user.user_permissions.add(
             Permission.objects.get(
-                content_type__app_label="invoices",
-                codename="view_reports",
+                content_type__app_label="purchase",
+                codename="view_purchase_order_reports",
             )
         )
         self.user = get_user_model().objects.get(pk=self.user.pk)

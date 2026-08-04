@@ -14,6 +14,14 @@ import re
 
 class PurchaseOrder(models.Model):
 
+    class Meta:
+        permissions = (
+            (
+                "view_purchase_order_reports",
+                "Can access Purchase Order reports",
+            ),
+        )
+
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         related_name="purchase_orders_created",

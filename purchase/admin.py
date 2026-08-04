@@ -20,7 +20,7 @@ from django.utils.html import format_html
 from financeapp.admin_mixins import PageSizeAdminMixin, SaveRedirectToWelcomeMixin
 from financeapp.access_control import (
     can_view_all_documents,
-    can_view_reports,
+    can_view_purchase_reports,
     is_owned_by_user,
     is_staff_role,
 )
@@ -286,7 +286,7 @@ class PurchaseOrderAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.M
                 return redirect(f"{request.path}?{query.urlencode()}")
 
         extra_context = extra_context or {}
-        extra_context["can_view_reports"] = can_view_reports(request.user)
+        extra_context["can_view_reports"] = can_view_purchase_reports(request.user)
         return super().changelist_view(request, extra_context=extra_context)
 
     def has_explicit_year_filter(self, request, field_name):
@@ -693,7 +693,7 @@ class PurchaseOrderAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.M
         return result.getvalue()
 
     def _build_report_context(self, request):
-        if not can_view_reports(request.user):
+        if not can_view_purchase_reports(request.user):
             raise PermissionDenied
         if not self.has_view_permission(request):
             raise PermissionDenied

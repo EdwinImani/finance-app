@@ -3,7 +3,7 @@ from django.contrib import admin
 from django.contrib.admin.views.decorators import staff_member_required
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import render
-from financeapp.access_control import can_view_all_documents, can_view_reports
+from financeapp.access_control import can_view_all_documents, can_view_purchase_reports
 from .models import PurchaseOrder
 from .forms import PurchaseReportForm
 
@@ -17,7 +17,7 @@ def purchase_admin_context(request, extra_context=None):
 
 @staff_member_required
 def purchase_home(request):
-    if not can_view_reports(request.user):
+    if not can_view_purchase_reports(request.user):
         raise PermissionDenied
     orders = PurchaseOrder.objects.all()
     if not can_view_all_documents(request.user):
@@ -28,7 +28,7 @@ def purchase_home(request):
 
 @staff_member_required
 def purchase_report_filter(request):
-    if not can_view_reports(request.user):
+    if not can_view_purchase_reports(request.user):
         raise PermissionDenied
     form = PurchaseReportForm(request.GET or None)
     return render(request, "purchase/report_filter.html", purchase_admin_context(request, {"form": form}))
@@ -36,7 +36,7 @@ def purchase_report_filter(request):
 
 @staff_member_required
 def purchase_report_result(request):
-    if not can_view_reports(request.user):
+    if not can_view_purchase_reports(request.user):
         raise PermissionDenied
     form = PurchaseReportForm(request.GET or None)
 

@@ -17,7 +17,7 @@ from django.utils import timezone
 from financeapp.admin_mixins import PageSizeAdminMixin, SaveRedirectToWelcomeMixin
 from financeapp.access_control import (
     can_view_all_documents,
-    can_view_reports,
+    can_view_commercial_reports,
     is_owned_by_user,
     is_staff_role,
 )
@@ -263,7 +263,7 @@ class InvoiceAdminMixin:
                 return redirect(f"{request.path}?{query.urlencode()}")
 
         extra_context = extra_context or {}
-        extra_context["can_view_reports"] = can_view_reports(request.user)
+        extra_context["can_view_reports"] = can_view_commercial_reports(request.user)
         try:
             extra_context["draft_add_url"] = self.get_invoice_draft_add_url()
         except NoReverseMatch:
@@ -1186,7 +1186,7 @@ class CommercialInvoiceAdmin(InvoiceAdminMixin, SaveRedirectToWelcomeMixin, Page
         return self.export_pdf(request, object_id, document_type="dispatching_note")
 
     def commercial_report(self, request):
-        if not can_view_reports(request.user):
+        if not can_view_commercial_reports(request.user):
             raise PermissionDenied
         if not self.has_view_permission(request):
             raise PermissionDenied

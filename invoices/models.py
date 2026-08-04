@@ -262,8 +262,8 @@ class CommercialInvoice(BaseInvoice):
                 "Can view all users' invoices and purchase orders",
             ),
             (
-                "view_reports",
-                "Can access invoice and purchase order reports",
+                "view_commercial_invoice_reports",
+                "Can access Commercial Invoice reports",
             ),
         )
 
