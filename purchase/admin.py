@@ -18,7 +18,12 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import format_html
 from financeapp.admin_mixins import PageSizeAdminMixin, SaveRedirectToWelcomeMixin
-from financeapp.access_control import can_view_all_documents, is_owned_by_user, is_staff_role
+from financeapp.access_control import (
+    can_view_all_documents,
+    can_view_reports,
+    is_owned_by_user,
+    is_staff_role,
+)
 from financeapp.filename_utils import document_pdf_filename
 from financeapp.pdf_rendering import get_pdf_fallback_reason, should_try_weasyprint
 from invoices.pdf_builder import build_purchase_order_pdf, build_purchase_report_pdf, format_currency_symbol
@@ -281,7 +286,7 @@ class PurchaseOrderAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.M
                 return redirect(f"{request.path}?{query.urlencode()}")
 
         extra_context = extra_context or {}
-        extra_context["can_view_reports"] = not is_staff_role(request.user)
+        extra_context["can_view_reports"] = can_view_reports(request.user)
         return super().changelist_view(request, extra_context=extra_context)
 
     def has_explicit_year_filter(self, request, field_name):
@@ -688,7 +693,7 @@ class PurchaseOrderAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.M
         return result.getvalue()
 
     def _build_report_context(self, request):
-        if is_staff_role(request.user):
+        if not can_view_reports(request.user):
             raise PermissionDenied
         if not self.has_view_permission(request):
             raise PermissionDenied
@@ -728,7 +733,7 @@ class PurchaseOrderAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.M
             )
         )
 
-        if is_staff_role(request.user):
+        if not can_view_all_documents(request.user):
             queryset = queryset.filter(created_by=request.user)
 
         if year:

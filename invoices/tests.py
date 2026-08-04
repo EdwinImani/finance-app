@@ -246,6 +246,24 @@ class StaffInvoiceScopeTests(TestCase):
 
         self.assertEqual(response.status_code, 403)
 
+    def test_report_permission_allows_report_but_keeps_document_scope(self):
+        own = CommercialInvoice.objects.create(created_by=self.user)
+        other = CommercialInvoice.objects.create()
+        self.user.user_permissions.add(
+            Permission.objects.get(
+                content_type__app_label="invoices",
+                codename="view_reports",
+            )
+        )
+        self.user = get_user_model().objects.get(pk=self.user.pk)
+        self.client.force_login(self.user)
+
+        response = self.client.get(reverse("admin:commercial_invoice_report"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, own.invoice_number)
+        self.assertNotContains(response, other.invoice_number)
+
     def test_global_document_permission_reveals_all_invoices(self):
         other_commercial = CommercialInvoice.objects.create()
         other_proforma = ProformaInvoice.objects.create()

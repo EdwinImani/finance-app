@@ -3,6 +3,7 @@ ADMIN_GROUP = "Admin"
 MANAGER_GROUP = "Manager"
 STAFF_GROUP = "Staff"
 VIEW_ALL_DOCUMENTS_PERMISSION = "invoices.view_all_documents"
+VIEW_REPORTS_PERMISSION = "invoices.view_reports"
 
 
 def user_is_in_group(user, group_name):
@@ -39,4 +40,12 @@ def can_view_all_documents(user):
     return bool(user and user.is_authenticated) and (
         is_administrator(user)
         or user.has_perm(VIEW_ALL_DOCUMENTS_PERMISSION)
+    )
+
+
+def can_view_reports(user):
+    """Return whether a user may open invoice and purchase report pages."""
+    return bool(user and user.is_authenticated) and (
+        is_administrator(user)
+        or user.has_perm(VIEW_REPORTS_PERMISSION)
     )

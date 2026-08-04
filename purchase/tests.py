@@ -133,6 +133,28 @@ class StaffPurchaseOrderScopeTests(TestCase):
 
         self.assertContains(response, other.purchase_number)
 
+    def test_report_permission_allows_reports_but_keeps_document_scope(self):
+        own = PurchaseOrder.objects.create(created_by=self.user)
+        other = PurchaseOrder.objects.create()
+        self.user.user_permissions.add(
+            Permission.objects.get(
+                content_type__app_label="invoices",
+                codename="view_reports",
+            )
+        )
+        self.user = get_user_model().objects.get(pk=self.user.pk)
+        self.client.force_login(self.user)
+
+        admin_response = self.client.get(reverse("admin:purchase_report"))
+        public_response = self.client.get(reverse("purchase_report_result"))
+
+        self.assertEqual(admin_response.status_code, 200)
+        self.assertContains(admin_response, own.purchase_number)
+        self.assertNotContains(admin_response, other.purchase_number)
+        self.assertEqual(public_response.status_code, 200)
+        self.assertContains(public_response, own.purchase_number)
+        self.assertNotContains(public_response, other.purchase_number)
+
 class ProductInfoViewTests(TestCase):
 
     def test_product_info_returns_invoice_and_purchase_fields(self):

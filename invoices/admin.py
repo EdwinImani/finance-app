@@ -15,7 +15,12 @@ from django.urls import NoReverseMatch
 from django.utils.html import format_html
 from django.utils import timezone
 from financeapp.admin_mixins import PageSizeAdminMixin, SaveRedirectToWelcomeMixin
-from financeapp.access_control import can_view_all_documents, is_owned_by_user, is_staff_role
+from financeapp.access_control import (
+    can_view_all_documents,
+    can_view_reports,
+    is_owned_by_user,
+    is_staff_role,
+)
 from financeapp.filename_utils import document_pdf_filename
 from company.models import CompanySetting
 from partners.models import Partner
@@ -258,7 +263,7 @@ class InvoiceAdminMixin:
                 return redirect(f"{request.path}?{query.urlencode()}")
 
         extra_context = extra_context or {}
-        extra_context["can_view_reports"] = not is_staff_role(request.user)
+        extra_context["can_view_reports"] = can_view_reports(request.user)
         try:
             extra_context["draft_add_url"] = self.get_invoice_draft_add_url()
         except NoReverseMatch:
@@ -1181,7 +1186,7 @@ class CommercialInvoiceAdmin(InvoiceAdminMixin, SaveRedirectToWelcomeMixin, Page
         return self.export_pdf(request, object_id, document_type="dispatching_note")
 
     def commercial_report(self, request):
-        if is_staff_role(request.user):
+        if not can_view_reports(request.user):
             raise PermissionDenied
         if not self.has_view_permission(request):
             raise PermissionDenied
@@ -1230,7 +1235,7 @@ class CommercialInvoiceAdmin(InvoiceAdminMixin, SaveRedirectToWelcomeMixin, Page
             )
         )
 
-        if is_staff_role(request.user):
+        if not can_view_all_documents(request.user):
             queryset = queryset.filter(created_by=request.user)
 
         if year:

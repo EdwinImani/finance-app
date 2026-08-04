@@ -261,6 +261,10 @@ class CommercialInvoice(BaseInvoice):
                 "view_all_documents",
                 "Can view all users' invoices and purchase orders",
             ),
+            (
+                "view_reports",
+                "Can access invoice and purchase order reports",
+            ),
         )
 
     created_by = models.ForeignKey(

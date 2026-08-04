@@ -345,6 +345,17 @@ class UserAdminConfigurationTests(TestCase):
         self.assertEqual(permissions, ["add", "change", "delete", "view"])
         self.assertEqual(self.group_admin.permissions_count(group), 0)
 
+    def test_report_access_permission_is_available_to_users_and_groups(self):
+        permission = Permission.objects.get(
+            content_type__app_label="invoices",
+            codename="view_reports",
+        )
+
+        self.assertEqual(
+            permission.name,
+            "Can access invoice and purchase order reports",
+        )
+
     def test_user_form_exposes_and_saves_global_document_access_checkbox(self):
         user = User.objects.create_user("document-access-user", password="test-password")
         permission = Permission.objects.get(
