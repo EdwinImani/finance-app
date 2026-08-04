@@ -92,6 +92,51 @@ class PdfFilenameTests(SimpleTestCase):
         self.assertNotIn(" download", template_source)
 
 
+class InvoiceCreatorAuditTests(TestCase):
+
+    def setUp(self):
+        self.creator = get_user_model().objects.create_superuser(
+            username="invoice-creator",
+            password="password123",
+            email="creator@example.com",
+        )
+        self.other_user = get_user_model().objects.create_superuser(
+            username="invoice-editor",
+            password="password123",
+            email="editor@example.com",
+        )
+
+    def test_invoice_drafts_store_creator_and_admin_displays_it(self):
+        self.client.force_login(self.creator)
+
+        for model, url_name in (
+            (ProformaInvoice, "admin:invoices_proformainvoice_add"),
+            (CommercialInvoice, "admin:invoices_commercialinvoice_add"),
+        ):
+            response = self.client.get(reverse(url_name))
+            self.assertEqual(response.status_code, 302)
+            document = model.objects.latest("pk")
+            self.assertEqual(document.created_by, self.creator)
+
+            response = self.client.get(
+                reverse(
+                    f"admin:invoices_{model._meta.model_name}_change",
+                    args=[document.pk],
+                )
+            )
+            self.assertContains(response, self.creator.get_username())
+
+    def test_creator_is_not_replaced_when_document_is_edited(self):
+        document = ProformaInvoice.objects.create(created_by=self.creator)
+        model_admin = admin.site._registry[ProformaInvoice]
+        request = type("Request", (), {"user": self.other_user})()
+
+        model_admin.save_model(request, document, form=None, change=True)
+        document.refresh_from_db()
+
+        self.assertEqual(document.created_by, self.creator)
+
+
 class PdfPaginationTests(TestCase):
 
     def test_pdf_numbers_use_thousands_separator_and_decimal_point(self):

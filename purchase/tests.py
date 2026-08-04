@@ -14,6 +14,45 @@ from purchase.admin import PurchaseOrderAdminForm
 from purchase.models import PurchaseOrder, PurchaseOrderItem
 
 
+class PurchaseOrderCreatorAuditTests(TestCase):
+
+    def setUp(self):
+        self.creator = get_user_model().objects.create_superuser(
+            username="purchase-creator",
+            password="password123",
+            email="purchase-creator@example.com",
+        )
+        self.other_user = get_user_model().objects.create_superuser(
+            username="purchase-editor",
+            password="password123",
+            email="purchase-editor@example.com",
+        )
+
+    def test_purchase_draft_stores_creator_and_admin_displays_it(self):
+        self.client.force_login(self.creator)
+
+        response = self.client.get(reverse("admin:purchase_purchaseorder_add"))
+
+        self.assertEqual(response.status_code, 302)
+        purchase_order = PurchaseOrder.objects.latest("pk")
+        self.assertEqual(purchase_order.created_by, self.creator)
+
+        response = self.client.get(
+            reverse("admin:purchase_purchaseorder_change", args=[purchase_order.pk])
+        )
+        self.assertContains(response, self.creator.get_username())
+
+    def test_creator_is_not_replaced_when_purchase_order_is_edited(self):
+        purchase_order = PurchaseOrder.objects.create(created_by=self.creator)
+        model_admin = admin.site._registry[PurchaseOrder]
+        request = type("Request", (), {"user": self.other_user})()
+
+        model_admin.save_model(request, purchase_order, form=None, change=True)
+        purchase_order.refresh_from_db()
+
+        self.assertEqual(purchase_order.created_by, self.creator)
+
+
 class ProductInfoViewTests(TestCase):
 
     def test_product_info_returns_invoice_and_purchase_fields(self):

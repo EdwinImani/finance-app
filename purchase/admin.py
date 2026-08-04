@@ -134,6 +134,7 @@ class PurchaseOrderAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.M
                 "purchase_date",
                 "seller",
                 ("sent_by", "shipment"),
+                "created_by",
             )
         }),
         ("Financial Settings", {
@@ -155,6 +156,7 @@ class PurchaseOrderAdmin(SaveRedirectToWelcomeMixin, PageSizeAdminMixin, admin.M
         "purchase_number",
         "purchase_date_display",
         "seller",
+        "created_by",
         "amount_display",
         "pdf_link",
     )
