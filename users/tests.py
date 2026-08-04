@@ -36,6 +36,12 @@ class PasswordToggleTests(SimpleTestCase):
         self.assertIn("height: 44px !important", login_template)
         self.assertIn("padding: 0 48px 0 16px !important", login_template)
         self.assertIn("position: absolute !important", login_template)
+        self.assertIn("color: #FF3300 !important", login_template)
+        self.assertIn(
+            "#login-form .login-input .password-toggle svg",
+            login_template,
+        )
+        self.assertIn("display: block !important", login_template)
 
 
 class UserPasswordAuthenticationTests(TestCase):
