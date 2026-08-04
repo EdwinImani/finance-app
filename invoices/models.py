@@ -117,6 +117,16 @@ class BaseInvoice(models.Model):
 # ----------------------
 
 class ProformaInvoice(BaseInvoice):
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        related_name="proforma_invoices_created",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        editable=False,
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
     our_reference = models.CharField(max_length=100, blank=True)
     price_for = models.CharField(max_length=255, blank=True)
 

@@ -111,6 +111,7 @@ class InvoiceCreatorAuditTests(TestCase):
         self.client.force_login(self.creator)
 
         for model, url_name in (
+            (ProformaInvoice, "admin:invoices_proformainvoice_add"),
             (CommercialInvoice, "admin:invoices_commercialinvoice_add"),
         ):
             response = self.client.get(reverse(url_name))
@@ -127,8 +128,8 @@ class InvoiceCreatorAuditTests(TestCase):
             self.assertContains(response, self.creator.get_username())
 
     def test_creator_is_not_replaced_when_document_is_edited(self):
-        document = CommercialInvoice.objects.create(created_by=self.creator)
-        model_admin = admin.site._registry[CommercialInvoice]
+        document = ProformaInvoice.objects.create(created_by=self.creator)
+        model_admin = admin.site._registry[ProformaInvoice]
         request = type("Request", (), {"user": self.other_user})()
 
         model_admin.save_model(request, document, form=None, change=True)
