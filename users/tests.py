@@ -364,6 +364,26 @@ class UserAdminConfigurationTests(TestCase):
             "Can access Purchase Order reports",
         )
 
+    def test_group_add_page_ensures_and_displays_report_permissions(self):
+        Permission.objects.filter(
+            codename__in=(
+                "view_commercial_invoice_reports",
+                "view_purchase_order_reports",
+            )
+        ).delete()
+        administrator = User.objects.create_superuser(
+            "report-permission-admin",
+            password="test-password",
+            email="report-admin@example.com",
+        )
+        self.client.force_login(administrator)
+
+        response = self.client.get(reverse("admin:auth_group_add"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Can access Commercial Invoice reports")
+        self.assertContains(response, "Can access Purchase Order reports")
+
     def test_user_form_exposes_and_saves_global_document_access_checkbox(self):
         user = User.objects.create_user("document-access-user", password="test-password")
         permission = Permission.objects.get(

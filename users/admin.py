@@ -2,6 +2,8 @@ from django.contrib import admin
 from django.contrib.admin.models import LogEntry
 from django.contrib.auth.admin import GroupAdmin, UserAdmin
 from django.contrib.auth.models import Group, User
+from django.contrib.auth.models import Permission
+from django.contrib.contenttypes.models import ContentType
 from django.contrib.admin.sites import NotRegistered
 from django.urls import NoReverseMatch, reverse
 from django.utils.html import format_html
@@ -9,10 +11,38 @@ from django.utils.html import format_html
 from financeapp.admin_mixins import SaveRedirectToWelcomeMixin
 from financeapp.access_control import is_administrator
 from .forms import AdminUserChangeForm, AdminUserCreationForm
+from invoices.models import CommercialInvoice
+from purchase.models import PurchaseOrder
 
 
 LogEntry._meta.verbose_name = "History"
 LogEntry._meta.verbose_name_plural = "History"
+
+
+def ensure_document_report_permissions():
+    """Ensure custom report permissions exist before rendering security forms."""
+    definitions = (
+        (
+            CommercialInvoice,
+            "view_commercial_invoice_reports",
+            "Can access Commercial Invoice reports",
+        ),
+        (
+            PurchaseOrder,
+            "view_purchase_order_reports",
+            "Can access Purchase Order reports",
+        ),
+    )
+    for model, codename, name in definitions:
+        content_type = ContentType.objects.get_for_model(model)
+        permission, _ = Permission.objects.get_or_create(
+            content_type=content_type,
+            codename=codename,
+            defaults={"name": name},
+        )
+        if permission.name != name:
+            permission.name = name
+            permission.save(update_fields=["name"])
 
 
 class SecurityAdminAccessMixin:
@@ -181,6 +211,14 @@ class WelcomeRedirectGroupAdmin(
         ),
     )
     filter_horizontal = ("permissions",)
+
+    def add_view(self, request, form_url="", extra_context=None):
+        ensure_document_report_permissions()
+        return super().add_view(request, form_url, extra_context)
+
+    def changeform_view(self, request, object_id=None, form_url="", extra_context=None):
+        ensure_document_report_permissions()
+        return super().changeform_view(request, object_id, form_url, extra_context)
 
     def permissions_count(self, obj):
         return obj.permissions.count()
