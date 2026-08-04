@@ -128,6 +128,58 @@ class UserPasswordAuthenticationTests(TestCase):
         user = User.objects.get(username="global-document-user")
         self.assertTrue(user.has_perm("invoices.view_all_documents"))
 
+    def test_admin_change_view_enables_access_to_unowned_documents(self):
+        administrator = User.objects.create_superuser(
+            username="existing-user-admin",
+            email="existing-admin@example.com",
+            password="Creator-Test-Password-729!",
+        )
+        user = User.objects.create_user(
+            username="existing-scoped-user",
+            password="Secure-Test-Password-482!",
+            is_active=True,
+            is_staff=True,
+        )
+        user.user_permissions.add(
+            Permission.objects.get(
+                content_type__app_label="invoices",
+                codename="view_commercialinvoice",
+            )
+        )
+        unowned_invoice = CommercialInvoice.objects.create()
+        self.client.force_login(administrator)
+
+        response = self.client.post(
+            reverse("admin:auth_user_change", args=[user.pk]),
+            {
+                "username": user.username,
+                "password": user.password,
+                "first_name": "",
+                "last_name": "",
+                "email": "",
+                "is_active": "on",
+                "is_staff": "on",
+                "can_view_all_documents": "on",
+                "groups": [],
+                "user_permissions": [
+                    Permission.objects.get(
+                        content_type__app_label="invoices",
+                        codename="view_commercialinvoice",
+                    ).pk
+                ],
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        user = User.objects.get(pk=user.pk)
+        self.assertTrue(user.has_perm("invoices.view_all_documents"))
+
+        self.client.force_login(user)
+        response = self.client.get(
+            reverse("admin:invoices_commercialinvoice_changelist")
+        )
+        self.assertContains(response, unowned_invoice.invoice_number)
+
     def test_manager_role_is_created_as_staff_without_superuser_access(self):
         form = AdminUserCreationForm(
             data=self.creation_form_data(

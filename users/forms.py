@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserChangeForm, UserCreationForm
 from django.contrib.auth.models import Permission, User
+from django.contrib.contenttypes.models import ContentType
 
 
 ADMIN_ROLE_GROUPS = {"Manager", "Staff"}
@@ -19,11 +20,29 @@ def document_access_permission_field():
 
 
 class DocumentAccessPermissionMixin:
-    def _document_access_permission(self):
-        return Permission.objects.filter(
+    def _document_access_permission(self, *, create=False):
+        permission = Permission.objects.filter(
             content_type__app_label="invoices",
             codename=VIEW_ALL_DOCUMENTS_CODENAME,
         ).first()
+        if permission or not create:
+            return permission
+
+        content_type = ContentType.objects.filter(
+            app_label="invoices",
+            model="commercialinvoice",
+        ).first()
+        if not content_type:
+            return None
+
+        permission, _ = Permission.objects.get_or_create(
+            content_type=content_type,
+            codename=VIEW_ALL_DOCUMENTS_CODENAME,
+            defaults={
+                "name": "Can view all users' invoices and purchase orders",
+            },
+        )
+        return permission
 
     def _set_document_access_initial(self):
         if self.instance and self.instance.pk:
@@ -36,7 +55,7 @@ class DocumentAccessPermissionMixin:
     def _sync_document_access_permission(self):
         if not self.instance.pk:
             return
-        permission = self._document_access_permission()
+        permission = self._document_access_permission(create=True)
         if not permission:
             return
         if self.cleaned_data.get("can_view_all_documents"):
