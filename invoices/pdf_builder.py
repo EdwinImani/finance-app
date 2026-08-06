@@ -1366,7 +1366,7 @@ def _build_items_table(items, currency, styles, amount_from_last_page=None):
         rows.append(
             [
                 Paragraph(str(item["index"]), styles["table_cell"]),
-                Paragraph(_escape(item["description"]), styles["table_cell"]),
+                Paragraph(_format_preserving_layout(item["description"]), styles["table_cell"]),
                 Paragraph(_escape(item["part_number"]), styles["table_cell_part_number"]),
                 Paragraph(_escape(item["hs_code"]), styles["table_cell"]),
                 Paragraph(str(item["quantity"]), styles["table_cell_amount"]),
@@ -1427,7 +1427,7 @@ def _build_shipping_items_table(items, styles):
         rows.append(
             [
                 Paragraph(str(item["index"]), styles["table_cell_center"]),
-                Paragraph(_escape(item["description"]), styles["table_cell"]),
+                Paragraph(_format_preserving_layout(item["description"]), styles["table_cell"]),
                 Paragraph(_escape(item["part_number"]), styles["table_cell_part_number"]),
                 Paragraph(_escape(item["hs_code"]), styles["table_cell"]),
                 Paragraph(str(item["quantity"]), styles["table_cell"]),
@@ -1979,6 +1979,10 @@ def _format_preserving_layout(value):
         lambda match: ("&nbsp;" * (len(match.group(0)) - 1)) + " ",
         escaped,
     )
+    # ReportLab collapses a lone space at a line boundary unless it is
+    # non-breaking. Preserve that indentation/trailing spacing as entered.
+    escaped = re.sub(r"(?m)^ ", "&nbsp;", escaped)
+    escaped = re.sub(r" (?=\n|$)", "&nbsp;", escaped)
     return escaped.replace("\n", "<br/>")
 
 
@@ -2318,7 +2322,7 @@ def _build_purchase_order_items_table(items, currency, styles, amount_from_last_
         rows.append(
             [
                 Paragraph(str(item["index"]), styles["table_cell"]),
-                Paragraph(_escape(item["description"]), styles["table_cell"]),
+                Paragraph(_format_preserving_layout(item["description"]), styles["table_cell"]),
                 Paragraph(_escape(item["part_number"]), styles["table_cell_part_number"]),
                 Paragraph(_escape(item["hs_code"]), styles["table_cell"]),
                 Paragraph(_format_quantity(item["quantity"]), styles["table_cell_amount"]),

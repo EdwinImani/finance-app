@@ -50,6 +50,7 @@ from .pdf_builder import (
     _format_quantity,
     _format_measurement,
     _format_pdf_title,
+    _format_preserving_layout,
     _partner_card,
     _split_items_for_pages,
     format_footer_invoice_lines,
@@ -288,6 +289,17 @@ class StaffInvoiceScopeTests(TestCase):
 
 
 class PdfPaginationTests(TestCase):
+
+    def test_product_description_layout_is_preserved_for_pdf_tables(self):
+        formatted = _format_preserving_layout(
+            "First line\n\n Second line   with spaces "
+        )
+
+        self.assertEqual(
+            formatted,
+            "First line<br/><br/>&nbsp;Second line&nbsp;&nbsp; with spaces&nbsp;",
+        )
+
 
     def test_pdf_numbers_use_thousands_separator_and_decimal_point(self):
         self.assertEqual(_format_decimal_comma(100), "100.00")

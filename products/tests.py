@@ -17,6 +17,20 @@ from .models import Product
 
 class ProductModelTests(TestCase):
 
+    def test_description_supports_multiline_text(self):
+        self.assertEqual(
+            Product._meta.get_field("description").get_internal_type(),
+            "TextField",
+        )
+
+        product = Product.objects.create(
+            description="First line\n\n  Indented line",
+        )
+
+        product.refresh_from_db()
+        self.assertEqual(product.description, "First line\n\n  Indented line")
+        self.assertEqual(str(product), f"#{product.pk} - First line Indented line")
+
     def test_admin_label_includes_part_number_when_it_exists(self):
         product = Product.objects.create(
             description="Produit A",

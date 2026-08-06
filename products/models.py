@@ -3,9 +3,7 @@ from django.db import models
 
 class Product(models.Model):
 
-    description = models.CharField(
-        max_length=255
-    )
+    description = models.TextField()
 
     part_number = models.CharField(
         max_length=100,
@@ -43,11 +41,14 @@ class Product(models.Model):
         ordering = ["description"]
 
     def admin_label(self):
+        # Keep autocomplete labels on one line while retaining the original
+        # formatting in the saved description for document generation.
+        description_label = " ".join(self.description.split())
         if self.part_number:
-            return f"#{self.pk} - {self.description} - {self.part_number}" if self.pk else f"{self.description} - {self.part_number}"
+            return f"#{self.pk} - {description_label} - {self.part_number}" if self.pk else f"{description_label} - {self.part_number}"
         if self.pk:
-            return f"#{self.pk} - {self.description}"
-        return self.description
+            return f"#{self.pk} - {description_label}"
+        return description_label
 
     def __str__(self):
         return self.admin_label()
