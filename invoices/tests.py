@@ -310,6 +310,16 @@ class PdfPaginationTests(TestCase):
             "Normal <b>bold words</b><br/><b>complete bold line</b>",
         )
 
+    def test_product_description_supports_underlined_text(self):
+        formatted = _format_preserving_layout(
+            "Normal __underlined words__\n__complete underlined line__"
+        )
+
+        self.assertEqual(
+            formatted,
+            "Normal <u>underlined words</u><br/><u>complete underlined line</u>",
+        )
+
     def test_product_description_escapes_html_before_applying_bold(self):
         formatted = _format_preserving_layout("**<script>alert(1)</script>**")
 

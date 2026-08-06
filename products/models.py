@@ -43,7 +43,9 @@ class Product(models.Model):
     def admin_label(self):
         # Keep autocomplete labels on one line while retaining the original
         # formatting in the saved description for document generation.
-        description_label = " ".join(self.description.replace("**", "").split())
+        description_label = " ".join(
+            self.description.replace("**", "").replace("__", "").split()
+        )
         if self.part_number:
             return f"#{self.pk} - {description_label} - {self.part_number}" if self.pk else f"{description_label} - {self.part_number}"
         if self.pk:

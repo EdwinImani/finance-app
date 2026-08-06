@@ -58,6 +58,18 @@
         font-weight: 700;
     }
 
+    .product-description-underline {
+        min-height: 40px;
+        padding: 7px 16px;
+        border: 1px solid var(--border-color, #c7c7c7);
+        border-radius: 4px;
+        background: var(--button-bg, #417690);
+        color: var(--button-fg, #fff);
+        cursor: pointer;
+        font-size: 18px;
+        text-decoration: underline;
+    }
+
     .product-description-format-help {
         font-size: 14px;
         color: var(--body-quiet-color, #666);
@@ -76,27 +88,38 @@ document.addEventListener("DOMContentLoaded", function() {
     if (description && !document.querySelector(".product-description-toolbar")) {
         var toolbar = document.createElement("div");
         toolbar.className = "product-description-toolbar";
-        toolbar.innerHTML = '<button type="button" class="product-description-bold" title="Mettre la sélection en gras">B Bold</button>' +
-            '<span class="product-description-format-help">Sélectionnez un mot ou une ligne, puis cliquez sur Bold.</span>';
+        toolbar.innerHTML = '<button type="button" class="product-description-bold" title="Make the selected text bold">B Bold</button>' +
+            '<button type="button" class="product-description-underline" title="Underline the selected text">U Underline</button>' +
+            '<span class="product-description-format-help">Select a word or line, then choose the formatting.</span>';
         description.parentNode.insertBefore(toolbar, description);
 
-        toolbar.querySelector(".product-description-bold").addEventListener("click", function() {
+        function toggleDescriptionFormat(marker) {
             var start = description.selectionStart;
             var end = description.selectionEnd;
             var value = description.value;
             var selected = value.slice(start, end);
-            var alreadyBold = start >= 2 && value.slice(start - 2, start) === "**" && value.slice(end, end + 2) === "**";
+            var alreadyFormatted = start >= marker.length &&
+                value.slice(start - marker.length, start) === marker &&
+                value.slice(end, end + marker.length) === marker;
 
-            if (alreadyBold) {
-                description.value = value.slice(0, start - 2) + selected + value.slice(end + 2);
-                description.setSelectionRange(start - 2, end - 2);
+            if (alreadyFormatted) {
+                description.value = value.slice(0, start - marker.length) + selected + value.slice(end + marker.length);
+                description.setSelectionRange(start - marker.length, end - marker.length);
             } else {
-                description.value = value.slice(0, start) + "**" + selected + "**" + value.slice(end);
-                description.setSelectionRange(start + 2, end + 2);
+                description.value = value.slice(0, start) + marker + selected + marker + value.slice(end);
+                description.setSelectionRange(start + marker.length, end + marker.length);
             }
 
             description.focus();
             description.dispatchEvent(new Event("input", { bubbles: true }));
+        }
+
+        toolbar.querySelector(".product-description-bold").addEventListener("click", function() {
+            toggleDescriptionFormat("**");
+        });
+
+        toolbar.querySelector(".product-description-underline").addEventListener("click", function() {
+            toggleDescriptionFormat("__");
         });
     }
 

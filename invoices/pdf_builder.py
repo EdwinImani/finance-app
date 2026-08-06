@@ -107,6 +107,13 @@ def _register_pdf_fonts():
 
         pdfmetrics.registerFont(TTFont(regular_name, str(regular_path)))
         pdfmetrics.registerFont(TTFont(bold_name, str(bold_path)))
+        pdfmetrics.registerFontFamily(
+            regular_name,
+            normal=regular_name,
+            bold=bold_name,
+            italic=regular_name,
+            boldItalic=bold_name,
+        )
         PDF_FONT_REGULAR = regular_name
         PDF_FONT_BOLD = bold_name
         break
@@ -1983,8 +1990,9 @@ def _format_preserving_layout(value):
     # non-breaking. Preserve that indentation/trailing spacing as entered.
     escaped = re.sub(r"(?m)^ ", "&nbsp;", escaped)
     escaped = re.sub(r" (?=\n|$)", "&nbsp;", escaped)
-    # Product descriptions use a deliberately small, safe formatting syntax:
-    # text surrounded by ** is rendered in bold after HTML escaping.
+    # Product descriptions use a deliberately small, safe formatting syntax.
+    # Apply it only after HTML escaping so user-entered tags stay harmless.
+    escaped = re.sub(r"__([^\n]+?)__", r"<u>\1</u>", escaped)
     escaped = re.sub(r"\*\*([^\n]+?)\*\*", r"<b>\1</b>", escaped)
     return escaped.replace("\n", "<br/>")
 
