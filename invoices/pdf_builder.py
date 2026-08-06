@@ -9,7 +9,9 @@ PDF_SECOND_PAGE_ITEM_LIMIT = 20
 PDF_OTHER_PAGE_ITEM_LIMIT = 20
 PDF_LATER_PAGE_CONTENT_GAP_MM = 0
 PDF_TOP_MARGIN = 38
-PDF_BOTTOM_MARGIN = 25
+# The footer finishes below 23 mm. Keep that safety boundary while allowing
+# the body to use the small strip that was previously left empty above it.
+PDF_BOTTOM_MARGIN = 23
 PDF_INVOICE_BOX_HEIGHT_MM = 43
 PDF_INVOICE_BOX_WIDTH_MM = 95
 PDF_INVOICE_COLUMN_WIDTH_MM = 96
@@ -198,7 +200,7 @@ def build_invoice_pdf(*, invoice, company, items, importer, end_user, invoice_ti
                 story.append(Spacer(1, PDF_LATER_PAGE_CONTENT_GAP_MM * mm))
             amount_from_last_page = page_totals[page_index - 1]["cumulative_gross_value"] if page_index > 0 else None
             story.append(_build_items_table(page_items, currency, styles, amount_from_last_page=amount_from_last_page))
-            story.append(Spacer(1, 2 * mm))
+            story.append(Spacer(1, 1 * mm))
             story.append(_build_page_totals_flowable(page_index, invoice, currency, styles, page_totals))
 
     def draw_page(canvas, doc):
@@ -415,7 +417,7 @@ def build_purchase_order_pdf(*, purchase_order, company, items, seller, requeste
             story.append(Spacer(1, PDF_LATER_PAGE_CONTENT_GAP_MM * mm))
         amount_from_last_page = page_totals[page_index - 1]["gross_value"] if page_index > 0 else None
         story.append(_build_purchase_order_items_table(page_items, currency, styles, amount_from_last_page=amount_from_last_page))
-        story.append(Spacer(1, 2 * mm))
+        story.append(Spacer(1, 1 * mm))
         story.append(_build_purchase_order_totals_flowable(page_index, purchase_order, currency, styles, page_totals))
     story.append(Spacer(1, 4 * mm))
     story.append(_build_purchase_order_commercial_terms_box(purchase_order, company, styles))
