@@ -1983,6 +1983,9 @@ def _format_preserving_layout(value):
     # non-breaking. Preserve that indentation/trailing spacing as entered.
     escaped = re.sub(r"(?m)^ ", "&nbsp;", escaped)
     escaped = re.sub(r" (?=\n|$)", "&nbsp;", escaped)
+    # Product descriptions use a deliberately small, safe formatting syntax:
+    # text surrounded by ** is rendered in bold after HTML escaping.
+    escaped = re.sub(r"\*\*([^\n]+?)\*\*", r"<b>\1</b>", escaped)
     return escaped.replace("\n", "<br/>")
 
 

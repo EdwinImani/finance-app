@@ -38,6 +38,30 @@
         min-height: 48px;
         padding: 0 18px !important;
     }
+
+    .product-description-toolbar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 0 0 8px;
+    }
+
+    .product-description-bold {
+        min-height: 40px;
+        padding: 7px 16px;
+        border: 1px solid var(--border-color, #c7c7c7);
+        border-radius: 4px;
+        background: var(--button-bg, #417690);
+        color: var(--button-fg, #fff);
+        cursor: pointer;
+        font-size: 18px;
+        font-weight: 700;
+    }
+
+    .product-description-format-help {
+        font-size: 14px;
+        color: var(--body-quiet-color, #666);
+    }
 </style>
 <script>
 document.addEventListener("DOMContentLoaded", function() {
@@ -47,6 +71,34 @@ document.addEventListener("DOMContentLoaded", function() {
     var returnItemId = params.get("_return_item_id");
     var returnProductAction = params.get("_return_product_action");
     var form = document.querySelector("#content-main form");
+    var description = document.getElementById("id_description");
+
+    if (description && !document.querySelector(".product-description-toolbar")) {
+        var toolbar = document.createElement("div");
+        toolbar.className = "product-description-toolbar";
+        toolbar.innerHTML = '<button type="button" class="product-description-bold" title="Mettre la sélection en gras">B Bold</button>' +
+            '<span class="product-description-format-help">Sélectionnez un mot ou une ligne, puis cliquez sur Bold.</span>';
+        description.parentNode.insertBefore(toolbar, description);
+
+        toolbar.querySelector(".product-description-bold").addEventListener("click", function() {
+            var start = description.selectionStart;
+            var end = description.selectionEnd;
+            var value = description.value;
+            var selected = value.slice(start, end);
+            var alreadyBold = start >= 2 && value.slice(start - 2, start) === "**" && value.slice(end, end + 2) === "**";
+
+            if (alreadyBold) {
+                description.value = value.slice(0, start - 2) + selected + value.slice(end + 2);
+                description.setSelectionRange(start - 2, end - 2);
+            } else {
+                description.value = value.slice(0, start) + "**" + selected + "**" + value.slice(end);
+                description.setSelectionRange(start + 2, end + 2);
+            }
+
+            description.focus();
+            description.dispatchEvent(new Event("input", { bubbles: true }));
+        });
+    }
 
     if (returnTo && form && !form.querySelector('input[name="_return_to"]')) {
         var returnInput = document.createElement("input");

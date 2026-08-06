@@ -31,6 +31,11 @@ class ProductModelTests(TestCase):
         self.assertEqual(product.description, "First line\n\n  Indented line")
         self.assertEqual(str(product), f"#{product.pk} - First line Indented line")
 
+    def test_admin_label_hides_pdf_bold_markers(self):
+        product = Product.objects.create(description="Normal **bold text**")
+
+        self.assertEqual(str(product), f"#{product.pk} - Normal bold text")
+
     def test_admin_label_includes_part_number_when_it_exists(self):
         product = Product.objects.create(
             description="Produit A",

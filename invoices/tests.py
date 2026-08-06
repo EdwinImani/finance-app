@@ -300,6 +300,24 @@ class PdfPaginationTests(TestCase):
             "First line<br/><br/>&nbsp;Second line&nbsp;&nbsp; with spaces&nbsp;",
         )
 
+    def test_product_description_supports_safe_bold_formatting(self):
+        formatted = _format_preserving_layout(
+            "Normal **bold words**\n**complete bold line**"
+        )
+
+        self.assertEqual(
+            formatted,
+            "Normal <b>bold words</b><br/><b>complete bold line</b>",
+        )
+
+    def test_product_description_escapes_html_before_applying_bold(self):
+        formatted = _format_preserving_layout("**<script>alert(1)</script>**")
+
+        self.assertEqual(
+            formatted,
+            "<b>&lt;script&gt;alert(1)&lt;/script&gt;</b>",
+        )
+
 
     def test_pdf_numbers_use_thousands_separator_and_decimal_point(self):
         self.assertEqual(_format_decimal_comma(100), "100.00")
