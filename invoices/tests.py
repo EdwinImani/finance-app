@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group, Permission
 from django.contrib.staticfiles import finders
 from django.template.loader import get_template
-from django.test import SimpleTestCase, TestCase
+from django.test import RequestFactory, SimpleTestCase, TestCase
 from django.test import override_settings
 from django.urls import reverse
 from reportlab.lib.units import mm
@@ -880,9 +880,10 @@ class ProformaConversionTests(TestCase):
 class InvoiceFormVatDefaultTests(TestCase):
 
     def test_blank_invoice_financial_fields_are_saved_as_zero(self):
-        CompanySetting.objects.create(
+        company = CompanySetting.objects.create(
             company_name="Societe Zero",
             vat_amount=Decimal("20.00"),
+            commercial_invoice_template="green",
         )
         form = CommercialInvoiceForm(
             data={
@@ -901,6 +902,8 @@ class InvoiceFormVatDefaultTests(TestCase):
         self.assertEqual(invoice.freight, Decimal("0.00"))
         self.assertEqual(invoice.discount, Decimal("0.00"))
         self.assertEqual(invoice.vat_percent, Decimal("20.00"))
+        self.assertEqual(invoice.issuing_company, company)
+        self.assertEqual(invoice.pdf_template, "green")
 
     def test_proforma_form_uses_company_vat_as_initial_value(self):
         CompanySetting.objects.create(
@@ -917,18 +920,61 @@ class InvoiceFormVatDefaultTests(TestCase):
         self.assertEqual(form.fields["terms_conditions"].initial, "30 days")
 
     def test_commercial_form_uses_company_vat_as_initial_value(self):
-        CompanySetting.objects.create(
+        company = CompanySetting.objects.create(
             company_name="Societe TVA",
             vat_amount=Decimal("8.50"),
             delivery_time="1 week",
             terms_conditions="At sight",
+            commercial_invoice_template="blue",
         )
 
         form = CommercialInvoiceForm()
 
+        self.assertEqual(form.fields["issuing_company"].initial, company.pk)
+        self.assertEqual(form.fields["pdf_template"].initial, "blue")
         self.assertEqual(form.fields["vat_percent"].initial, Decimal("8.50"))
         self.assertEqual(form.fields["delivery_time"].initial, "1 week")
         self.assertEqual(form.fields["terms_conditions"].initial, "At sight")
+
+    def test_commercial_form_uses_selected_company_for_blank_vat_and_template(self):
+        default_company = CompanySetting.objects.create(
+            company_name="Default Company",
+            vat_amount=Decimal("20.00"),
+            commercial_invoice_template="classic",
+        )
+        branch_company = CompanySetting.objects.create(
+            company_name="Branch Company",
+            vat_amount=Decimal("7.50"),
+            commercial_invoice_template="mono",
+        )
+
+        form = CommercialInvoiceForm(
+            data={
+                "issuing_company": str(branch_company.pk),
+                "pdf_template": "",
+                "invoice_number": "",
+                "invoice_date": "2026-07-20",
+                "importer": "",
+                "end_user": "",
+                "freight": "",
+                "discount": "",
+                "vat_percent": "",
+                "our_order_no": "",
+                "our_reference": "",
+                "price_for": "",
+                "dispatching_note": "",
+                "packing_specification": "",
+                "delivery_time": "",
+                "terms_conditions": "",
+            }
+        )
+
+        self.assertTrue(form.is_valid(), form.errors)
+        invoice = form.save()
+        self.assertEqual(CompanySetting.get_default(), default_company)
+        self.assertEqual(invoice.issuing_company, branch_company)
+        self.assertEqual(invoice.vat_percent, Decimal("7.50"))
+        self.assertEqual(invoice.pdf_template, "mono")
 
     def test_proforma_form_saves_user_edited_delivery_and_payment_terms(self):
         CompanySetting.objects.create(
@@ -1068,9 +1114,10 @@ class CommercialInvoiceStockTests(TestCase):
 class CommercialInvoiceAdminDraftTests(TestCase):
 
     def setUp(self):
-        CompanySetting.objects.create(
+        self.company = CompanySetting.objects.create(
             company_name="Societe Test",
             vat_amount=Decimal("20.00"),
+            commercial_invoice_template="blue",
         )
         User = get_user_model()
         self.user = User.objects.create_superuser(
@@ -1094,6 +1141,8 @@ class CommercialInvoiceAdminDraftTests(TestCase):
         )
         self.assertIsNotNone(invoice.invoice_date)
         self.assertEqual(invoice.vat_percent, Decimal("20.00"))
+        self.assertEqual(invoice.issuing_company, self.company)
+        self.assertEqual(invoice.pdf_template, "blue")
 
     def test_draft_add_url_creates_empty_commercial_invoice_draft(self):
         response = self.client.get(reverse("admin:invoices_commercialinvoice_draft_add"))
@@ -1107,6 +1156,30 @@ class CommercialInvoiceAdminDraftTests(TestCase):
             response,
             reverse("admin:invoices_commercialinvoice_change", args=[invoice.pk]),
         )
+
+    def test_pdf_context_uses_invoice_company_and_template(self):
+        branch_company = CompanySetting.objects.create(
+            company_name="Branch Company",
+            bank="Branch Bank",
+            iban="BRANCH-IBAN",
+            bic="BRANCH-BIC",
+            currency="USD",
+            commercial_invoice_template="green",
+        )
+        invoice = CommercialInvoice.objects.create(
+            issuing_company=branch_company,
+            pdf_template="mono",
+            created_by=self.user,
+        )
+        request = RequestFactory().get("/")
+        request.user = self.user
+        model_admin = admin.site._registry[CommercialInvoice]
+
+        context = model_admin.get_invoice_pdf_context(request, invoice)
+
+        self.assertEqual(context["company"], branch_company)
+        self.assertEqual(context["currency"], "USD")
+        self.assertEqual(context["pdf_template"], "mono")
 
     def test_changelist_uses_draft_add_url_for_commercial_invoice_button(self):
         response = self.client.get(reverse("admin:invoices_commercialinvoice_changelist"))

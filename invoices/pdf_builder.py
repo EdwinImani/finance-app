@@ -3,6 +3,8 @@ from io import BytesIO
 from pathlib import Path
 import re
 
+from financeapp.document_templates import COMMERCIAL_INVOICE_TEMPLATE_DEFAULT
+
 pdf_canvas = None
 PDF_FIRST_PAGE_ITEM_LIMIT = 9
 PDF_SECOND_PAGE_ITEM_LIMIT = 20
@@ -28,6 +30,40 @@ SHIPPING_ITEM_COLUMN_WIDTHS_MM = (22, 70, 45, 27, 20)
 PACKING_COLUMN_WIDTHS_MM = (22, 66, 24, 24, 16, 16, 16)
 PRICE_FOR_AMOUNT_RIGHT_INSET_MM = 4
 PDF_ACCENT_HEX = "#FF3300"
+PDF_TEMPLATE_CONFIGS = {
+    "classic": {
+        "accent_hex": "#FF3300",
+        "body_hex": "#1F2933",
+        "table_text_hex": "#3F2A14",
+        "footer_hex": "#000000",
+        "header_rule": False,
+        "footer_rule": False,
+    },
+    "blue": {
+        "accent_hex": "#1D4ED8",
+        "body_hex": "#172033",
+        "table_text_hex": "#172033",
+        "footer_hex": "#172033",
+        "header_rule": True,
+        "footer_rule": True,
+    },
+    "green": {
+        "accent_hex": "#047857",
+        "body_hex": "#17352B",
+        "table_text_hex": "#17352B",
+        "footer_hex": "#17352B",
+        "header_rule": True,
+        "footer_rule": True,
+    },
+    "mono": {
+        "accent_hex": "#111827",
+        "body_hex": "#111827",
+        "table_text_hex": "#111827",
+        "footer_hex": "#111827",
+        "header_rule": True,
+        "footer_rule": False,
+    },
+}
 
 try:
     from reportlab.lib import colors
@@ -123,7 +159,26 @@ def _register_pdf_fonts():
     PDF_FONTS_REGISTERED = True
 
 
-def build_invoice_pdf(*, invoice, company, items, importer, end_user, invoice_title, currency, document_type="default", packing_entries=None, **_ignored):
+def _get_pdf_template_config(pdf_template=None):
+    key = pdf_template or COMMERCIAL_INVOICE_TEMPLATE_DEFAULT
+    return PDF_TEMPLATE_CONFIGS.get(key, PDF_TEMPLATE_CONFIGS[COMMERCIAL_INVOICE_TEMPLATE_DEFAULT])
+
+
+def _style_template_config(styles):
+    if isinstance(styles, dict):
+        return styles.get("_template_config") or PDF_TEMPLATE_CONFIGS[COMMERCIAL_INVOICE_TEMPLATE_DEFAULT]
+    return PDF_TEMPLATE_CONFIGS[COMMERCIAL_INVOICE_TEMPLATE_DEFAULT]
+
+
+def _accent_hex(styles):
+    return _style_template_config(styles).get("accent_hex", PDF_ACCENT_HEX)
+
+
+def _accent_color(styles):
+    return colors.HexColor(_accent_hex(styles))
+
+
+def build_invoice_pdf(*, invoice, company, items, importer, end_user, invoice_title, currency, document_type="default", packing_entries=None, pdf_template=None, **_ignored):
     if REPORTLAB_IMPORT_ERROR is not None:
         raise RuntimeError("ReportLab is not installed in the active Python environment.") from REPORTLAB_IMPORT_ERROR
 
@@ -138,7 +193,7 @@ def build_invoice_pdf(*, invoice, company, items, importer, end_user, invoice_ti
         title=invoice.invoice_number or invoice_title,
     )
 
-    styles = _build_styles()
+    styles = _build_styles(pdf_template or getattr(invoice, "pdf_template", None))
     story = []
 
     story.append(Spacer(1, 0))
@@ -150,7 +205,7 @@ def build_invoice_pdf(*, invoice, company, items, importer, end_user, invoice_ti
         InvoiceWidthHRFlowable(
             width=(PDF_INVOICE_COLUMN_WIDTH_MM + PDF_INVOICE_BOX_WIDTH_MM) * mm,
             thickness=0.8,
-            color=colors.HexColor(PDF_ACCENT_HEX),
+            color=_accent_color(styles),
             spaceBefore=0,
             spaceAfter=0,
             hAlign="LEFT",
@@ -439,17 +494,22 @@ def build_purchase_order_pdf(*, purchase_order, company, items, seller, requeste
     return buffer.getvalue()
 
 
-def _build_styles():
+def _build_styles(pdf_template=None):
     _register_pdf_fonts()
     base = getSampleStyleSheet()
-    return {
+    template_config = _get_pdf_template_config(pdf_template)
+    accent_hex = template_config["accent_hex"]
+    body_hex = template_config["body_hex"]
+    table_text_hex = template_config["table_text_hex"]
+    footer_hex = template_config["footer_hex"]
+    styles = {
         "title": ParagraphStyle(
             "InvoiceTitle",
             parent=base["Heading1"],
             fontName=PDF_FONT_BOLD,
             fontSize=20.5,
             leading=22.5,
-            textColor=colors.HexColor(PDF_ACCENT_HEX),
+            textColor=colors.HexColor(accent_hex),
             spaceAfter=0,
         ),
         "section_title": ParagraphStyle(
@@ -458,7 +518,7 @@ def _build_styles():
             fontName=PDF_FONT_BOLD,
             fontSize=8.5,
             leading=9.5,
-            textColor=colors.HexColor(PDF_ACCENT_HEX),
+            textColor=colors.HexColor(accent_hex),
             spaceAfter=0,
         ),
         "invoice_box_title": ParagraphStyle(
@@ -467,7 +527,7 @@ def _build_styles():
             fontName=PDF_FONT_BOLD,
             fontSize=8.5,
             leading=9.5,
-            textColor=colors.HexColor(PDF_ACCENT_HEX),
+            textColor=colors.HexColor(accent_hex),
             spaceAfter=0,
         ),
         "document_type_title": ParagraphStyle(
@@ -476,7 +536,7 @@ def _build_styles():
             fontName=PDF_FONT_BOLD,
             fontSize=11,
             leading=12.5,
-            textColor=colors.HexColor(PDF_ACCENT_HEX),
+            textColor=colors.HexColor(accent_hex),
             spaceAfter=0,
         ),
         "label": ParagraphStyle(
@@ -485,7 +545,7 @@ def _build_styles():
             fontName=PDF_FONT_BOLD,
             fontSize=8,
             leading=9,
-            textColor=colors.HexColor(PDF_ACCENT_HEX),
+            textColor=colors.HexColor(accent_hex),
         ),
         "label_right": ParagraphStyle(
             "LabelRight",
@@ -494,7 +554,7 @@ def _build_styles():
             fontSize=8,
             leading=9,
             alignment=TA_RIGHT,
-            textColor=colors.HexColor(PDF_ACCENT_HEX),
+            textColor=colors.HexColor(accent_hex),
         ),
         "totals_label": ParagraphStyle(
             "TotalsLabel",
@@ -502,7 +562,7 @@ def _build_styles():
             fontName=PDF_FONT_BOLD,
             fontSize=8,
             leading=9,
-            textColor=colors.HexColor(PDF_ACCENT_HEX),
+            textColor=colors.HexColor(accent_hex),
         ),
         "body": ParagraphStyle(
             "Body",
@@ -520,7 +580,7 @@ def _build_styles():
             fontSize=9,
             leading=10.2,
             alignment=TA_LEFT,
-            textColor=colors.HexColor("#1F2933"),
+            textColor=colors.HexColor(body_hex),
         ),
         "body_left_bold": ParagraphStyle(
             "BodyLeftBold",
@@ -529,7 +589,7 @@ def _build_styles():
             fontSize=9,
             leading=10.2,
             alignment=TA_LEFT,
-            textColor=colors.HexColor("#1F2933"),
+            textColor=colors.HexColor(body_hex),
         ),
         "invoice_box_body": ParagraphStyle(
             "InvoiceBoxBody",
@@ -538,7 +598,7 @@ def _build_styles():
             fontSize=9,
             leading=10.2,
             alignment=TA_LEFT,
-            textColor=colors.HexColor("#1F2933"),
+            textColor=colors.HexColor(body_hex),
             splitLongWords=True,
         ),
         "partner_compact_body": ParagraphStyle(
@@ -548,7 +608,7 @@ def _build_styles():
             fontSize=9,
             leading=10.6,
             alignment=TA_LEFT,
-            textColor=colors.HexColor("#1F2933"),
+            textColor=colors.HexColor(body_hex),
             splitLongWords=True,
             spaceBefore=0,
             spaceAfter=0,
@@ -560,7 +620,7 @@ def _build_styles():
             fontSize=9,
             leading=10.2,
             alignment=TA_LEFT,
-            textColor=colors.HexColor("#1F2933"),
+            textColor=colors.HexColor(body_hex),
             splitLongWords=True,
         ),
         "info_box_body": ParagraphStyle(
@@ -570,7 +630,7 @@ def _build_styles():
             fontSize=9,
             leading=10.2,
             alignment=TA_LEFT,
-            textColor=colors.HexColor("#1F2933"),
+            textColor=colors.HexColor(body_hex),
             splitLongWords=True,
         ),
         "invoice_note_body": ParagraphStyle(
@@ -580,7 +640,7 @@ def _build_styles():
             fontSize=9,
             leading=9.8,
             alignment=TA_LEFT,
-            textColor=colors.HexColor("#1F2933"),
+            textColor=colors.HexColor(body_hex),
             splitLongWords=True,
             spaceBefore=0,
             spaceAfter=0,
@@ -592,7 +652,7 @@ def _build_styles():
             fontSize=9,
             leading=9.8,
             alignment=TA_LEFT,
-            textColor=colors.HexColor("#1F2933"),
+            textColor=colors.HexColor(body_hex),
             splitLongWords=True,
             spaceBefore=0,
             spaceAfter=0,
@@ -633,7 +693,7 @@ def _build_styles():
             fontSize=8,
             leading=9,
             alignment=TA_LEFT,
-            textColor=colors.HexColor(PDF_ACCENT_HEX),
+            textColor=colors.HexColor(accent_hex),
             splitLongWords=False,
         ),
         "table_head_center": ParagraphStyle(
@@ -643,7 +703,7 @@ def _build_styles():
             fontSize=8,
             leading=9,
             alignment=TA_CENTER,
-            textColor=colors.HexColor(PDF_ACCENT_HEX),
+            textColor=colors.HexColor(accent_hex),
             splitLongWords=False,
         ),
         "table_head_amount": ParagraphStyle(
@@ -653,7 +713,7 @@ def _build_styles():
             fontSize=8,
             leading=9,
             alignment=TA_RIGHT,
-            textColor=colors.HexColor(PDF_ACCENT_HEX),
+            textColor=colors.HexColor(accent_hex),
             splitLongWords=False,
         ),
         "table_cell": ParagraphStyle(
@@ -663,7 +723,7 @@ def _build_styles():
             fontSize=7.2,
             leading=8,
             alignment=TA_JUSTIFY,
-            textColor=colors.HexColor("#3F2A14"),
+            textColor=colors.HexColor(table_text_hex),
         ),
         "table_cell_part_number": ParagraphStyle(
             "TableCellPartNumber",
@@ -672,7 +732,7 @@ def _build_styles():
             fontSize=7.2,
             leading=8,
             alignment=TA_LEFT,
-            textColor=colors.HexColor("#3F2A14"),
+            textColor=colors.HexColor(table_text_hex),
             wordWrap="CJK",
         ),
         "table_cell_right": ParagraphStyle(
@@ -682,7 +742,7 @@ def _build_styles():
             fontSize=7.2,
             leading=8,
             alignment=TA_RIGHT,
-            textColor=colors.HexColor("#3F2A14"),
+            textColor=colors.HexColor(table_text_hex),
         ),
         "table_cell_center": ParagraphStyle(
             "TableCellCenter",
@@ -691,7 +751,7 @@ def _build_styles():
             fontSize=7.2,
             leading=8,
             alignment=TA_CENTER,
-            textColor=colors.HexColor("#3F2A14"),
+            textColor=colors.HexColor(table_text_hex),
         ),
         "purchase_order_date_value": ParagraphStyle(
             "PurchaseOrderDateValue",
@@ -700,7 +760,7 @@ def _build_styles():
             fontSize=8.3,
             leading=9.4,
             alignment=TA_LEFT,
-            textColor=colors.HexColor("#3F2A14"),
+            textColor=colors.HexColor(table_text_hex),
         ),
         "table_cell_amount": ParagraphStyle(
             "TableCellAmount",
@@ -709,7 +769,7 @@ def _build_styles():
             fontSize=7.2,
             leading=8,
             alignment=TA_RIGHT,
-            textColor=colors.HexColor("#3F2A14"),
+            textColor=colors.HexColor(table_text_hex),
         ),
         "footer": ParagraphStyle(
             "Footer",
@@ -718,7 +778,7 @@ def _build_styles():
             fontSize=8,
             leading=9,
             alignment=TA_RIGHT,
-            textColor=colors.black,
+            textColor=colors.HexColor(footer_hex),
         ),
         "footer_left_small": ParagraphStyle(
             "FooterLeftSmall",
@@ -727,7 +787,7 @@ def _build_styles():
             fontSize=7,
             leading=8,
             alignment=TA_LEFT,
-            textColor=colors.black,
+            textColor=colors.HexColor(footer_hex),
         ),
         "footer_center_small": ParagraphStyle(
             "FooterCenterSmall",
@@ -736,7 +796,7 @@ def _build_styles():
             fontSize=7,
             leading=8,
             alignment=TA_CENTER,
-            textColor=colors.black,
+            textColor=colors.HexColor(footer_hex),
         ),
         "footer_right_small": ParagraphStyle(
             "FooterRightSmall",
@@ -745,9 +805,11 @@ def _build_styles():
             fontSize=7,
             leading=8,
             alignment=TA_RIGHT,
-            textColor=colors.black,
+            textColor=colors.HexColor(footer_hex),
         ),
     }
+    styles["_template_config"] = template_config
+    return styles
 
 
 def _build_purchase_order_styles():
@@ -918,7 +980,7 @@ def _build_invoice_details(invoice, company, styles, document_type="default", cu
                 InvoiceWidthHRFlowable(
                     width=(PDF_INVOICE_COLUMN_WIDTH_MM + PDF_INVOICE_BOX_WIDTH_MM) * mm,
                     thickness=0.8,
-                    color=colors.HexColor(PDF_ACCENT_HEX),
+                    color=_accent_color(styles),
                     spaceBefore=0,
                     spaceAfter=0,
                     hAlign="LEFT",
@@ -956,7 +1018,7 @@ def _build_shipping_document_intro(invoice, company, styles):
         InvoiceWidthHRFlowable(
             width=(PDF_INVOICE_COLUMN_WIDTH_MM + PDF_INVOICE_BOX_WIDTH_MM) * mm,
             thickness=0.8,
-            color=colors.HexColor(PDF_ACCENT_HEX),
+            color=_accent_color(styles),
             spaceBefore=0,
             spaceAfter=0,
             hAlign="LEFT",
@@ -1126,7 +1188,7 @@ def _build_purchase_order_detail_boxes(purchase_order, company, styles):
     left_lines = []
     if getattr(company, "company_name", ""):
         left_lines.append(
-            f'<font color="{PDF_ACCENT_HEX}"><b>{_format_preserving_layout(company.company_name)}</b></font>'
+            f'<font color="{_accent_hex(styles)}"><b>{_format_preserving_layout(company.company_name)}</b></font>'
         )
     if getattr(company, "siren", ""):
         left_lines.append(f"<b>SIREN:</b> {_format_preserving_layout(company.siren)}")
@@ -1232,7 +1294,7 @@ def _partner_card(
         ("BOTTOMPADDING", (0, 0), (-1, -1), bottom_padding),
     ]
     if accent_border:
-        commands.append(("BOX", (0, 0), (-1, -1), 1, colors.HexColor(PDF_ACCENT_HEX)))
+        commands.append(("BOX", (0, 0), (-1, -1), 1, _accent_color(styles)))
     card.setStyle(TableStyle(commands))
     return card
 
@@ -1746,6 +1808,7 @@ def _draw_page_header(canvas, document, company, invoice, invoice_title, styles)
     left_x = document.leftMargin
     top_y = document.pagesize[1] - 12 * mm
     page_number = canvas.getPageNumber()
+    template_config = _style_template_config(styles)
 
     company_name = Paragraph(_escape(getattr(company, "company_name", "") or "Company"), styles["title"])
     company_name.wrapOn(canvas, 110 * mm, 10 * mm)
@@ -1754,6 +1817,16 @@ def _draw_page_header(canvas, document, company, invoice, invoice_title, styles)
     invoice_type = Paragraph(_escape(_format_pdf_title(invoice_title)), styles["section_title"])
     invoice_type.wrapOn(canvas, 80 * mm, 6 * mm)
     invoice_type.drawOn(canvas, left_x, top_y - 18 * mm)
+
+    if template_config.get("header_rule"):
+        canvas.setStrokeColor(_accent_color(styles))
+        canvas.setLineWidth(0.9)
+        canvas.line(
+            left_x,
+            top_y - 20.5 * mm,
+            document.pagesize[0] - document.rightMargin,
+            top_y - 20.5 * mm,
+        )
 
     if page_number > 1:
         invoice_number = Paragraph(
@@ -1785,6 +1858,16 @@ def _draw_page_footer(canvas, document, invoice, company, styles, hide_contact_d
     footer_right = _build_footer_right_text(invoice, company, hide_contact_details=hide_contact_details)
     if not any([footer_left, footer_center, footer_right]):
         return
+
+    if _style_template_config(styles).get("footer_rule"):
+        canvas.setStrokeColor(_accent_color(styles))
+        canvas.setLineWidth(0.55)
+        canvas.line(
+            document.leftMargin,
+            24 * mm,
+            document.pagesize[0] - document.rightMargin,
+            24 * mm,
+        )
 
     available_width = document.width
     footer_table = Table(

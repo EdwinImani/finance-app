@@ -50,6 +50,20 @@ class CompanySettingLogoTests(TestCase):
         self.assertFalse(old_logo_path.exists())
         self.assertTrue(Path(company.company_logo.path).exists())
 
+    def test_multiple_company_profiles_keep_one_default(self):
+        first_company = CompanySetting.objects.create(company_name="Main Company")
+        second_company = CompanySetting.objects.create(
+            company_name="Export Branch",
+            is_default=True,
+        )
+
+        first_company.refresh_from_db()
+        second_company.refresh_from_db()
+
+        self.assertFalse(first_company.is_default)
+        self.assertTrue(second_company.is_default)
+        self.assertEqual(CompanySetting.get_default(), second_company)
+
 
 class CompanySettingAdminTests(TestCase):
 
@@ -72,6 +86,7 @@ class CompanySettingAdminTests(TestCase):
             reverse("admin:company_companysetting_change", args=[company.pk]),
             {
                 "year": "2026",
+                "is_default": "on",
                 "company_name": "Updated Company",
                 "president": "",
                 "company_email": "",
@@ -85,6 +100,7 @@ class CompanySettingAdminTests(TestCase):
                 "iban": "",
                 "bic": "",
                 "currency": "EUR",
+                "commercial_invoice_template": "classic",
                 "vat_amount": "20.00",
                 "delivery_time": "",
                 "terms_conditions": "",

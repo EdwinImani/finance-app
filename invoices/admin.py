@@ -22,6 +22,7 @@ from financeapp.access_control import (
     is_staff_role,
 )
 from financeapp.filename_utils import document_pdf_filename
+from financeapp.document_templates import COMMERCIAL_INVOICE_TEMPLATE_DEFAULT
 from company.models import CompanySetting
 from partners.models import Partner
 from products.models import Product
@@ -110,7 +111,7 @@ class InvoiceAdminForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        company = CompanySetting.objects.first()
+        company = CompanySetting.get_default()
 
         if company and not self.instance.pk:
             if "vat_percent" in self.fields:
@@ -158,11 +159,11 @@ class InvoiceAdminMixin:
         return formfield
 
     def get_company_year(self):
-        company = CompanySetting.objects.first()
+        company = CompanySetting.get_default()
         return company.year if company and company.year else None
 
     def get_default_invoice_date(self):
-        company = CompanySetting.objects.first()
+        company = CompanySetting.get_default()
         today = timezone.now().date()
         if not company or not company.year:
             return today
@@ -172,17 +173,27 @@ class InvoiceAdminMixin:
             return today.replace(year=company.year, day=28)
 
     def get_default_vat_percent(self):
-        company = CompanySetting.objects.first()
+        company = CompanySetting.get_default()
         return company.vat_amount if company else Decimal("0.00")
 
+    def get_default_company(self):
+        return CompanySetting.get_default()
+
     def create_draft_invoice(self, request=None):
-        company = CompanySetting.objects.first()
+        company = self.get_default_company()
         values = dict(
             invoice_date=self.get_default_invoice_date(),
             vat_percent=self.get_default_vat_percent(),
             delivery_time=company.delivery_time if company else "",
             terms_conditions=company.terms_conditions if company else "",
         )
+        model_field_names = {field.name for field in self.model._meta.fields}
+        if "issuing_company" in model_field_names:
+            values["issuing_company"] = company
+        if "pdf_template" in model_field_names:
+            values["pdf_template"] = (
+                company.commercial_invoice_template if company else COMMERCIAL_INVOICE_TEMPLATE_DEFAULT
+            )
         if request and any(field.name == "created_by" for field in self.model._meta.fields):
             values["created_by"] = request.user
         return self.model.objects.create(**values)
@@ -393,7 +404,7 @@ class InvoiceAdminMixin:
         )
 
     def get_invoice_pdf_context(self, request, obj):
-        company = CompanySetting.objects.first()
+        company = self.get_company_for_invoice(obj)
         return {
             "invoice": obj,
             "invoice_title": self.get_invoice_title(),
@@ -409,7 +420,19 @@ class InvoiceAdminMixin:
             "vat_amount": obj.vat_amount(),
             "total_amount": obj.total_amount(),
             "packing_entries": self.get_invoice_packing_entries_for_pdf(obj),
+            "pdf_template": self.get_pdf_template_for_invoice(obj, company),
         }
+
+    def get_company_for_invoice(self, obj):
+        return getattr(obj, "issuing_company", None) or self.get_default_company()
+
+    def get_pdf_template_for_invoice(self, obj, company):
+        invoice_template = getattr(obj, "pdf_template", "")
+        if invoice_template:
+            return invoice_template
+        if company and getattr(company, "commercial_invoice_template", ""):
+            return company.commercial_invoice_template
+        return COMMERCIAL_INVOICE_TEMPLATE_DEFAULT
 
     def get_invoice_packing_entries_for_pdf(self, obj):
         if not hasattr(obj, "packing_entries"):
@@ -435,7 +458,10 @@ class InvoiceAdminMixin:
         return self.get_invoice_pdf_filename(obj)
 
     def export_pdf(self, request, object_id, document_type="default"):
-        queryset = self.model.objects.select_related("importer", "end_user").prefetch_related(
+        select_related_fields = ["importer", "end_user"]
+        if any(field.name == "issuing_company" for field in self.model._meta.fields):
+            select_related_fields.append("issuing_company")
+        queryset = self.model.objects.select_related(*select_related_fields).prefetch_related(
             "items__product",
             "importer__addresses",
             "importer__phones",
@@ -977,6 +1003,12 @@ class CommercialInvoiceAdmin(InvoiceAdminMixin, SaveRedirectToWelcomeMixin, Page
     }
 
     fieldsets = (
+        ("Document Profile", {
+            "fields": (
+                "issuing_company",
+                "pdf_template",
+            )
+        }),
         ("Invoice Overview", {
             "fields": (
                 ("invoice_date", "invoice_number"),
@@ -1007,6 +1039,8 @@ class CommercialInvoiceAdmin(InvoiceAdminMixin, SaveRedirectToWelcomeMixin, Page
         "invoice_date_display",
         "importer",
         "end_user",
+        "issuing_company",
+        "pdf_template",
         "created_by",
         "amount_display",
         "pdf_link",
@@ -1028,6 +1062,7 @@ class CommercialInvoiceAdmin(InvoiceAdminMixin, SaveRedirectToWelcomeMixin, Page
         "importer__email",
         "end_user__description",
         "end_user__email",
+        "issuing_company__company_name",
         "items__product__description",
         "items__product__part_number",
         "items__part_number",
@@ -1054,6 +1089,8 @@ class CommercialInvoiceAdmin(InvoiceAdminMixin, SaveRedirectToWelcomeMixin, Page
 
     list_filter = (
         "invoice_date",
+        "issuing_company",
+        "pdf_template",
         "importer",
     )
 
@@ -1192,7 +1229,7 @@ class CommercialInvoiceAdmin(InvoiceAdminMixin, SaveRedirectToWelcomeMixin, Page
             raise PermissionDenied
         importers = Partner.objects.filter(partner_type="importer").order_by("description")
         products = Product.objects.all().order_by("description")
-        company = CompanySetting.objects.first()
+        company = CompanySetting.get_default()
 
         selected_importers = request.GET.getlist("importers")
         selected_products = request.GET.getlist("products")

@@ -1,5 +1,4 @@
 from django.contrib import admin
-from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.html import format_html
 from financeapp.admin_mixins import SaveRedirectToWelcomeMixin
@@ -13,17 +12,27 @@ class CompanySettingAdmin(SaveRedirectToWelcomeMixin, admin.ModelAdmin):
     save_redirect_url = "/admin/"
 
     list_display = (
+        "default_badge",
         "company_name",
         "year",
         "currency",
+        "commercial_invoice_template",
         "vat_amount",
         "company_phone",
         "company_email",
     )
 
+    list_filter = (
+        "is_default",
+        "currency",
+        "commercial_invoice_template",
+    )
+
     search_fields = (
         "company_name",
         "company_email",
+        "bank",
+        "iban",
     )
 
     readonly_fields = (
@@ -32,25 +41,8 @@ class CompanySettingAdmin(SaveRedirectToWelcomeMixin, admin.ModelAdmin):
         "login_password_panel",
     )
 
-    # ----------------------
-    # REDIRECT DIRECTLY TO SETTINGS PAGE
-    # ----------------------
-
-    def changelist_view(self, request, extra_context=None):
-
-        obj = CompanySetting.objects.first()
-
-        if obj:
-            return redirect(f"/admin/company/companysetting/{obj.id}/change/")
-
-        return redirect("/admin/company/companysetting/add/")
-
-    # ----------------------
-    # ALLOW ONLY ONE OBJECT
-    # ----------------------
-
     def has_add_permission(self, request):
-        if is_staff_role(request.user) or CompanySetting.objects.exists():
+        if is_staff_role(request.user):
             return False
         return super().has_add_permission(request)
 
@@ -91,6 +83,7 @@ class CompanySettingAdmin(SaveRedirectToWelcomeMixin, admin.ModelAdmin):
             "fields": (
                 "company_logo",
                 "logo_preview",
+                "is_default",
                 "year",
                 "company_name",
                 "president",
@@ -121,6 +114,7 @@ class CompanySettingAdmin(SaveRedirectToWelcomeMixin, admin.ModelAdmin):
 
         ("Documents Settings", {
             "fields": (
+                "commercial_invoice_template",
                 ("currency", "vat_amount"),
                 "delivery_time",
                 "terms_conditions",
@@ -137,6 +131,14 @@ class CompanySettingAdmin(SaveRedirectToWelcomeMixin, admin.ModelAdmin):
             )
         }),
     )
+
+    def default_badge(self, obj):
+        if obj.is_default:
+            return format_html('<span class="company-default-badge">{}</span>', "Default")
+        return "-"
+
+    default_badge.short_description = "Default"
+    default_badge.admin_order_field = "is_default"
 
     def logo_preview(self, obj):
         if not obj or not obj.company_logo:
@@ -160,10 +162,12 @@ class CompanySettingAdmin(SaveRedirectToWelcomeMixin, admin.ModelAdmin):
                 '<div class="company-settings-summary">'
                 '<div class="company-summary-card"><strong>Company</strong><span>{}</span></div>'
                 '<div class="company-summary-card"><strong>Currency</strong><span>{}</span></div>'
+                '<div class="company-summary-card"><strong>Commercial Template</strong><span>{}</span></div>'
                 '<div class="company-summary-card"><strong>VAT</strong><span>{}</span></div>'
                 '<div class="company-summary-card"><strong>Proforma Validity</strong><span>{}</span></div>'
                 "</div>",
                 "Not set yet",
+                "-",
                 "-",
                 "-",
                 "-",
@@ -173,11 +177,13 @@ class CompanySettingAdmin(SaveRedirectToWelcomeMixin, admin.ModelAdmin):
             '<div class="company-settings-summary">'
             '<div class="company-summary-card"><strong>Company</strong><span>{}</span></div>'
             '<div class="company-summary-card"><strong>Currency</strong><span>{}</span></div>'
+            '<div class="company-summary-card"><strong>Commercial Template</strong><span>{}</span></div>'
             '<div class="company-summary-card"><strong>VAT</strong><span>{}%</span></div>'
             '<div class="company-summary-card"><strong>Proforma Validity</strong><span>{} days</span></div>'
             "</div>",
             obj.company_name or "-",
             obj.get_currency_display() if obj.currency else "-",
+            obj.get_commercial_invoice_template_display() if obj.commercial_invoice_template else "-",
             obj.vat_amount if obj.vat_amount is not None else "-",
             obj.proforma_validity if obj.proforma_validity is not None else "-",
         )

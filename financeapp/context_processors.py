@@ -30,7 +30,7 @@ def _sum_invoice_stats(queryset):
         "total": total,
     }
 def company_branding(request):
-    company = CompanySetting.objects.first()
+    company = CompanySetting.get_default()
     if not company:
         return {
             "company_brand_name": "",

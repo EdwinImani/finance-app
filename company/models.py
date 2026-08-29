@@ -1,5 +1,9 @@
 from django.db import models
-from django.core.exceptions import ValidationError
+
+from financeapp.document_templates import (
+    COMMERCIAL_INVOICE_TEMPLATE_CHOICES,
+    COMMERCIAL_INVOICE_TEMPLATE_DEFAULT,
+)
 
 
 class CompanySetting(models.Model):
@@ -17,6 +21,11 @@ class CompanySetting(models.Model):
         upload_to="company/",
         null=True,
         blank=True
+    )
+
+    is_default = models.BooleanField(
+        default=False,
+        help_text="Use this profile for new documents unless another company is selected."
     )
 
     year = models.IntegerField(default=2026)
@@ -47,6 +56,13 @@ class CompanySetting(models.Model):
 
     invoice_note = models.TextField(blank=True)
 
+    commercial_invoice_template = models.CharField(
+        max_length=20,
+        choices=COMMERCIAL_INVOICE_TEMPLATE_CHOICES,
+        default=COMMERCIAL_INVOICE_TEMPLATE_DEFAULT,
+        help_text="Default PDF template for commercial invoices issued by this company."
+    )
+
     delivery_time = models.CharField(max_length=255, blank=True)
 
     terms_conditions = models.CharField(max_length=255, blank=True)
@@ -69,9 +85,16 @@ class CompanySetting(models.Model):
         default=20
     )
 
+    class Meta:
+        ordering = ("-is_default", "company_name", "id")
+
+    @classmethod
+    def get_default(cls):
+        return cls.objects.filter(is_default=True).first() or cls.objects.first()
+
     def save(self, *args, **kwargs):
-        if not self.pk and CompanySetting.objects.exists():
-            raise ValidationError("Only one company setting can exist.")
+        if not self.pk and not CompanySetting.objects.exists():
+            self.is_default = True
 
         old_logo_name = None
 
@@ -87,13 +110,26 @@ class CompanySetting(models.Model):
 
         super().save(*args, **kwargs)
 
+        if self.is_default:
+            CompanySetting.objects.exclude(pk=self.pk).update(is_default=False)
+        elif not CompanySetting.objects.filter(is_default=True).exists():
+            CompanySetting.objects.filter(pk=self.pk).update(is_default=True)
+            self.is_default = True
+
         if old_logo_name:
             self.company_logo.storage.delete(old_logo_name)
 
     def delete(self, *args, **kwargs):
         logo_name = self.company_logo.name if self.company_logo else None
+        was_default = self.is_default
 
         super().delete(*args, **kwargs)
+
+        if was_default and not CompanySetting.objects.filter(is_default=True).exists():
+            replacement = CompanySetting.objects.order_by("company_name", "id").first()
+            if replacement:
+                replacement.is_default = True
+                replacement.save(update_fields=["is_default"])
 
         if logo_name:
             self.company_logo.storage.delete(logo_name)

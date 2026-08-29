@@ -6,6 +6,10 @@ from products.models import Product
 from django.utils import timezone
 from decimal import Decimal
 from company.models import CompanySetting
+from financeapp.document_templates import (
+    COMMERCIAL_INVOICE_TEMPLATE_CHOICES,
+    COMMERCIAL_INVOICE_TEMPLATE_DEFAULT,
+)
 from datetime import timedelta
 import re
 
@@ -88,7 +92,7 @@ class BaseInvoice(models.Model):
 
         if not self.invoice_number:
 
-            company = CompanySetting.objects.first()
+            company = CompanySetting.get_default()
             year = company.year if company and company.year else timezone.now().year
 
             previous_invoices = self.__class__.objects.filter(
@@ -122,7 +126,7 @@ class ProformaInvoice(BaseInvoice):
 
     def ready_for_report(self):
 
-        company = CompanySetting.objects.first()
+        company = CompanySetting.get_default()
 
         if not company:
             return False
@@ -163,6 +167,7 @@ class ProformaInvoice(BaseInvoice):
                     commercial_item.delete()
             else:
                 commercial = CommercialInvoice.objects.create(
+                    issuing_company=CompanySetting.get_default(),
                     invoice_date=self.invoice_date,
                     importer=self.importer,
                     end_user=self.end_user,
@@ -266,6 +271,21 @@ class CommercialInvoice(BaseInvoice):
                 "Can access Commercial Invoice reports",
             ),
         )
+
+    issuing_company = models.ForeignKey(
+        CompanySetting,
+        related_name="commercial_invoices",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        help_text="Company profile, address, logo, and bank details used on this invoice.",
+    )
+    pdf_template = models.CharField(
+        max_length=20,
+        choices=COMMERCIAL_INVOICE_TEMPLATE_CHOICES,
+        default=COMMERCIAL_INVOICE_TEMPLATE_DEFAULT,
+        help_text="Visual PDF template used for this commercial invoice.",
+    )
 
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
